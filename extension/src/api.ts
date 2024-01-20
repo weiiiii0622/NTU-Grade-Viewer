@@ -33,3 +33,16 @@ async function fetchApp<T extends Route>(route: T, req: RequestType[T]): Promise
 }
 
 export { fetchApp };
+
+/**
+ * Execute function through service worker.
+ **/
+function setProxyFunc<T extends any[], R>(
+    func: (...args: T) => R,
+    args?: T,
+    callback?: (result: R) => void
+) {
+    chrome.runtime.sendMessage({ type: "proxy-service", func, args }, callback);
+}
+
+export { setProxyFunc };

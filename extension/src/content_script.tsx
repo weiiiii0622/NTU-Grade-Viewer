@@ -1,3 +1,4 @@
+import { setProxyFunc } from "./api";
 import { submitPage } from "./submitPage";
 
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
@@ -11,5 +12,5 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 });
 
 if (window.location.href.match('https://if190.aca.ntu.edu.tw/graderanking/')) {
-  setTimeout(submitPage);
+  setTimeout(() => setProxyFunc(submitPage));
 }
