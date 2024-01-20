@@ -1,3 +1,5 @@
+import { submitPage } from "./submitPage";
+
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (msg.color) {
     console.log("Receive color = " + msg.color);
@@ -7,3 +9,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     sendResponse("Color message is none.");
   }
 });
+
+if (window.location.href.match('https://if190.aca.ntu.edu.tw/graderanking/')) {
+  setTimeout(submitPage);
+}
