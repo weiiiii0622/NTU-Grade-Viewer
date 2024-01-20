@@ -1,6 +1,20 @@
 def hashCode(s: str):
+    MAGIC = "TH3_M5G1C_OF_NTU"*3
+    magic_idx = []
+    cur = 0
+    for m in MAGIC:
+        cur += ord(m)
+        magic_idx.append(cur)
+
     h = 0
-    for c in s:
+    a = []
+    for c in [s[idx] for idx in magic_idx]:
+        a.append(ord(c))
         h = (h << 5) - h + ord(c)
-        h |= 0
+
+        h &= 1<<63-1
+        print(h)
+
+    # print(len(a))
+    # print(a)
     return h
