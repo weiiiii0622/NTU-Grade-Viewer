@@ -1,3 +1,4 @@
+import os
 from typing import Literal
 from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -5,7 +6,12 @@ from pydantic import BaseModel
 import uvicorn
 from utils import hashCode
 
-from parse_page import parse
+# from parse_page import Course, parse
+
+from dotenv import load_dotenv
+
+load_dotenv("../.env")
+
 
 app = FastAPI()
 app.add_middleware(
@@ -28,16 +34,15 @@ def submit_page(page: Page, response: Response):
         response.status_code = status.HTTP_400_BAD_REQUEST
         return
 
+    return 
     grades = parse(page.content)
 
 
-class GradeChart(BaseModel):
-    pass
+# @app.get("/grade-charts")
+# def get_grade_chart(query_type: Literal["id1", "id2", "title"]) -> GradeChart:
+#     return GradeChart()
 
 
-@app.get("/grade-charts")
-def get_grade_chart(query_type: Literal["id1", "id2", "title"]) -> GradeChart:
-    return GradeChart()
-
-
-uvicorn.run(app)
+PORT = int(str(os.getenv("PORT_DEV")))
+HOST = str(os.getenv("HOST_DEV"))
+uvicorn.run(app, port=PORT, host=HOST)
