@@ -8,7 +8,8 @@ A chrome plugin for the purpose of showing each course's score distribution on t
 
 ```bash
 $ pip install -r requirements.txt
-$ python app/app.py
+$ cd app
+$ python app.py
 ```
 
 ### Extension
