@@ -11,8 +11,26 @@ interface RouteFoo {
 
 type Route = "/page" | "/foo";
 type RequestType = { "/foo": RouteFoo; "/page": RoutePage };
-type ResponseType = { "/foo": number; "/page": {} };
+type ResponseSuccess = {
+    "/foo": number;
+    "/page": { userId: string };
+};
+type ResponseFail = {};
+type ResponseType = {
+    [K in keyof ResponseSuccess]:
+        | { status: "success"; data: ResponseSuccess[K] }
+        | { status: "fail"; data: unknown };
+};
 
+export type { Route, RequestType, ResponseSuccess };
+
+/**
+ * Send request to web app. This should be executed at background in general.
+ *
+ * @param route
+ * @param req
+ * @returns
+ */
 async function fetchApp<T extends Route>(route: T, req: RequestType[T]): Promise<ResponseType[T]> {
     const { method } = req;
 
@@ -23,26 +41,42 @@ async function fetchApp<T extends Route>(route: T, req: RequestType[T]): Promise
 
     const url = APP_URL + route;
 
-    const res = fetch(url, {
+    const res: ResponseType[T] = await fetch(url, {
         body,
         headers,
         method,
-    }).then((r) => r.json());
+    }).then(async (r) => {
+        if (r.status >= 500) return { status: "fail", data: "Internal Server Error" };
+        if (r.status >= 400) return { status: "fail", data: await r.json() };
+        return { status: "success", data: await r.json() };
+    });
 
-    return res as any;
+    return res;
 }
 
-export { fetchApp };
+async function fetchAppProxy<T extends Route>(
+    route: T,
+    req: RequestType[T]
+): Promise<ResponseType[T]> {
+    return new Promise((res) => {
+        chrome.runtime.sendMessage({ type: "fetch-proxy", route, req }, (r) => {
+            res(r);
+        });
+    });
+}
 
+export { fetchApp, fetchAppProxy };
+
+// ? This do not work since function cannot be sent as message.
 /**
  * Execute function through service worker.
  **/
-function setProxyFunc<T extends any[], R>(
-    func: (...args: T) => R,
-    args?: T,
-    callback?: (result: R) => void
-) {
-    chrome.runtime.sendMessage({ type: "proxy-service", func, args }, callback);
-}
+// function setProxyFunc<T extends any[], R>(
+//     func: (...args: T) => R,
+//     args?: T,
+//     callback?: (result: R) => void
+// ) {
+//     chrome.runtime.sendMessage({ type: "proxy-service", func, args }, callback);
+// }
 
-export { setProxyFunc };
+// export { setProxyFunc };

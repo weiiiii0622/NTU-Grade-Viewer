@@ -1,4 +1,4 @@
-import { fetchApp } from "./api";
+import { fetchApp, fetchAppProxy } from "./api";
 import { getHashCode } from "./utils";
 
 async function submitPage() {
@@ -11,9 +11,12 @@ async function submitPage() {
     const hashCode = getHashCode(content);
 
     const page = { content, hashCode };
-    const r = await fetchApp("/page", { method: "POST", body: page });
-
-    console.log('response:', r);
+    const r = await fetchAppProxy("/page", { method: "POST", body: page });
+    if (r.status === "success") {
+        console.log("success; userId:", r.data.userId);
+    } else {
+        console.log("fail; ", r.data);
+    }
 }
 
 export { submitPage };
