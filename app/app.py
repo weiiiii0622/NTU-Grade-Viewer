@@ -33,8 +33,10 @@ def submit_page(page: Page, response: Response):
     if hashCode(page.content) != page.hashCode:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return
-
-    return 
+    print(response)
+    return {
+        "message": "Successfully Submit Message!"
+    }
     grades = parse(page.content)
 
 

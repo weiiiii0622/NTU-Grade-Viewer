@@ -9,6 +9,11 @@ interface RouteFoo {
     method: "GET";
 }
 
+interface IResponse {
+    res: Response,
+    data: object
+}
+
 type Route = "/page" | "/foo";
 type RequestType = { "/foo": RouteFoo; "/page": RoutePage };
 type ResponseSuccess = {

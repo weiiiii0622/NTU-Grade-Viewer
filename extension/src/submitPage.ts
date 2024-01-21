@@ -2,7 +2,7 @@ import { fetchApp, fetchAppProxy } from "./api";
 import { getHashCode } from "./utils";
 
 async function submitPage() {
-    if (!window.location.href.match("https://if190.aca.ntu.edu.tw/graderanking/"))
+    if (!window.location.href.startsWith("https://if190.aca.ntu.edu.tw/graderanking/"))
         throw "You should submit on your grade page.";
 
     if (!document.querySelector(".table-grade .table-rows")) throw "No available grades to submit.";

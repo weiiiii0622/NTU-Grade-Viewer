@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
 
-  "name": "Chrome Extension TypeScript Starter",
-  "description": "Chrome Extension, TypeScript, Visual Studio Code",
+  "name": "NTU 選課小幫手",
+  "description": "A chrome plugin for the purpose of showing each course's score distribution on the site '台大課程網'",
   "version": "1.0",
 
   "options_ui": {
@@ -10,10 +10,16 @@
   },
 
   "action": {
-    "default_icon": "icon.png",
+    "default_icon": {
+      "16": "icon.png",
+      "24": "icon.png",
+      "32": "icon.png",
+      "64": "icon.png",
+      "128": "icon.png",
+      "512": "icon.png"
+    },
     "default_popup": "popup.html"
   },
-
   "content_scripts": [
       {
           "matches": ["<all_urls>"],
