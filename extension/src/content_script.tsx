@@ -1,4 +1,3 @@
-import { setProxyFunc } from "./api";
 import { submitPage } from "./submitPage";
 
 

@@ -16,7 +16,7 @@ function getHashCode(s: string): number {
         h = (h << 5) - h + c;
         h &= 1 << (63 - 1);
     }
-    return h;
+    return h + 1;
 }
 
 export { getHashCode };
