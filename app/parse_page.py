@@ -1,10 +1,13 @@
-from dataclasses import dataclass
 import re
 
 import bs4
 from bs4 import Tag
 
-from module.course import Course, GradeInfo, GRADES
+from models import Course, GradeInfo
+
+
+GRADES = ("A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "F")
+RE_SEMESTER = re.compile(r"\d+-\d+")
 
 
 def get_infos(row: Tag, classes: list[str]) -> list[str]:

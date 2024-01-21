@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import math
 from typing import Generic, TypeVar
 
 
@@ -42,10 +43,6 @@ def f():
     return f.__globals__["Nil"]  # some hack to avoid circular reference
 
 
-def eq(a: T, b: T, error=1):
-    return abs(a - b) <= error
-
-
 class SegmentList(Generic[T]):
     size: int
     total: T
@@ -72,7 +69,6 @@ class SegmentList(Generic[T]):
         """
 
         cur = self.head
-        # print(cur, bool(cur))
         while cur:
             if cur.l <= idx <= cur.r:
                 return cur
@@ -80,10 +76,9 @@ class SegmentList(Generic[T]):
         raise Exception(f"Idx {idx} not found!")
 
     def update(self, idx: int, same: T, lower: T, higher: T):
-        assert eq(same, self.total - lower - higher)
+        assert math.isclose(same, self.total - lower - higher, abs_tol=1)
 
         cur = self.find(idx)
-        # print('found')
 
         new_l_val = lower
         prev = cur.prev
@@ -185,6 +180,3 @@ class SegmentList(Generic[T]):
     #         return
     #     node_l.r = l - 1
     #     node_r.l = r + 1
-
-
-
