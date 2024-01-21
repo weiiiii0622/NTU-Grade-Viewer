@@ -13,7 +13,7 @@ def hashCode(s: str):
         h = (h << 5) - h + ord(c)
 
         h &= 1<<63-1
-        print(h)
+        # print(h)
 
     # print(len(a))
     # print(a)
