@@ -57,5 +57,5 @@ def parse(text: str) -> list[GradeInfo]:
     return results
 
 
-example = open("./example.html", encoding="utf-8").read()
-print(parse(example))
+# example = open("./example.html", encoding="utf-8").read()
+# print(parse(example))
