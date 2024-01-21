@@ -30,10 +30,11 @@ class Page(BaseModel):
 
 @app.post("/page", status_code=200)
 def submit_page(page: Page, response: Response):
+    print(hashCode(page.content), page.hashCode)
     if hashCode(page.content) != page.hashCode:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return
-    print(response)
+
     return {
         "message": "Successfully Submit Message!"
     }

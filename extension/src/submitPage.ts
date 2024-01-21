@@ -12,11 +12,15 @@ async function submitPage() {
 
     const page = { content, hashCode };
     const r = await fetchAppProxy("/page", { method: "POST", body: page });
-    if (r.status === "success") {
-        console.log("success; userId:", r.data.userId);
-    } else {
-        console.log("fail; ", r.data);
-    }
+    console.log("submitPage result: ", r);
+
+    // if (r.status === "success") {
+    //     console.log("success; userId:", r.data.userId);
+    // } else {
+    //     console.log("fail; ", r.data);
+    // }
+
+    return r;
 }
 
 export { submitPage };
