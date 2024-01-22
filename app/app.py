@@ -31,7 +31,7 @@ class Page(BaseModel):
 
 # Determine user is authorized of not (Has submit score?)
 @app.get("/auth/{studentId}", status_code=200)
-def getUserAuth(response: Response, studentId: int = Path(title="The ID of the student")):
+def getUserAuth(response: Response, studentId: str = Path(title="The ID of the student")):
     # Check User is in Auth List?
     isAuth = checkAuth(studentId)
 
