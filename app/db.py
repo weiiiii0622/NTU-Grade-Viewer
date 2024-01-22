@@ -1,4 +1,6 @@
+from datetime import datetime
 import os
+import time
 from typing import Generic, Type, TypeAlias, TypeVar
 
 from pymysql import Connection, OperationalError
@@ -9,16 +11,13 @@ from pymysql.cursors import Cursor, DictCursor
 class Database:
     connection: "pymysql.Connection[DictCursor]"
 
-    def __init__(
-        self,
-        host: str,
-        port: int,
-        user: str,
-        password: str,
-        db: str,
-        max_retries=20,
-    ) -> None:
-        for _ in range(max_retries):
+    def __init__(self, host: str, port: int, user: str, password: str, db: str, timeout=60) -> None:
+        self.connection = None  # type: ignore
+
+        # TODO: current is blocking, perhaps change to async?
+        st = datetime.now()
+        print(host, port, user, password)
+        while (datetime.now() - st).seconds < timeout:
             try:
                 self.connection = pymysql.connect(
                     host=host,
@@ -31,30 +30,38 @@ class Database:
                 break
             except OperationalError as e:
                 print(e)
+                time.sleep(1)
                 pass
         if not self.connection:
-            raise Exception("Cannot connect to db.")
+            raise Exception(f"Cannot connect to db after timeout {timeout} secs.")
 
         self.post_init()
 
     def post_init(self):
-        with self.connection:
-            with self.connection.cursor() as cursor:
-                sql = "CREATE TABLE IF NOT EXISTS course (name TEXT)"
-                cursor.execute(sql)
-                sql = "INSERT INTO course (name) VALUES ('new course')"
-                cursor.execute(sql)
+        with self.connection.cursor() as cursor:
+            sql = "CREATE TABLE IF NOT EXISTS course (name TEXT)"
+            cursor.execute(sql)
+            sql = "INSERT INTO course (name) VALUES ('new course')"
+            cursor.execute(sql)
 
-            self.connection.commit()
+        self.connection.commit()
 
     def test(self):
-        with self.connection:
-            with self.connection.cursor() as cursor:
-                # Read a single record
-                sql = "SELECT 'HELLO WORLD!'"
-                cursor.execute(sql)
-                result = cursor.fetchone()
-                return result  # {'HELLO WORLD!': 'HELLO WORLD!'} expected
+        with self.connection.cursor() as cursor:
+            # Read a single record
+            sql = "SELECT 'HELLO WORLD!'"
+            cursor.execute(sql)
+            result = cursor.fetchone()
+            return result  # {'HELLO WORLD!': 'HELLO WORLD!'} expected
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc_info):
+        self.connection.__exit__(*exc_info)
+
+    def close(self):
+        self.connection.close()
 
 
 def get_db():
@@ -73,4 +80,4 @@ def inc():
     pass
 
 
-db = get_db()
+# db = get_db()

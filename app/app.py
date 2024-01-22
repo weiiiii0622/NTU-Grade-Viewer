@@ -30,39 +30,36 @@ app.add_middleware(
 )
 
 
+@app.get("/")
+def get_root():
+    return "HELLO ROOT"
+
+
 # Determine user is authorized of not (Has submit score?)
 @app.get("/auth/{studentId}", status_code=200)
 def getUserAuth(response: Response, studentId: str = Path(title="The ID of the student")):
     # Check User is in Auth List?
     isAuth = checkAuth(studentId)
 
-    if(isAuth == False):
+    if isAuth == False:
         response.status_code = status.HTTP_400_BAD_REQUEST
-        return {
-            "message": "Not authenticated"
-        }
+        return {"message": "Not authenticated"}
 
-    return {
-        "message": "Successfully authenticated!"
-    }
+    return {"message": "Successfully authenticated!"}
+
 
 @app.post("/page", status_code=200)
 def submit_page(page: Page, response: Response):
-    
     if hashCode(page.content) != page.hashCode:
         # Fail to submit score
         response.status_code = status.HTTP_400_BAD_REQUEST
-        return{
-            "message": "Failed to Submit Score!"
-        }
+        return {"message": "Failed to Submit Score!"}
 
     # Success!
     # Add user to auth list
     addAuth(page.studentId)
 
-    return {
-        "message": "Successfully Submit Score!"
-    }
+    return {"message": "Successfully Submit Score!"}
     grades = parse(page.content)
 
     grades = parse(page.content)
@@ -74,9 +71,11 @@ def submit_page(page: Page, response: Response):
 def db_test():
     return test()
 
+
 @app.post("/db/inc")
 def db_inc():
     pass
+
 
 # @app.get("/grade-charts")
 # def get_grade_chart(query_type: Literal["id1", "id2", "title"]) -> GradeChart:
@@ -85,5 +84,5 @@ def db_inc():
 
 PORT = int(str(os.getenv("PORT_DEV")))
 HOST = str(os.getenv("HOST_DEV"))
-print(PORT, HOST)
-uvicorn.run(app, port=PORT, host=HOST)
+# print(PORT, HOST)
+uvicorn.run(app, port=PORT, host="0.0.0.0")
