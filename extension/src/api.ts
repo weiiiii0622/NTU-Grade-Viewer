@@ -8,18 +8,24 @@ interface RoutePage {
 interface RouteFoo {
     method: "GET";
 }
+interface RouteBar {
+    method: "POST";
+    body: undefined;
+}
 
-type Route = "/page" | "/foo";
-type RequestType = { "/foo": RouteFoo; "/page": RoutePage };
+type Route = "/page" | "/foo" | "/bar";
+type ParamsType = { "/foo": "a"; "/bar": "b" | "c"; "/post": never };
+type RequestType = { "/foo": RouteFoo; "/bar": RouteBar; "/page": RoutePage };
 type ResponseSuccess = {
     "/foo": number;
+    "/bar": {};
     "/page": { userId: string };
 };
 type ResponseFail = {};
 type ResponseType = {
     [K in keyof ResponseSuccess]:
-        | { status: "success"; data: ResponseSuccess[K], status_code: number }
-        | { status: "fail"; data: unknown, status_code: number};
+        | { status: "success"; data: ResponseSuccess[K]; status_code: number }
+        | { status: "fail"; data: unknown; status_code: number };
 };
 
 export type { Route, RequestType, ResponseSuccess };
@@ -46,15 +52,17 @@ async function fetchApp<T extends Route>(route: T, req: RequestType[T]): Promise
         headers,
         method,
     }).then(async (r) => {
-        if (r.status >= 500) return { status: "fail", status_code: r.status, data: "Internal Server Error"};
-        if (r.status >= 400) return { status: "fail", status_code: r.status, data: await r.json()};
-        return { status: "success", status_code: r.status, data: await r.json() }
+        if (r.status >= 500)
+            return { status: "fail", status_code: r.status, data: "Internal Server Error" };
+        if (r.status >= 400) return { status: "fail", status_code: r.status, data: await r.json() };
+        return { status: "success", status_code: r.status, data: await r.json() };
     });
 
     return res;
 }
 
 async function fetchAppProxy<T extends Route>(
+    // route: T extends keyof ParamsType ? `${T}${UnionParamsToURL<ParamsType[T]>}` : never,
     route: T,
     req: RequestType[T]
 ): Promise<ResponseType[T]> {
