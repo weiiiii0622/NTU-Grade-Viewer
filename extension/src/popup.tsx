@@ -8,6 +8,11 @@ const Popup = () => {
 
     const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
 
+    useEffect(() => {
+      console.log("Hi");
+    }, []);
+    
+
     const handleSubmitScore = () => {
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs: chrome.tabs.Tab[]) {
         const tab:chrome.tabs.Tab = tabs[0];

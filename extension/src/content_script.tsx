@@ -21,7 +21,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       console.log("SubmitScore Error:", error);
       sendResponse(`SubmitScore Error: ${error}`);
     }
-    
   }
 });
 

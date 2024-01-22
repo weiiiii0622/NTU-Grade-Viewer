@@ -1,10 +1,11 @@
 import os
 from typing import Literal
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI, Response, status, Path
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
-from utils import hashCode
+
+from utils import hashCode, addAuth, checkAuth
 
 # from parse_page import Course, parse
 
@@ -24,19 +25,42 @@ app.add_middleware(
 
 
 class Page(BaseModel):
+    studentId: int
     content: str
     hashCode: int
 
+# Determine user is authorized of not (Has submit score?)
+@app.get("/auth/{studentId}", status_code=200)
+def getUserAuth(response: Response, studentId: int = Path(title="The ID of the student")):
+    # Check User is in Auth List?
+    isAuth = checkAuth(studentId)
+
+    if(isAuth == False):
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {
+            "message": "Not authenticated"
+        }
+
+    return {
+        "message": "Successfully authenticated!"
+    }
 
 @app.post("/page", status_code=200)
 def submit_page(page: Page, response: Response):
-    print(hashCode(page.content), page.hashCode)
+    
     if hashCode(page.content) != page.hashCode:
+        # Fail to submit score
         response.status_code = status.HTTP_400_BAD_REQUEST
-        return
+        return{
+            "message": "Failed to Submit Score!"
+        }
+
+    # Success!
+    # Add user to auth list
+    addAuth(page.studentId)
 
     return {
-        "message": "Successfully Submit Message!"
+        "message": "Successfully Submit Score!"
     }
     grades = parse(page.content)
 

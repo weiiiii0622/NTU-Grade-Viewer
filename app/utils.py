@@ -18,3 +18,13 @@ def hashCode(s: str):
     # print(len(a))
     # print(a)
     return h
+
+# Add student to auth list
+def addAuth(studentId: str):
+    # ...
+    return
+
+# Check student is in auth list
+def checkAuth(studentId: str):
+    # ...
+    return True
