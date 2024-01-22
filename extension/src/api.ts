@@ -9,11 +9,6 @@ interface RouteFoo {
     method: "GET";
 }
 
-interface IResponse {
-    res: Response,
-    data: object
-}
-
 type Route = "/page" | "/foo";
 type RequestType = { "/foo": RouteFoo; "/page": RoutePage };
 type ResponseSuccess = {
@@ -23,8 +18,8 @@ type ResponseSuccess = {
 type ResponseFail = {};
 type ResponseType = {
     [K in keyof ResponseSuccess]:
-        | { status: "success"; data: ResponseSuccess[K] }
-        | { status: "fail"; data: unknown };
+        | { status: "success"; data: ResponseSuccess[K], status_code: number }
+        | { status: "fail"; data: unknown, status_code: number};
 };
 
 export type { Route, RequestType, ResponseSuccess };
@@ -51,9 +46,9 @@ async function fetchApp<T extends Route>(route: T, req: RequestType[T]): Promise
         headers,
         method,
     }).then(async (r) => {
-        if (r.status >= 500) return { status: "fail", data: "Internal Server Error" };
-        if (r.status >= 400) return { status: "fail", data: await r.json() };
-        return { status: "success", data: await r.json() };
+        if (r.status >= 500) return { status: "fail", status_code: r.status, data: "Internal Server Error"};
+        if (r.status >= 400) return { status: "fail", status_code: r.status, data: await r.json()};
+        return { status: "success", status_code: r.status, data: await r.json() }
     });
 
     return res;

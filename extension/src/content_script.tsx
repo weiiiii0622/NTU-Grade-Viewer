@@ -4,10 +4,9 @@ import { submitPage } from "./submitPage";
 
 const handleSubmitScore = async (sendResponse: (response?: any) => void) => {
   const res = await submitPage();
-  console.log("res", res);
   sendResponse({
     data: res.data,
-    status: res.res.status
+    status: res.status_code
   });
 }
 
@@ -22,7 +21,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       console.log("SubmitScore Error:", error);
       sendResponse(`SubmitScore Error: ${error}`);
     }
-    
   }
 });
 

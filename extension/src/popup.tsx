@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-import { submitPage } from "./submitPage";
+import { fetchAppProxy } from "./api";
 
 
 const Popup = () => {
-
+    let studentId = "";
     const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
+
+    useEffect(() => {
+      const checkAuth = async () => {
+         
+        // const r = await fetchAppProxy(`/auth/${studentId}`, { method: "GET", body: page });
+      }
+      
+    }, []);
+    
 
     const handleSubmitScore = () => {
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs: chrome.tabs.Tab[]) {

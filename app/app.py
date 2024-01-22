@@ -1,14 +1,19 @@
 import os
-from pathlib import Path
+import pathlib
 
 
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI, Response, status, Path
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+
+from utils import hashCode, addAuth, checkAuth
+
+# from parse_page import Course, parse
+
 from dotenv import load_dotenv
 from db import test
 
-load_dotenv(str(Path(__file__).parent / "../.env"))
+load_dotenv(os.path.join(os.path.dirname(__file__), "../.env"))
 
 from models import Page
 from parse_page import parse
@@ -25,11 +30,40 @@ app.add_middleware(
 )
 
 
+# Determine user is authorized of not (Has submit score?)
+@app.get("/auth/{studentId}", status_code=200)
+def getUserAuth(response: Response, studentId: str = Path(title="The ID of the student")):
+    # Check User is in Auth List?
+    isAuth = checkAuth(studentId)
+
+    if(isAuth == False):
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {
+            "message": "Not authenticated"
+        }
+
+    return {
+        "message": "Successfully authenticated!"
+    }
+
 @app.post("/page", status_code=200)
 def submit_page(page: Page, response: Response):
+    
     if hashCode(page.content) != page.hashCode:
+        # Fail to submit score
         response.status_code = status.HTTP_400_BAD_REQUEST
-        return {"msg": "Invalid hashCode!"}
+        return{
+            "message": "Failed to Submit Score!"
+        }
+
+    # Success!
+    # Add user to auth list
+    addAuth(page.studentId)
+
+    return {
+        "message": "Successfully Submit Score!"
+    }
+    grades = parse(page.content)
 
     grades = parse(page.content)
     return {"msg": "Successful"}
