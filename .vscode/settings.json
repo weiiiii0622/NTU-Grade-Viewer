@@ -1,5 +1,6 @@
 {
-    "typescript.tsdk": "./node_modules/typescript/lib",
+    "typescript.tsserver.log": "verbose",
+    "typescript.tsdk": "./extension/node_modules/typescript/lib",
     "files.eol": "\n",
     "files.exclude": {
         "**/__pycache__": true

@@ -73,6 +73,7 @@ async function fetchAppProxy<T extends Route>(
     });
 }
 
+
 export { fetchApp, fetchAppProxy };
 
 // ? This do not work since function cannot be sent as message.
