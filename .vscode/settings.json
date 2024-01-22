@@ -11,5 +11,10 @@
             ],
             "url": "http://json.schemastore.org/chrome-manifest"
         }
+    ],
+    "typescript.preferences.useAliasesForRenames": false,
+    // "python.analysis.importFormat": "relative",
+    "python.analysis.extraPaths": [
+        "app"
     ]
 }

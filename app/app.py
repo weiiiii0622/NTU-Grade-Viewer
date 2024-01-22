@@ -1,16 +1,18 @@
 import os
-from typing import Literal
+from pathlib import Path
+
+
 from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 import uvicorn
-from utils import hashCode
-
-# from parse_page import Course, parse
-
 from dotenv import load_dotenv
+from db import test
 
-load_dotenv("../.env")
+load_dotenv(str(Path(__file__).parent / "../.env"))
+
+from models import Page
+from parse_page import parse
+from utils import hashCode
 
 
 app = FastAPI()
@@ -23,22 +25,24 @@ app.add_middleware(
 )
 
 
-class Page(BaseModel):
-    content: str
-    hashCode: int
-
-
 @app.post("/page", status_code=200)
 def submit_page(page: Page, response: Response):
     if hashCode(page.content) != page.hashCode:
         response.status_code = status.HTTP_400_BAD_REQUEST
-        return
-    print(response)
-    return {
-        "message": "Successfully Submit Message!"
-    }
-    grades = parse(page.content)
+        return {"msg": "Invalid hashCode!"}
 
+    grades = parse(page.content)
+    return {"msg": "Successful"}
+
+
+# * Testing db is working.
+@app.get("/db")
+def db_test():
+    return test()
+
+@app.post("/db/inc")
+def db_inc():
+    pass
 
 # @app.get("/grade-charts")
 # def get_grade_chart(query_type: Literal["id1", "id2", "title"]) -> GradeChart:
@@ -47,4 +51,5 @@ def submit_page(page: Page, response: Response):
 
 PORT = int(str(os.getenv("PORT_DEV")))
 HOST = str(os.getenv("HOST_DEV"))
+print(PORT, HOST)
 uvicorn.run(app, port=PORT, host=HOST)
