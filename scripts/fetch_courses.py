@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from datetime import datetime
 from multiprocessing.pool import ThreadPool
+import os
+from pathlib import Path
 import re
+from sys import argv
 from threading import Lock
 from typing import Callable, Optional, TypeVar
 import bs4
@@ -9,7 +12,19 @@ import requests
 from requests import Response
 from tqdm import tqdm
 
+BASE = "https://if177.aca.ntu.edu.tw/regquery/"
 DEPT = "https://if177.aca.ntu.edu.tw/regquery/Dept.aspx"
+OTHERS = [
+    BASE + x
+    for x in [
+        "Chinese.aspx",
+        "Foreign.aspx",
+        "Reqcou.aspx",
+        "FreshmanSeminar.aspx",
+        "Physical.aspx",
+        "MilTr.aspx",
+    ]
+]
 
 
 lock = Lock()
@@ -40,6 +55,12 @@ def set_cache(url: str, data: dict[str, str], r: Response):
     lock.acquire()
     _cache[key] = r
     lock.release()
+
+
+def parse_keys(keys: list[str]):
+    m = {"餘剩名額": "剩餘名額"}
+    keys = [m.get(k, k) for k in keys]
+    return keys
 
 
 def fetch(
@@ -132,7 +153,7 @@ def get_keys(r: QueryResponse):
     if not r.table:
         return []
     key_row: bs4.Tag = r.table.find("tr")  # type: ignore
-    return [a.text for a in key_row.find_all("a")]
+    return parse_keys([a.text for a in key_row.find_all("a")])
 
 
 @dataclass
@@ -140,6 +161,9 @@ class Dept:
     college: str
     dept: str
     count: int
+
+    def __str__(self) -> str:
+        return f"{self.college},{self.dept},{self.count}"
 
 
 COLLEGES = ["1000", "2000", "3000", "4000", "5000", "6000", "7000", "8000", "9000", "A000", "B000"]
@@ -249,14 +273,16 @@ class Scraper:
 
     def scrape_college(self, college: str, pbar: tqdm | None = None):
         depts = self.get_depts_from_college(college)
-        if pbar:
-            pbar.set_description(f"Fetching {college}")
-            pbar.total = len(depts)
+        if not pbar:
+            pbar = tqdm(total=100)
+        # if pbar:
+        pbar.set_description(f"Fetching {college}")
+        pbar.total = len(depts)
         with ThreadPool(processes=20) as pool:
             results = pool.starmap_async(
                 self.scrape_dept, [(college, dept, pbar) for dept in depts], None
             )
-            results.wait(timeout=100)
+            results.wait(timeout=3000)
             for (keys, datas), dept in zip(results.get(), depts):
                 lock.acquire()
                 self.append(keys, datas)
@@ -277,7 +303,7 @@ class Scraper:
         pbars = [tqdm(total=100, position=i) for i, _ in enumerate(colleges)]
         args = list(zip(colleges, pbars))
         with ThreadPool(processes=20) as p:
-            p.starmap_async(self.scrape_college, args).wait(timeout=200)
+            p.starmap_async(self.scrape_college, args).wait(timeout=3000)
         for pbar in pbars:
             pbar.close()
 
@@ -285,24 +311,42 @@ class Scraper:
         # for i, c in enumerate(colleges):
         #     self.scrape_college(c)
 
+    def scrape_others(self):
+        for url in OTHERS:
+            r, keys, datas = self.query(
+                url,
+                [
+                    {
+                        "__EVENTTARGET": "ctl00$MainContent$GridView1",
+                        "__EVENTARGUMENT": "Page$Next",
+                    }
+                ],
+                last_page,
+                get_keys,
+                get_datas,
+            )
+            # print("\n".join(" ".join(ln) for ln in datas))
+            # print(len(datas))
+            self.append(keys, datas)
+
     def append(self, keys: list[str], datas: list[list[str]]):
         if not self.keys:
             self.keys = keys
         elif not keys:
             assert not datas
         elif self.keys != keys:
-            raise Exception(f"Keys error:  is not the same as {self.keys}")
+            raise Exception(f"Keys error: {keys} is not the same as {self.keys}")
 
         self.datas += datas
 
     def dump_csv(self, out_name: str = "output"):
-        with open(
-            out_name + datetime.now().strftime("_%m%d") + ".csv", "+w", encoding="utf-8"
-        ) as f:
+        out_name = out_name + datetime.now().strftime("_%m%d")
+        with open(out_name + ".csv", "+w", encoding="utf-8") as f:
             f.write(",".join(self.keys) + "\n")
             f.writelines([",".join(data) + "\n" for data in self.datas])
 
         with open(out_name + ".count.csv", "+w", encoding="utf-8") as f:
+            f.write(f"total: {len(self.datas)}")
             f.write("\n".join(str(d) for d in self.depts))
 
     def count(self):
@@ -310,6 +354,10 @@ class Scraper:
 
 
 s = Scraper()
-s.scrape_colleges()
-s.dump_csv("test")
+# s.scrape_colleges()
+s.scrape_others()
+# s.scrape_college("1000")
+
+file_name = argv[1] if len(argv) >= 2 else "default"
+s.dump_csv(str(Path(__file__).parent / "../data/registrations" / file_name))
 # print(s.count())

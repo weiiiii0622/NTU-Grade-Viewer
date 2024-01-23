@@ -76,3 +76,6 @@ type UnionParamsToURL<P extends string> = [P] extends [never]
     ? ""
     : DictParamsToURL<{ [K in P]: string }>;
 
+
+
+
