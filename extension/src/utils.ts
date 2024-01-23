@@ -20,3 +20,26 @@ function getHashCode(s: string): number {
 }
 
 export { getHashCode };
+
+async function waitUntil(pred: () => boolean, timeout = 60) {
+    return new Promise<void>((res, rej) => {
+        const st = Date.now();
+        const f = () => {
+            if (Date.now() - st < timeout * 1000)
+                if (pred()) res();
+                else requestIdleCallback(f);
+            else rej();
+        };
+        requestIdleCallback(f);
+    });
+}
+
+export { waitUntil };
+
+function toURLQueryString<T extends Record<string, string | number>>(data: T) {
+    return Object.entries(data)
+        .map(([k, v]) => `${k}=${v}`)
+        .join("&");
+}
+
+export { toURLQueryString };
