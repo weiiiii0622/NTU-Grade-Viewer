@@ -60,10 +60,6 @@ def submit_page(page: Page, response: Response):
     addAuth(page.studentId)
 
     return {"message": "Successfully Submit Score!"}
-    grades = parse(page.content)
-
-    grades = parse(page.content)
-    return {"msg": "Successful"}
 
 
 # * Testing db is working.

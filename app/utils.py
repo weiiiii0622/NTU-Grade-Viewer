@@ -1,4 +1,8 @@
 def hashCode(s: str):
+    """
+    Used to verify valid page content.
+    """
+
     MAGIC = "TH3_M5G1C_OF_NTU" * 3
     magic_idx = []
     cur = 0
