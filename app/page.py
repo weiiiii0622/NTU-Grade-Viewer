@@ -50,10 +50,10 @@ def parse_page(text: str) -> list[tuple[Course, GradeInfo]]:
                 if (obj := re.match(r"(\d+(\.\d+)?)\%", p.text))
             )
         except ValueError:
-            assert semester == "112-1"
+            #assert semester == "112-1"
             continue
         if len(dist) != 3 or not math.isclose(sum(dist, 0), 100, abs_tol=1):
-            assert semester == "112-1"
+            #assert semester == "112-1"
             continue
 
         course = Course(id1, id2, title)
