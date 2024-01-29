@@ -25,7 +25,8 @@
       ],
       "js": [
         "js/vendor.js",
-        "js/content_script.js"
+        "js/content_script.js",
+        "js/score.js"
       ]
     }
   ],
