@@ -8,6 +8,7 @@ def hashCode(s: str):
     cur = 0
     for m in MAGIC:
         cur += ord(m)
+        cur %= len(s)
         magic_idx.append(cur)
 
     h = 0

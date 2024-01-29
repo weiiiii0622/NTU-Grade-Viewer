@@ -15,6 +15,7 @@ pymysql = {extras = ["rsa"], version = "*"}
 anyio = "*"
 chardet = "*"
 openpyxl = "*"
+pydantic-to-typescript = "*"
 
 [dev-packages]
 

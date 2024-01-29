@@ -1,8 +1,10 @@
+from curses import raw
 from dataclasses import dataclass, field
 from enum import Enum
 import math
 from pathlib import Path
 import pickle
+import re
 from typing import Annotated, TypeAlias
 from openpyxl import load_workbook
 
@@ -88,6 +90,15 @@ def validate_segments(segments: list[Segment]):
         raise Exception(f"seg: {segments}\n")
 
 
+def extract_cls(raw_lecturer: str):
+    if obj := re.match(r"(.+).*?\((.+?)\)", raw_lecturer):
+        # print('hi')
+        return obj.group(1).strip(), obj.group(2)
+    return raw_lecturer, ""
+# s = "林明仁(02)" 
+# if obj := re.match(r"(.*)\((.*)\)", s):
+#     print(obj.group(1), obj.group(2))
+
 # * Color
 class Color(Enum):
     BLACK = 0
@@ -122,6 +133,10 @@ def getColor(cell: Cell):
 # * Row parser
 def parse_row(row: tuple[Cell, ...]):
     title, lecturer, semester = [str(c.value) for c in row[:3]]
+    lecturer, cls = extract_cls(lecturer.replace("（", '(').replace("）", ")"))
+    # if c:
+    #     print(repr(l), repr(c))
+    print(lecturer)
 
     segments: list[Segment] = []
     st = -1

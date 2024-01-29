@@ -1,9 +1,10 @@
+import math
 import re
 
 import bs4
 from bs4 import Tag
 
-from models import Course, GradeInfo
+from models import Course, GradeInfo, to_semester
 
 
 GRADES = ("A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "F")
@@ -14,7 +15,7 @@ def get_infos(row: Tag, classes: list[str]) -> list[str]:
     return [row.select(f".{cls}")[0].text for cls in classes]
 
 
-def parse(text: str) -> list[GradeInfo]:
+def parse_page(text: str) -> list[tuple[Course, GradeInfo]]:
     soup = bs4.BeautifulSoup(text, "html.parser")
     grade_rows = soup.select(".table-grade .table-rows")
 
@@ -22,14 +23,18 @@ def parse(text: str) -> list[GradeInfo]:
         "table-column_academic-year",
         "table-column_course-number",
         "table-column-curriculum-identity-number",
+        "table-column-class",
         "table-column-course-title ",
         "table-column-grade",
     ]
-    results: list[GradeInfo] = []
+    results = []
     for row in grade_rows:
         infos = get_infos(row, extract_cls)
-        semester, id1, id2, title, grade = infos
-        if any(not s for s in infos) or grade not in GRADES:
+        semester, id1, id2, class_id, title, grade = infos
+        if not class_id:
+            class_id = None
+
+        if grade not in GRADES:
             continue
 
         # ! fuck bs4 typing
@@ -47,13 +52,20 @@ def parse(text: str) -> list[GradeInfo]:
         except ValueError:
             assert semester == "112-1"
             continue
-        if len(dist) != 3 or abs(sum(dist) - 100) > 1:
+        if len(dist) != 3 or not math.isclose(sum(dist, 0), 100, abs_tol=1):
             assert semester == "112-1"
             continue
 
         course = Course(id1, id2, title)
-        grade = GradeInfo(course, semester, grade, dist)
-        results.append(grade)
+        grade = GradeInfo(
+            course_id1=id1,
+            semester=to_semester(semester),
+            lecturer=None,
+            class_id=class_id,
+            grade=grade,
+            dist=dist,
+        )
+        results.append((course, grade))
     return results
 
 

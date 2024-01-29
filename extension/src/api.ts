@@ -47,13 +47,18 @@ async function fetchApp<T extends Route>(route: T, req: RequestType[T]): Promise
 
     const url = APP_URL + route;
 
+    console.log("body: ", body);
     const res: ResponseType[T] = await fetch(url, {
         body,
         headers,
         method,
     }).then(async (r) => {
         if (r.status >= 500)
-            return { status: "fail", status_code: r.status, data: "Internal Server Error" };
+            return {
+                status: "fail",
+                status_code: r.status,
+                data: "Internal Server Error",
+            };
         if (r.status >= 400) return { status: "fail", status_code: r.status, data: await r.json() };
         return { status: "success", status_code: r.status, data: await r.json() };
     });
