@@ -1,10 +1,9 @@
 import os
-from typing import Literal
+from typing import Any, Dict, List, Union
 
 
-from fastapi import FastAPI, Request, Response, status, Path
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response, status, Path
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 import uvicorn
 from grade import handle_grade_infos
 
@@ -16,7 +15,7 @@ from db import do_query_grades, test
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "../.env"))
 
-from models import QUERY_FIELDS, QUERY_FILTERS, GradeElement, Page
+from models import QUERY_FIELDS, QUERY_FILTERS, GradeElement, Page, QueryField, QueryFilter
 from page import parse_page
 from utils import hashCode
 
@@ -67,19 +66,30 @@ def submit_page(page: Page, response: Response):
 
 
 @app.get("/grades/all")
-def get_all_grades():
+def get_all_grades() -> list[GradeElement]:
     return do_query_grades({"1": "1"}, {})
 
 
+async def get_query_dict(
+    id1: str | None = None,
+    id2: str | None = None,
+    title: str | None = None,
+    class_id: str | None = None,
+    semester: str | None = None,
+):
+    d = locals()
+    keys = QUERY_FIELDS + QUERY_FILTERS
+    return {k: v for k in keys if (v := d[k])}
+
+
 @app.get("/query/grades")
-def query_grades(req: Request, res: Response):
-    query = dict(req.query_params)
+def query_grades(query: dict = Depends(get_query_dict)) -> list[GradeElement]:
+    print(query)
     fields = {k: v for k, v in query.items() if k in QUERY_FIELDS}
     filters = {k: v for k, v in query.items() if k in QUERY_FILTERS}
 
     if not fields:
-        res.status_code = status.HTTP_400_BAD_REQUEST
-        return "At least one field has to be specified!"
+        raise HTTPException(status_code=400, detail="At least one field has to be specified!")
 
     return do_query_grades(fields, filters)
 

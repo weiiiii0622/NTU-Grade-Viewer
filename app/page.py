@@ -4,7 +4,7 @@ import re
 import bs4
 from bs4 import Tag
 
-from models import Course, GradeInfo, to_semester
+from models import Course, GradeInfo
 
 
 GRADES = ("A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "F")
@@ -59,7 +59,7 @@ def parse_page(text: str) -> list[tuple[Course, GradeInfo]]:
         course = Course(id1, id2, title)
         grade = GradeInfo(
             course_id1=id1,
-            semester=to_semester(semester),
+            semester=semester,
             lecturer=None,
             class_id=class_id,
             grade=grade,

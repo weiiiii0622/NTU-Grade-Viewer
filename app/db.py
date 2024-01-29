@@ -15,7 +15,6 @@ from models import (
     QueryField,
     QueryFilter,
     Segment,
-    to_semester,
 )
 
 # ---------------------------------------------------------------------------- #
@@ -52,7 +51,7 @@ def gen_sql_init_commands() -> list[str]:
         #
         """-- sql
         CREATE TABLE IF NOT EXISTS `grade` (
-            id INT PRIMARY KEY,
+            id CHAR(16) PRIMARY KEY,
             course_id1 VARCHAR(15),
             class_id VARCHAR(5),
             lecturer VARCHAR(15),
@@ -80,7 +79,7 @@ class Database:
         password: str,
         db: str,
         init_commands: list[str] = [],
-        timeout=60,
+        timeout=5,
     ) -> None:
         self.connection = None  # type: ignore
 
@@ -230,18 +229,13 @@ def insert_grade_elements(grade_eles: list[GradeElement]):
     def parse_value(field: str, val: Any) -> str:
         if field == "segments":
             return quote(segs2str(val))
-        if field == "semester":
-            return quote("-".join(map(str, val)))
+        # if field == "semester":
+        #     return quote("-".join(map(str, val)))
         if val is None:
             return "NULL"
         return "'" + val + "'"
 
-    def get_id(g: GradeElement):
-        return hash((g.course_id1, g.class_id, g.semester)) % (1 << 31)
-
     def get_field(g: GradeElement, f: str):
-        if f == "id":
-            return f"{get_id(g)}"
         return parse_value(f, getattr(g, f))
 
     values = ",".join("(" + ",".join(get_field(g, f) for f in fields) + ")" for g in grade_eles)
@@ -275,8 +269,8 @@ def do_query_grades(fields: dict[str, str], filters: dict[str, str]) -> list[Gra
         for k, v in d.items():
             if k == "segments":
                 new_d[k] = str2Segments(v)
-            elif k == "semester":
-                new_d[k] = to_semester(v)
+            # elif k == "semester":
+            #     new_d[k] = to_semester(v)
             else:
                 new_d[k] = v
         return GradeElement(**new_d)
@@ -290,11 +284,11 @@ def do_query_grades(fields: dict[str, str], filters: dict[str, str]) -> list[Gra
     db = get_db()
     with db.connection.cursor() as cursor:
         cursor.execute(cmd)
-        id1 = cursor.fetchone()["id1"]  # type: ignore
+        ids = ("",) + tuple(c["id1"] for c in cursor.fetchall())  # type: ignore
+        id1_filter_s = "course_id1 in (" + ",".join(quote(id1) for id1 in ids) + ")"
 
-        filters |= {"course_id1": id1}
         filter_s = " AND ".join(
-            f"{k}={quote(v) if type(v)==str else v }" for k, v in filters.items()
+            (id1_filter_s, *(f"{k}={quote(v) if type(v)==str else v }" for k, v in filters.items()))
         )
         cmd = f"""-- sql
         SELECT * FROM `grade` WHERE {filter_s}
