@@ -1,6 +1,7 @@
 from abc import ABC
 import base64
 from dataclasses import dataclass, field
+import hashlib
 import math
 import re
 from typing import Annotated, Iterable, Literal, Optional, TypeAlias
@@ -30,11 +31,20 @@ class Course:
 
 # ----------------------------------- Grade ---------------------------------- #
 
-Semester: TypeAlias = tuple[Annotated[int, Field(ge=90, le=130)], Annotated[int, Field(ge=1, le=2)]]
+# Semester: TypeAlias = tuple[Annotated[int, Field(ge=90, le=130)], Annotated[int, Field(ge=1, le=2)]]
+# def to_semester(s: Annotated[str, Field(pattern=r"\d+-\d+")]) -> Semester:
+#     return tuple(map(int, s.split("-")))  # type: ignore
 
 
-def to_semester(s: Annotated[str, Field(pattern=r"\d+-\d+")]) -> Semester:
-    return tuple(map(int, s.split("-")))  # type: ignore
+# ? Change to this def. because I cannot fix openapi tuple issue🥲
+def validate_semester(s: str):
+    a, b = list(map(int, s.split("-")))
+    if 130 >= a >= 90 and 2 >= b >= 1:
+        return s
+    raise ValidationError()
+
+
+Semester = Annotated[str, Field(pattern=r"\d+-\d+"), AfterValidator(validate_semester)]
 
 
 GRADES = ("A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "F")
@@ -104,14 +114,19 @@ class GradeElement(GradeBase):
     """
 
     segments: list[Segment]
-    id: int = field(default=-1)
+    # id: int = field(default=-1)
+    id: Annotated[str, Field(min_length=16, max_length=16)] = field(default="")
 
-    def __post_init__(self):
-        if self.id == -1:
-            self.id = self.get_id()
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.id = self.get_id()
 
     def get_id(self):
-        return hash((self.course_id1, self.class_id, self.semester)) % (1 << 31)
+        return hashlib.sha256(
+            repr((self.course_id1, self.class_id, self.semester)).encode()
+        ).hexdigest()[:16]
+        # ! python hash() only return same value in single-run
+        # return hash((self.course_id1, self.class_id, self.semester)) % (1 << 31)
 
     @field_validator("segments")
     def valiadte_grade_eles(cls, v: list[Segment]):
@@ -120,6 +135,21 @@ class GradeElement(GradeBase):
         for i in range(len(v) - 1):
             assert v[i].r + 1 == v[i + 1].l, v
         return v
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "course_id1": "CSIE1212",
+                    "semester": "110-2",
+                    "lecturer": "林軒田",
+                    "class_id": "01",
+                    "segments": [{"l": 0, "r": 8, "value": 91}, {"l": 9, "r": 9, "value": 9}],
+                    "id": -1,
+                }
+            ]
+        }
+    }
 
 
 class CourseGrade(BaseModel):
