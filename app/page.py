@@ -23,14 +23,18 @@ def parse_page(text: str) -> list[tuple[Course, GradeInfo]]:
         "table-column_academic-year",
         "table-column_course-number",
         "table-column-curriculum-identity-number",
+        "table-column-class",
         "table-column-course-title ",
         "table-column-grade",
     ]
     results = []
     for row in grade_rows:
         infos = get_infos(row, extract_cls)
-        semester, id1, id2, title, grade = infos
-        if any(not s for s in infos) or grade not in GRADES:
+        semester, id1, id2, class_id, title, grade = infos
+        if not class_id:
+            class_id = None
+
+        if grade not in GRADES:
             continue
 
         # ! fuck bs4 typing
@@ -48,12 +52,19 @@ def parse_page(text: str) -> list[tuple[Course, GradeInfo]]:
         except ValueError:
             assert semester == "112-1"
             continue
-        if len(dist) != 3 or not math.isclose(sum(dist), 100, abs_tol=1):
+        if len(dist) != 3 or not math.isclose(sum(dist, 0), 100, abs_tol=1):
             assert semester == "112-1"
             continue
 
         course = Course(id1, id2, title)
-        grade = GradeInfo(to_semester(semester), grade, dist)
+        grade = GradeInfo(
+            course_id1=id1,
+            semester=to_semester(semester),
+            lecturer=None,
+            class_id=class_id,
+            grade=grade,
+            dist=dist,
+        )
         results.append((course, grade))
     return results
 

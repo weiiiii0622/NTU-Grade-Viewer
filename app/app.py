@@ -1,24 +1,22 @@
 import os
-import pathlib
-from typing import Annotated, Any, List, Literal, Tuple
+from typing import Literal
 
 
-from fastapi import FastAPI, Response, status, Path
+from fastapi import FastAPI, Request, Response, status, Path
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import uvicorn
-from grade import handle_grade_info
+from grade import handle_grade_infos
 
 from utils import hashCode, addAuth, checkAuth
 
-# from parse_page import Course, parse
 
 from dotenv import load_dotenv
-from db import insert_courses, test
+from db import do_query_grades, test
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "../.env"))
 
-from models import GradeElement, Page
+from models import QUERY_FIELDS, QUERY_FILTERS, GradeElement, Page
 from page import parse_page
 from utils import hashCode
 
@@ -59,9 +57,7 @@ def submit_page(page: Page, response: Response):
         return {"message": "Failed to Submit Score!"}
 
     results = parse_page(page.content)
-    # for course, grade_info in results:
-    #     handle_grade_info(course, grade_info)
-    insert_courses([c for c, _ in results])
+    handle_grade_infos(results)
 
     # Success!
     # Add user to auth list
@@ -70,24 +66,28 @@ def submit_page(page: Page, response: Response):
     return {"message": "Successfully Submit Score!"}
 
 
+@app.get("/grades/all")
+def get_all_grades():
+    return do_query_grades({"1": "1"}, {})
+
+
+@app.get("/query/grades")
+def query_grades(req: Request, res: Response):
+    query = dict(req.query_params)
+    fields = {k: v for k, v in query.items() if k in QUERY_FIELDS}
+    filters = {k: v for k, v in query.items() if k in QUERY_FILTERS}
+
+    if not fields:
+        res.status_code = status.HTTP_400_BAD_REQUEST
+        return "At least one field has to be specified!"
+
+    return do_query_grades(fields, filters)
+
+
 # * Testing db is working.
 @app.get("/db")
 def db_test():
     return test()
-
-
-class A(BaseModel):
-    a: int
-
-
-@app.post("/db/inc")
-def db_inc(a: A):
-    pass
-
-
-@app.get("/grade-charts")
-def get_grade_chart(query_type: Literal["id1", "id2", "title"]) -> GradeElement:
-    ...
 
 
 PORT = int(str(os.getenv("PORT_DEV")))

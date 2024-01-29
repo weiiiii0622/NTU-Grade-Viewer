@@ -47,10 +47,14 @@ class SegmentList(Generic[T]):
     size: int
     total: T
     head: Node[T]
+    err: T
 
-    def __init__(self, size: int, total: T, segments: list[tuple[int, int, T]] = []) -> None:
+    def __init__(
+        self, size: int, total: T, segments: list[tuple[int, int, T]] = [], err: T = 1
+    ) -> None:
         self.size = size
         self.total = total
+        self.err = err
         if not segments:
             self.head = Node(0, size - 1, total)
         else:
@@ -76,7 +80,7 @@ class SegmentList(Generic[T]):
         raise Exception(f"Idx {idx} not found!")
 
     def update(self, idx: int, same: T, lower: T, higher: T):
-        assert math.isclose(same, self.total - lower - higher, abs_tol=1)
+        assert math.isclose(same, self.total - lower - higher, abs_tol=self.err)
 
         cur = self.find(idx)
 
@@ -92,7 +96,9 @@ class SegmentList(Generic[T]):
             new_r_val -= nxt.value
             nxt = nxt.next
 
-        assert new_l_val + same + new_r_val == cur.value
+        assert math.isclose(
+            new_l_val + same + new_r_val, cur.value, abs_tol=self.err
+        ), f"{new_l_val}, {same}, {new_r_val}"
 
         if cur.l < idx:
             new_l: Node[T] = Node(cur.l, idx - 1, new_l_val)
