@@ -12,6 +12,7 @@ async function submitPage() {
     const hashCode = getHashCode(content);
 
     const page: Page = { content, hashCode, studentId: 0 };
+    console.log(page)
     const r = await fetchAppProxy("/page", { method: "POST", body: page });
     console.log("submitPage result: ", r);
 

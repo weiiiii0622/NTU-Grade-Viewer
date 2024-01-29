@@ -16,6 +16,14 @@
     "typescript.preferences.useAliasesForRenames": false,
     // "python.analysis.importFormat": "relative",
     "python.analysis.extraPaths": [
-        "app"
-    ]
+        "app",
+        "scripts"
+    ],
+    "prettier.tabWidth": 3,
+    "inlineSQL.enableDBIntegration": true,
+    "inlineSQL.dbDriver": "mysql",
+    "inlineSQL.dbPassword": "root",
+    "inlineSQL.dbPort": 3333,
+    "inlineSQL.dbUser": "root",
+    "inlineSQL.lintSQLFiles": true
 }

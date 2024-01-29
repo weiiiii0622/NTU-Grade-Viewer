@@ -6,6 +6,8 @@ from pymysql import OperationalError
 import pymysql.cursors
 from pymysql.cursors import DictCursor
 
+from models import Course
+
 # ---------------------------------------------------------------------------- #
 #                                 Table Schema                                 #
 # ---------------------------------------------------------------------------- #
@@ -30,13 +32,15 @@ from pymysql.cursors import DictCursor
 def gen_sql_init_commands() -> list[str]:
     # sql = "CREATE TABLE IF NOT EXISTS course (name TEXT)"
     commands = [
-        """CREATE TABLE IF NOT EXISTS `course` (
+        """-- sql
+        CREATE TABLE IF NOT EXISTS `course` (
             id1 VARCHAR(15) UNIQUE,
             id2 VARCHAR(15) UNIQUE,
             title VARCHAR(30)
         )""",
         #
-        """CREATE TABLE IF NOT EXISTS `grade` (
+        """-- sql
+        CREATE TABLE IF NOT EXISTS `grade` (
             course_id1 VARCHAR(15),
             class_id VARCHAR(5),
             lecturer VARCHAR(10),
@@ -70,6 +74,7 @@ class Database:
 
         # TODO: current is blocking, perhaps change to async?
         st = datetime.now()
+        print("try to connect db:")
         print(host, port, user, password)
         while (datetime.now() - st).seconds < timeout:
             try:
@@ -116,7 +121,7 @@ class Database:
         self.connection.close()
 
 
-db: Database = None  # type: ignore
+_db: Database = None  # type: ignore
 
 
 def db_init():
@@ -125,19 +130,70 @@ def db_init():
     port = 3306 if in_docker else 3333
     commands = gen_sql_init_commands()
 
-    global db
-    db = Database(host, port, "root", "root", "db", commands)
+    global _db
+    _db = Database(host, port, "root", "root", "db", commands)
 
 
-db_init()
+def get_db():
+    global _db
+    if not _db:
+        db_init()
+    return _db
+
+
+# TODO: prevent SQLi
+
+
+def insert_course(course: Course):
+    db = get_db()
+    with db.connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM course WHERE id1='{id1}'".format(id1=course.id1))
+        print("course", course)
+        if res := cursor.fetchone():
+            print(res)
+            assert Course(**res) == course, f"Existing: {res}, new: {course}"
+            print(f"Course {course.title} already exist")
+            return
+        print("res", res)
+
+        cmd = """-- sql
+        INSERT INTO course (
+            id1,
+            id2,
+            title
+        ) VALUES (
+            '{c.id1}',
+            '{c.id2}',
+            '{c.title}'
+        )
+        """.format(
+            c=course
+        )
+        cursor.execute(cmd)
+    db.connection.commit()
+
+
+def insert_courses(courses: list[Course]):
+    db = get_db()
+    with db.connection.cursor() as cursor:
+        values = ",".join(["('{c.id1}', '{c.id2}', '{c.title}')".format(c=c) for c in courses])
+
+        # TODO: perhaps need to check duplicates
+        cmd = """-- sql
+        INSERT IGNORE INTO course (
+            id1,
+            id2,
+            title
+        ) VALUES {values} """.format(
+            values=values
+        )
+        cursor.execute(cmd)
+    db.connection.commit()
 
 
 def test():
-    return db.test()
+    return get_db().test()
 
 
 def inc():
     pass
-
-
-# db = get_db()

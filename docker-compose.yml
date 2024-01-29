@@ -14,6 +14,8 @@ services:
       - .env
     depends_on:
       - db
+    volumes:
+      - ./app:/app
     ports:
       - ${PORT_DEV}:${PORT_DEV}
 
