@@ -1,4 +1,5 @@
 import { fetchApp, fetchAppProxy } from "./api";
+import { Page } from "./models";
 import { getHashCode } from "./utils";
 
 async function submitPage() {
@@ -10,7 +11,7 @@ async function submitPage() {
     const content = await fetch(window.location.href).then((r) => r.text());
     const hashCode = getHashCode(content);
 
-    const page = { content, hashCode };
+    const page: Page = { content, hashCode, studentId: 0 };
     const r = await fetchAppProxy("/page", { method: "POST", body: page });
     console.log("submitPage result: ", r);
 

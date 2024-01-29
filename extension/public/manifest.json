@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-
   "name": "NTU 選課小幫手",
   "description": "A chrome plugin for the purpose of showing each course's score distribution on the site '台大課程網'",
   "version": "1.0",
   "options_ui": {
-    "page": "options.html"
+    "page": "options.html",
+    "open_in_tab": true
   },
   "action": {
     "default_icon": {
@@ -33,9 +33,15 @@
     "service_worker": "js/background.js"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "contextMenus",
+    "scripting"
   ],
   "host_permissions": [
+    "https://course.ntu.edu.tw/*"
+  ],
+  "optional_permissions": [],
+  "optional_host_permissions": [
     "<all_urls>"
   ]
 }

@@ -9,7 +9,7 @@
         "rootDir": "src",
         "outDir": "dist/js",
         "noEmitOnError": true,
-        "jsx": "react",
+        "jsx": "react-jsx",
         "typeRoots": [
             "node_modules/@types"
         ],
@@ -17,6 +17,6 @@
             "ES2023",
             "DOM"
         ],
-        "noUncheckedIndexedAccess": false,
+
     }
 }

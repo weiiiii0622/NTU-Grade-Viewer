@@ -1,72 +1,41 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-const Options = () => {
-  const [color, setColor] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
-  const [like, setLike] = useState<boolean>(false);
+const PERM: chrome.permissions.Permissions = {
+  permissions: ["scripting"],
+  origins: ["<all_urls>"],
+};
+
+function Options() {
+  /**
+   * This seems unnecessary
+   */
+  const [allowScripting, setAllowScripting] = useState(false);
 
   useEffect(() => {
-    // Restores select box and checkbox state using the preferences
-    // stored in chrome.storage.
-    chrome.storage.sync.get(
-      {
-        favoriteColor: "red",
-        likesColor: true,
-      },
-      (items) => {
-        setColor(items.favoriteColor);
-        setLike(items.likesColor);
-      }
-    );
+    chrome.permissions.contains(PERM, (res) => {
+      setAllowScripting(res);
+    });
   }, []);
 
-  const saveOptions = () => {
-    // Saves options to chrome.storage.sync.
-    chrome.storage.sync.set(
-      {
-        favoriteColor: color,
-        likesColor: like,
-      },
-      () => {
-        // Update status to let user know options were saved.
-        setStatus("Options saved.");
-        const id = setTimeout(() => {
-          setStatus("");
-        }, 1000);
-        return () => clearTimeout(id);
-      }
-    );
-  };
+  function onClick() {
+    chrome.permissions.request(PERM, (granted) => {
+      setAllowScripting(granted);
+    });
+  }
 
   return (
     <>
       <div>
-        Favorite color: <select
-          value={color}
-          onChange={(event) => setColor(event.target.value)}
-        >
-          <option value="red">red</option>
-          <option value="green">green</option>
-          <option value="blue">blue</option>
-          <option value="yellow">yellow</option>
-        </select>
+        <button onClick={onClick}>Enable scripting on all sites</button>
       </div>
       <div>
-        <label>
-          <input
-            type="checkbox"
-            checked={like}
-            onChange={(event) => setLike(event.target.checked)}
-          />
-          I like colors.
-        </label>
+        Enabled:
+        {allowScripting ? "yes" : "no"}
       </div>
-      <div>{status}</div>
-      <button onClick={saveOptions}>Save</button>
     </>
   );
-};
+}
 
 const root = createRoot(document.getElementById("root")!);
 
