@@ -69,7 +69,7 @@ const createIcon = () => {
     svgIcon.setAttribute('stroke-width', '2');
     svgIcon.setAttribute('stroke-linecap', 'round');
     svgIcon.setAttribute('stroke-linejoin', 'round');
-    svgIcon.className = 'lucide lucide-heart';
+    // svgIcon.className = 'lucide lucide-heart';
 
     // Create the path element inside the SVG
     var pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
