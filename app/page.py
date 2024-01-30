@@ -3,6 +3,7 @@ import re
 
 import bs4
 from bs4 import Tag
+from fastapi.exceptions import RequestValidationError
 
 from models import Course, GradeInfo
 
@@ -15,10 +16,21 @@ def get_infos(row: Tag, classes: list[str]) -> list[str]:
     return [row.select(f".{cls}")[0].text for cls in classes]
 
 
-def parse_page(text: str) -> list[tuple[Course, GradeInfo]]:
-    soup = bs4.BeautifulSoup(text, "html.parser")
-    grade_rows = soup.select(".table-grade .table-rows")
+def parse_page(text: str) -> tuple[str, list[tuple[Course, GradeInfo]]]:
+    """
+    Return (student_id, results)
+    """
 
+    soup = bs4.BeautifulSoup(text, "html.parser")
+
+    rank_rows = soup.select(".table-rank .table-rows")
+    extract_cls = ["table-column-uid"]
+    uids = [get_infos(row, extract_cls)[0] for row in rank_rows]
+    if not uids or any(uid != uids[0] for uid in uids):
+        raise RequestValidationError(["Cannot find student id"])
+    student_id = uids[0]
+
+    grade_rows = soup.select(".table-grade .table-rows")
     extract_cls = [
         "table-column_academic-year",
         "table-column_course-number",
@@ -50,10 +62,10 @@ def parse_page(text: str) -> list[tuple[Course, GradeInfo]]:
                 if (obj := re.match(r"(\d+(\.\d+)?)\%", p.text))
             )
         except ValueError:
-            assert semester == "112-1"
+            # assert semester == "112-1"
             continue
         if len(dist) != 3 or not math.isclose(sum(dist, 0), 100, abs_tol=1):
-            assert semester == "112-1"
+            # assert semester == "112-1"
             continue
 
         course = Course(id1, id2, title)
@@ -66,7 +78,8 @@ def parse_page(text: str) -> list[tuple[Course, GradeInfo]]:
             dist=dist,
         )
         results.append((course, grade))
-    return results
+
+    return student_id, results
 
 
 # example = open("./example.html", encoding="utf-8").read()

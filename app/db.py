@@ -59,6 +59,13 @@ def gen_sql_init_commands() -> list[str]:
 
             segments VARCHAR(100) 
         )""",
+        # 
+        """-- sql
+        CREATE TABLE IF NOT EXISTS `user` (
+            student_id CHAR(9) PRIMARY KEY,
+            token CHAR(24)
+        )
+        """
     ]
     return commands
 

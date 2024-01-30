@@ -198,3 +198,7 @@ class Page(BaseModel):
         if self.hashCode != hashCode(self.content):
             raise RequestValidationError([])
         return self
+
+# ----------------------------------- User ----------------------------------- #
+
+StudentId = Annotated[str, Field(pattern=r"[a-zA-Z0-9]{9}")]

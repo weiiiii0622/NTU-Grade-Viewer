@@ -1,3 +1,7 @@
+from functools import wraps
+from typing import Any, TypeVar
+
+
 def hashCode(s: str):
     """
     Used to verify valid page content.
@@ -23,6 +27,19 @@ def hashCode(s: str):
     # print(len(a))
     # print(a)
     return h
+
+
+def extract_dict(keys: list[str], d: dict[str, Any]):
+    return {k: v for k, v in d.items() if k in keys}
+
+
+def test_only(f):
+    # TODO: use some special header
+    @wraps(f)
+    def _f(*args, **kwargs):
+        return f(*args, **kwargs)
+
+    return _f
 
 
 # Add student to auth list

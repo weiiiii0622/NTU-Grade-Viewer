@@ -1,4 +1,31 @@
-LEVENSHTEIN = """-- sql
+from pymysql.cursors import DictCursor
+
+
+def select_by_obj(cursor: DictCursor, select: str, from_: str, obj: dict):
+    cmd = f"""SELECT {select} FROM {from_}"""
+    if len(obj):
+        cmd += " WHERE "
+        cmd += " AND ".join(f"{k}=%({k})s" for k in obj.keys())
+
+    cursor.execute(cmd, obj)
+    return cursor.fetchone()
+
+
+def insert_objs(cursor: DictCursor, table: str, *objs: dict, ignore=True):
+    cmd = f"""INSERT {'IGNORE' if ignore else ''} INTO {table}"""
+    if len(objs):
+        keys = objs[0].keys()
+        assert all(obj.keys() == keys for obj in objs)
+
+        cmd += " (" + ", ".join(keys) + ") "
+        cmd += " VALUES "
+        cmd += " (" + ", ".join(f"%({k})s" for k in keys) + ") "
+
+    cursor.executemany(cmd, objs)
+    return cursor.fetchone()
+
+
+LEVENSHTEIN = """
 DELIMITER ;;;
 CREATE DEFINER=`root`@`` FUNCTION `LEVENSHTEIN`(s1 VARCHAR(255), s2 VARCHAR(255)) RETURNS int(11) DETERMINISTIC
 BEGIN

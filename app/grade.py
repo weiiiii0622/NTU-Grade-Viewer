@@ -8,6 +8,7 @@ def handle_grade_infos(results: list[tuple[Course, GradeInfo]]):
 
     def grade_info_to_ele(course: Course, info: GradeInfo):
         seg_list = SegmentList(10, 100.0)
+        # TODO: update grade by incoming info
         seg_list.update(GRADE_MAP_INV[info.grade], *info.dist)
         segments = [Segment.from_iterable(seg) for seg in seg_list.dump()]
 

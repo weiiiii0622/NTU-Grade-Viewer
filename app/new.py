@@ -1,10 +1,8 @@
-from dataclasses import dataclass
-import inspect
+from functools import wraps
+from inspect import Parameter, signature
+from typing import Annotated
 
+from auth import get_student_id, get_token
+from page import parse_page
 
-@dataclass
-class A:
-    a: int
-
-
-print("{a.a}".format(a=A(1)))
+parse_page(open("./app/example.html", encoding="utf-8").read())

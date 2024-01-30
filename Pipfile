@@ -16,6 +16,7 @@ anyio = "*"
 chardet = "*"
 openpyxl = "*"
 pydantic-to-typescript = "*"
+pycryptodome = "*"
 
 [dev-packages]
 
