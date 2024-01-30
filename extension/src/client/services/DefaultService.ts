@@ -65,10 +65,20 @@ export class DefaultService {
      * @returns GradeElement Successful Response
      * @throws ApiError
      */
-    public static getAllGradesGradesAllGet(): CancelablePromise<Array<GradeElement>> {
+    public static getAllGradesGradesAllGet({
+        token,
+    }: {
+        token: string,
+    }): CancelablePromise<Array<GradeElement>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/grades/all',
+            cookies: {
+                'token': token,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
         });
     }
     /**
@@ -76,10 +86,32 @@ export class DefaultService {
      * @returns GradeElement Successful Response
      * @throws ApiError
      */
-    public static queryGradesQueryGradesGet(): CancelablePromise<Array<GradeElement>> {
+    public static queryGradesQueryGradesGet({
+        id1,
+        id2,
+        title,
+        classId,
+        semester,
+    }: {
+        id1?: (string | null),
+        id2?: (string | null),
+        title?: (string | null),
+        classId?: (string | null),
+        semester?: (string | null),
+    }): CancelablePromise<Array<GradeElement>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/query/grades',
+            query: {
+                'id1': id1,
+                'id2': id2,
+                'title': title,
+                'class_id': classId,
+                'semester': semester,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
         });
     }
     /**
@@ -91,6 +123,53 @@ export class DefaultService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/db',
+        });
+    }
+    /**
+     * F
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static fTestGet({
+        a,
+        token,
+    }: {
+        a: number,
+        token: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/test',
+            cookies: {
+                'token': token,
+            },
+            query: {
+                'a': a,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     *  Add Auth
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static addAuthAddAuthStudentIdGet({
+        studentId,
+    }: {
+        studentId: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/add-auth/{studentId}',
+            path: {
+                'studentId': studentId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
         });
     }
 }

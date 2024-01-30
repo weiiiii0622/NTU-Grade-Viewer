@@ -6,45 +6,58 @@ const srcDir = path.join(__dirname, "..", "src");
 const dotenv = require("dotenv");
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
+const env = process.env;
+const { V2 } = env;
+
 module.exports = {
-    entry: {
-        popup: path.join(srcDir, "popup.tsx"),
-        options: path.join(srcDir, "options.tsx"),
-        background: path.join(srcDir, "background.tsx"),
-        content_script: path.join(srcDir, "content_script.tsx"),
-    },
-    output: {
-        path: path.join(__dirname, "../dist/js"),
-        filename: "[name].js",
-    },
-    optimization: {
-        splitChunks: {
-            name: "vendor",
-            chunks(chunk) {
-                return chunk.name !== "background";
-            },
-        },
-    },
-    module: {
-        rules: [
+   entry: {
+      popup: path.join(srcDir, V2 ? "popup_v2.tsx" : "popup.tsx"),
+      options: path.join(srcDir, "options.tsx"),
+      background: path.join(srcDir, V2 ? "background_v2.tsx" : "background.tsx"),
+      content_script: path.join(srcDir, V2 ? "content_script_v2.tsx" : "content_script.tsx"),
+   },
+   output: {
+      path: path.join(__dirname, "../dist/js"),
+      filename: "[name].js",
+   },
+   optimization: {
+      splitChunks: {
+         name: "vendor",
+         chunks(chunk) {
+            return chunk.name !== "background";
+         },
+      },
+   },
+   module: {
+      rules: [
+         {
+            test: /\.tsx?$/,
+            use: "ts-loader",
+            exclude: /node_modules/,
+         },
+      ],
+   },
+   resolve: {
+      extensions: [".ts", ".tsx", ".js"],
+   },
+   plugins: [
+      new CopyPlugin({
+         patterns: [
             {
-                test: /\.tsx?$/,
-                use: "ts-loader",
-                exclude: /node_modules/,
+               from: ".",
+               to: "../",
+               context: "public",
+               // transform(content, path) {
+               //    if (V2 && path.endsWith("manifest.json"))
+               //       return content.toString().replace("background.js", "background_v2.js");
+               //    return content;
+               // },
             },
-        ],
-    },
-    resolve: {
-        extensions: [".ts", ".tsx", ".js"],
-    },
-    plugins: [
-        new CopyPlugin({
-            patterns: [{ from: ".", to: "../", context: "public" }],
-            options: {},
-        }),
-    ],
-    watchOptions: {
-        //ignored: /node_modules/,
-        poll: true
-    }
+         ],
+      }),
+   ],
+   watchOptions: {
+      //ignored: /node_modules/,
+      poll: true,
+   },
 };

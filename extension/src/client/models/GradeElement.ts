@@ -8,10 +8,10 @@ import type { Segment } from './Segment';
  */
 export type GradeElement = {
     course_id1: string;
-    semester: any[];
+    semester: string;
     lecturer: (string | null);
     class_id: (string | null);
     segments: Array<Segment>;
-    id?: number;
+    id?: string;
 };
 

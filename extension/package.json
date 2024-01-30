@@ -9,7 +9,7 @@
     "clean": "rimraf dist",
     "test": "npx jest",
     "style": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "generate-client": "openapi --input http://localhost:${PORT}/openapi.json --output ./src/client --client axios --useOptions --useUnionTypes"
+    "generate-client": "openapi --input http://localhost:${PORT}/openapi.json --output ./src/client --useOptions --useUnionTypes"
   },
   "author": "",
   "license": "MIT",
