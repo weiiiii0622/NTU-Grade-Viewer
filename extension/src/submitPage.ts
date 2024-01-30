@@ -17,7 +17,7 @@ async function submitPage() {
    const content = await fetch(window.location.href).then((r) => r.text());
    const hashCode = getHashCode(content);
 
-   const page: Page = { content, hashCode, studentId: 0 };
+   const page: Page = { content, hashCode };
    console.log(page);
    const r = await fetchAppProxy("/page", { method: "POST", body: page });
    console.log("submitPage result: ", r);
@@ -40,9 +40,7 @@ async function submitPageV2() {
    const content = await fetch(window.location.href).then((r) => r.text());
    const hashCode = getHashCode(content);
 
-   const page: Page = { content, hashCode, studentId: 0 };
-   console.log(page);
-   //    const r = await fetchAppProxy("/page", { method: "POST", body: page });
+   const page: Page = { content, hashCode };
    const r = await sendRuntimeMessage<
       RuntimeMessageService<"submitPagePagePost">,
       "submitPagePagePost"
@@ -50,14 +48,8 @@ async function submitPageV2() {
       action: "service",
       funcName: "submitPagePagePost",
       args: [{ requestBody: page }],
-   }); //("/page", { method: "POST", body: page });
+   });
    console.log("submitPage result: ", r);
-
-   // if (r.status === "success") {
-   //     console.log("success; userId:", r.data.userId);
-   // } else {
-   //     console.log("fail; ", r.data);
-   // }
 
    return r;
 }

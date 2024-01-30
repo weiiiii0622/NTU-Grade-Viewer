@@ -71,5 +71,4 @@ export interface CourseGrade {
 export interface Page {
   content: Content;
   hashCode: Hashcode;
-  studentId: Studentid;
 }

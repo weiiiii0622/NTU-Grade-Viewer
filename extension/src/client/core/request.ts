@@ -216,8 +216,6 @@ export const sendRequest = async (
 
     onCancel(() => controller.abort());
 
-    console.log('url=',url)
-    console.log('req=', request)
     return await fetch(url, request);
 };
 

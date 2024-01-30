@@ -8,6 +8,5 @@
 export type Page = {
     content: string;
     hashCode: number;
-    studentId: number;
 };
 
