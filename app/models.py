@@ -186,7 +186,6 @@ class Page(BaseModel):
 
     content: str
     hashCode: int
-    studentId: int
 
     # @field_validator("content")
     @classmethod
