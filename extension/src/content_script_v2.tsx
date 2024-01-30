@@ -1,5 +1,5 @@
 import React from "react";
-import { submitPage } from "./submitPage";
+import { submitPage, submitPageV2 } from "./submitPage";
 import { waitUntil } from "./utils";
 import { createRoot } from "react-dom/client";
 import { GradeChart } from "./components/gradeChart";
@@ -29,25 +29,23 @@ addMessageListener('contextMenu', (msg) => {
 /* --------------------------------- Submit --------------------------------- */
 
 const handleSubmitScore = async (sendResponse: (response?: any) => void) => {
-   const res = await submitPage();
+   const res = await submitPageV2();
    sendResponse({
       data: res.data,
       status: res.status_code,
    });
 };
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-   if (msg.action === "submit-score") {
-      console.log(`Current Window Location: ${window.location.href}`);
-      try {
-         handleSubmitScore(sendResponse);
-         return true;
-      } catch (error) {
-         console.log("SubmitScore Error:", error);
-         sendResponse(`SubmitScore Error: ${error}`);
-      }
+addMessageListener('submitPage', (msg, sender, sendResponse) => {
+   console.log(`Current Window Location: ${window.location.href}`);
+   try {
+      handleSubmitScore(sendResponse);
+      return true;
+   } catch (error) {
+      console.log("SubmitScore Error:", error);
+      sendResponse(`SubmitScore Error: ${error}`);
    }
-});
+})
 
 
 /* ------------------------------ Search Items ------------------------------ */
