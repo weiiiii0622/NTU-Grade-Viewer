@@ -4,9 +4,11 @@ from inspect import Parameter, signature
 import os
 from threading import local
 from typing import Annotated, Callable
+from urllib.parse import unquote
 from Crypto.Cipher import AES
 
 from fastapi import Cookie, HTTPException, status
+from pydantic import AfterValidator
 
 from db import get_db
 from db_utils import insert_objs, select_by_obj
@@ -49,6 +51,7 @@ def auth_required(f: Callable):
 
     @wraps(f)
     def _f(token: Annotated[str, Cookie()], *args, **kwargs):
+        token = unquote(token)
         if not validate_token(token):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token")
         return f(*args, **kwargs)

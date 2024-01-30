@@ -1,4 +1,6 @@
 import os
+from re import escape
+from urllib.parse import quote
 
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, status, Path
@@ -113,7 +115,7 @@ def f(a: int):
 @test_only
 def _add_auth(studentId: StudentId, response: Response):
     token = add_user(studentId)
-    response.set_cookie("token", token)
+    response.set_cookie("token", quote(token))
     return studentId
 
 
