@@ -73,6 +73,8 @@ export class DefaultService {
     }
     /**
      * Get All Grades
+     * @auth_required
+     * @test_only
      * @returns GradeElement Successful Response
      * @throws ApiError
      */
@@ -80,7 +82,13 @@ export class DefaultService {
         xToken = '',
         cookieToken = '',
     }: {
+        /**
+         * Token represented student_id via X-Token header, automatically sent by background.js. Same as `cookie_token`.
+         */
         xToken?: string,
+        /**
+         * Token represented student_id via cookie. Same as `x_token`. This parameter is for testing purpose. You should generally rely on `x_token`.
+         */
         cookieToken?: string,
     }): CancelablePromise<Array<GradeElement>> {
         return __request(OpenAPI, {
@@ -99,6 +107,12 @@ export class DefaultService {
     }
     /**
      * Query Grades
+     * @auth_required
+     *
+     * Each query should provide at least one of `id1`, `id2` or `title`. The `class_id` and `semester` parameters are for further filtering results.
+     *
+     * Returns:
+     * A list of `GradeElement` satisfing given filters.
      * @returns GradeElement Successful Response
      * @throws ApiError
      */
@@ -111,12 +125,33 @@ export class DefaultService {
         xToken = '',
         cookieToken = '',
     }: {
+        /**
+         * '課號', e.g. CSIE1212
+         */
         id1?: string,
+        /**
+         * '課程識別碼', e.g. '902 10750'. Note the space character.
+         */
         id2?: string,
+        /**
+         * '課程名稱'
+         */
         title?: string,
+        /**
+         * '班次'
+         */
         classId?: string,
+        /**
+         * Semester between 90-1 ~ 130-2
+         */
         semester?: string,
+        /**
+         * Token represented student_id via X-Token header, automatically sent by background.js. Same as `cookie_token`.
+         */
         xToken?: string,
+        /**
+         * Token represented student_id via cookie. Same as `x_token`. This parameter is for testing purpose. You should generally rely on `x_token`.
+         */
         cookieToken?: string,
     }): CancelablePromise<Array<GradeElement>> {
         return __request(OpenAPI, {
@@ -153,6 +188,7 @@ export class DefaultService {
     }
     /**
      * F
+     * @auth_required
      * @returns any Successful Response
      * @throws ApiError
      */
@@ -162,7 +198,13 @@ export class DefaultService {
         cookieToken = '',
     }: {
         a: number,
+        /**
+         * Token represented student_id via X-Token header, automatically sent by background.js. Same as `cookie_token`.
+         */
         xToken?: string,
+        /**
+         * Token represented student_id via cookie. Same as `x_token`. This parameter is for testing purpose. You should generally rely on `x_token`.
+         */
         cookieToken?: string,
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
@@ -184,6 +226,7 @@ export class DefaultService {
     }
     /**
      *  Add Auth
+     * @test_only
      * @returns any Successful Response
      * @throws ApiError
      */

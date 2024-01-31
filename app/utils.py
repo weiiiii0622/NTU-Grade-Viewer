@@ -33,6 +33,16 @@ def extract_dict(keys: list[str], d: dict[str, Any]):
     return {k: v for k, v in d.items() if k in keys}
 
 
+def add_decorator_doc(dec):
+    @wraps(dec)
+    def _dec(*args, **kwargs):
+        f = dec(*args, **kwargs)
+        f.__doc__ =f"@{dec.__name__}\n"+(f.__doc__ or "")
+        return f
+    return _dec
+
+
+@add_decorator_doc
 def test_only(f):
     # TODO: use some special header
     @wraps(f)

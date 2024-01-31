@@ -34,8 +34,10 @@ addMessageListener('service', async (msg, sender) => {
          // console.log(e.status)
          return e.status
       }
-      else
+      else{
+         return 'QQ'
          throw 'QQ'
+      }
    }
 })
 

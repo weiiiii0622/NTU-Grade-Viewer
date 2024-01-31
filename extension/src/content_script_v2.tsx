@@ -4,7 +4,9 @@ import { waitUntil } from "./utils";
 import { createRoot } from "react-dom/client";
 import { GradeChartLoader } from "./components/gradeChartLoader";
 import { FixedBox } from "./components/fixedBox";
-import { addMessageListener } from "./api_v2";
+import { addMessageListener, sendRuntimeMessage } from "./api_v2";
+
+sendRuntimeMessage("service", { funcName: 'queryGradesQueryGradesGet', args: { id1: 'CSIE1212' } }).then(console.log)
 
 /* ------------------------------ Context Menu ------------------------------ */
 
@@ -38,9 +40,9 @@ function checkCookie(cookieName: string) {
    let cookies = document.cookie.split(';');
 
    for (let i = 0; i < cookies.length; i++) {
-       if (cookies[i].trim().indexOf(cookieName + '=') === 0) {
-           return true;
-       }
+      if (cookies[i].trim().indexOf(cookieName + '=') === 0) {
+         return true;
+      }
    }
    return false;
 }
@@ -102,7 +104,7 @@ async function searchPageFeature() {
 
 if (window.location.href.startsWith("https://course.ntu.edu.tw/search/")) {
    // TEST only: Set Auth Cookie
-   document.cookie = "NTU_SCORE_VIEWER=test123"   
+   document.cookie = "NTU_SCORE_VIEWER=test123"
    searchPageFeature();
 }
 

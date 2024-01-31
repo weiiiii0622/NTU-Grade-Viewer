@@ -12,7 +12,7 @@ from pydantic import AfterValidator
 
 from db import get_db
 from db_utils import insert_objs, select_by_obj
-from utils import extract_dict
+from utils import add_decorator_doc, extract_dict
 
 aes_key = os.getenv("APP_AUTH_KEY", "secret_aes_key").encode()[:16].ljust(16)
 cipher = AES.new(aes_key, AES.MODE_ECB)
@@ -45,6 +45,7 @@ def validate_token(token: str) -> bool:
             return bool(res)
 
 
+@add_decorator_doc
 def auth_required(f: Callable):
     """
     Either
@@ -55,8 +56,8 @@ def auth_required(f: Callable):
 
     @wraps(f)
     def _f(cookie_token: str, x_token: str, *args, **kwargs):
-        print('tokens:')
-        print(cookie_token,';', x_token)
+        print("tokens:")
+        print(cookie_token, ";", x_token)
         token = cookie_token or x_token
         token = unquote(token)
         if not validate_token(token):
@@ -69,13 +70,13 @@ def auth_required(f: Callable):
         Parameter(
             "x_token",
             Parameter.POSITIONAL_OR_KEYWORD,
-            annotation=Annotated[str, Header()],
+            annotation=Annotated[str, Header(description="Token represented student_id via X-Token header, automatically sent by background.js. Same as `cookie_token`.")],
             default="",
         ),
         Parameter(
             "cookie_token",
             Parameter.POSITIONAL_OR_KEYWORD,
-            annotation=Annotated[str, Cookie()],
+            annotation=Annotated[str, Cookie(description="Token represented student_id via cookie. Same as `x_token`. This parameter is for testing purpose. You should generally rely on `x_token`.")],
             default="",
         ),
     ]
