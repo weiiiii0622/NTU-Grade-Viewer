@@ -5,7 +5,18 @@ from typing import Annotated
 from urllib.parse import quote
 
 
-from fastapi import Cookie, Depends, FastAPI, HTTPException, Header, Request, Response, status, Path
+from fastapi import (
+    Cookie,
+    Depends,
+    FastAPI,
+    HTTPException,
+    Header,
+    Query,
+    Request,
+    Response,
+    status,
+    Path,
+)
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
@@ -22,7 +33,7 @@ from db import DatabaseConnectionError, do_query_grades, test
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "../.env"))
 
-from models import QUERY_FIELDS, QUERY_FILTERS, GradeElement, Page, StudentId
+from models import QUERY_FIELDS, QUERY_FILTERS, GradeElement, Page, Semester, StudentId
 from page import parse_page
 from utils import hashCode
 
@@ -85,11 +96,13 @@ def get_all_grades() -> list[GradeElement]:
 
 
 async def get_query_dict(
-    id1: str = "",
-    id2: str = "",
-    title: str = "",
-    class_id: str = "",
-    semester: str = "",
+    id1: Annotated[str, Query(description="'課號', e.g. CSIE1212")] = "",
+    id2: Annotated[
+        str, Query(description="'課程識別碼', e.g. '902 10750'. Note the space character.")
+    ] = "",
+    title: Annotated[str, Query(description="'課程名稱'")] = "",
+    class_id: Annotated[str, Query(description="'班次'")] = "",
+    semester: Annotated[Semester, Query(description="Semester between 90-1 ~ 130-2")] = "",
 ):
     d = locals()
     keys = QUERY_FIELDS + QUERY_FILTERS
@@ -99,6 +112,13 @@ async def get_query_dict(
 @app.get("/query/grades")
 @auth_required
 def query_grades(query: dict = Depends(get_query_dict)) -> list[GradeElement]:
+    """
+    Each query should provide at least one of `id1`, `id2` or `title`. The `class_id` and `semester` parameters are for further filtering results.
+
+    Returns:
+        A list of `GradeElement` satisfing given filters.
+    """
+
     fields = {k: v for k, v in query.items() if k in QUERY_FIELDS}
     filters = {k: v for k, v in query.items() if k in QUERY_FILTERS}
 
