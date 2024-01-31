@@ -1,9 +1,13 @@
+import { useState } from 'react';
+
 import { styled } from '@mui/material/styles';
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
-import Button from '@mui/material/Button';
 import Zoom from '@mui/material/Zoom';
+import BarChartIcon from '@mui/icons-material/BarChart';
 
 import { GradeChart } from './gradeChart';
+import { GradeElement } from '../client';
+import { IChartData } from './gradeChart';
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
     <Tooltip {...props} classes={{ popper: className }} />
@@ -19,32 +23,30 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   }));
 
 
-interface Grade {
-	semester: string, // 112-1
-	data: {
-		label: string,  // A+, A+~B- ...
-		value: number   // 30 (without %)
-	}
-}
-
-
 export const GradeChartToolTip = () => {
+
+	const [datas, setDatas] = useState<IChartData[]>([]);
+	const [value, setValue] = useState<number>(0);
+
+	const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue);
+  };
 
 	// TODO: Fetch Course Info From DataBase
 
 	// TEST ONLY
-	const datas = [
-		{ value: 30.5, label: 'A+' },
-		{ value: 15, label: 'A' },
-		{ value: 20, label: 'A-' },
-		{ value: 5, label: 'B+' },
-		{ value: 12, label: 'B' },
-		{ value: 16, label: 'B-' },
-		{ value: 5, label: 'C+' },
-		{ value: 6, label: 'C' },
-		{ value: 7, label: 'C-' },
-		{ value: 21, label: 'F' },
-	];
+	// const datas = [
+	// 	{ value: 30.5, label: 'A+' },
+	// 	{ value: 15, label: 'A' },
+	// 	{ value: 20, label: 'A-' },
+	// 	{ value: 5, label: 'B+' },
+	// 	{ value: 12, label: 'B' },
+	// 	{ value: 16, label: 'B-' },
+	// 	{ value: 5, label: 'C+' },
+	// 	{ value: 6, label: 'C' },
+	// 	{ value: 7, label: 'C-' },
+	// 	{ value: 21, label: 'F' },
+	// ];
 	
 
 	return (
@@ -60,7 +62,7 @@ export const GradeChartToolTip = () => {
 				zIndex: 2,
 			}}
 		>
-			<div>Grade</div>
+			<BarChartIcon sx={{color:"#01579b"}}/>
 		</HtmlTooltip>
 	)
 }

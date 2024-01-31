@@ -55,13 +55,19 @@ function initSearchItem(node: HTMLElement, isAuth: boolean) {
    }
 
    const root = document.createElement("span");
-   root.className = "mui-ahcpjm"
+   root.className = "mui-ahcpjm";
+
+   const childList = node.querySelectorAll(".MuiBox-root");
+   const title = childList[1].childNodes[0].textContent;                            // 課程名稱
+   const course_id1 = childList[0].childNodes[0].childNodes[1].textContent;         // 課號
+   const course_id2 = childList[0].childNodes[0].childNodes[2].textContent;         // 識別碼
+   const lecturer = childList[2].childNodes[0].childNodes[0].textContent;
+   
    createRoot(root).render(
       <React.StrictMode>
-        <GradeChartLoader auth={isAuth} />
+        <GradeChartLoader auth={isAuth} title={title== null?"":title} course_id1={course_id1== null?"":course_id1} course_id2={course_id2== null?"":course_id2} lecturer={lecturer== null?"":lecturer}/>
       </React.StrictMode>
    );
-   const childList = node.querySelectorAll(".MuiBox-root")
    childList.item(childList.length - 1).prepend(root);
    node.setAttribute("inited", "true");
 }
