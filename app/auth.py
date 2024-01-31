@@ -12,6 +12,7 @@ from pydantic import AfterValidator
 
 from db import get_db
 from db_utils import insert_objs, select_by_obj
+from models import validate_student_id
 from utils import add_decorator_doc, extract_dict
 
 aes_key = os.getenv("APP_AUTH_KEY", "secret_aes_key").encode()[:16].ljust(16)
@@ -70,13 +71,23 @@ def auth_required(f: Callable):
         Parameter(
             "x_token",
             Parameter.POSITIONAL_OR_KEYWORD,
-            annotation=Annotated[str, Header(description="Token represented student_id via X-Token header, automatically sent by background.js. Same as `cookie_token`.")],
+            annotation=Annotated[
+                str,
+                Header(
+                    description="Token represented student_id via X-Token header, automatically sent by background.js. Same as `cookie_token`."
+                ),
+            ],
             default="",
         ),
         Parameter(
             "cookie_token",
             Parameter.POSITIONAL_OR_KEYWORD,
-            annotation=Annotated[str, Cookie(description="Token represented student_id via cookie. Same as `x_token`. This parameter is for testing purpose. You should generally rely on `x_token`.")],
+            annotation=Annotated[
+                str,
+                Cookie(
+                    description="Token represented student_id via cookie. Same as `x_token`. This parameter is for testing purpose. You should generally rely on `x_token`."
+                ),
+            ],
             default="",
         ),
     ]
@@ -89,7 +100,11 @@ def auth_required(f: Callable):
 
 
 def add_user(student_id: str) -> str:
+    student_id = validate_student_id(student_id)
+
     token = get_token(student_id)
+    assert get_student_id(token) == student_id
+
     db = get_db()
     obj = extract_dict(["token", "student_id"], locals())
     with db.get_connection() as con:

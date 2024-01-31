@@ -22,10 +22,19 @@ from utils import hashCode
 # ---------------------------------- Course ---------------------------------- #
 
 
-@dataclass
-class Course:
-    id1: Annotated[str, Field(pattern=r".+?\d+")]  # 課號 e.g. CSIE1212
-    id2: Annotated[str, Field(pattern=r"\d{3}\s\d{5}")]  # 課程識別碼 e.g. 902 10750
+Id1: TypeAlias = Annotated[str, Field(pattern=r".+?\d+", description="'課號', e.g. 'CSIE1212'")]  #
+Id2: TypeAlias = Annotated[
+    str,
+    Field(
+        pattern=r".{3}\s.{5}", description="'課程識別碼', e.g. '902 10750'. Note the space character."
+    ),
+]  #
+
+
+# @dataclass
+class Course(BaseModel):
+    id1: Id1
+    id2: Id2
     title: str
 
 
@@ -83,10 +92,11 @@ class GradeBase(ABC, BaseModel):
 
     # TODO: use scraper to get lecturer
     lecturer: Optional[str] = Field(
-        description="The lecturer.", examples=["林軒田"]
+        description="The lecturer.", examples=["林軒田"], default=None
     )  # ! this can not be obtained from page
 
-    class_id: Optional[str] = Field(description="'班次'", examples=["01"])
+    # TODO: consider using default ''
+    class_id: Optional[str] = Field(description="'班次'", examples=["01"], default=None)
 
 
 # @dataclass
@@ -214,6 +224,13 @@ class Page(BaseModel):
 
 # ----------------------------------- User ----------------------------------- #
 
+
+def validate_student_id(id: str):
+    if re.match(r"[a-zA-Z0-9]{9}", id):
+        return id.capitalize()
+    raise RequestValidationError([])  # TODO: is this error suitable?
+
+
 StudentId = Annotated[
-    str, Field(pattern=r"[a-zA-Z0-9]{9}", description="A student's id, e.g. b10401006.")
+    str, Field(description="A student's id, e.g. b10401006."), AfterValidator(validate_student_id)
 ]
