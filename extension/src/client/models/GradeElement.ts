@@ -24,7 +24,7 @@ export type GradeElement = {
      */
     class_id: (string | null);
     /**
-     * A list of segments. The segments are expected to be disjoint, and taking up the whole [0,9] range.
+     * A list of segments. The segments are expected to be disjoint, and taking up the whole [0, 9] range. The sum is expected to be (nearly) 100.
      */
     segments: Array<Segment>;
     /**
