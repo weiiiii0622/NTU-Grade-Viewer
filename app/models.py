@@ -96,7 +96,7 @@ class GradeInfo(GradeBase):
     """
 
     grade: GradeStr
-    dist: tuple[float, float, float]  # same, lower, higher
+    dist: tuple[float, float, float]  # lower, same, higher
 
     @validator("dist")
     def valid_dist(cls, v: tuple[float, float, float]):

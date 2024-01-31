@@ -79,7 +79,7 @@ class SegmentList(Generic[T]):
 
         raise Exception(f"Idx {idx} not found!")
 
-    def update(self, idx: int, same: T, lower: T, higher: T):
+    def update(self, idx: int, lower: T, same: T, higher: T):
         assert math.isclose(same, self.total - lower - higher, abs_tol=self.err)
 
         cur = self.find(idx)
