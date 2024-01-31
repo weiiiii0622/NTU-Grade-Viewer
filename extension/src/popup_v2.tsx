@@ -51,9 +51,16 @@ const Popup = () => {
       if (res === 401) {
          return [false, ("Unauthorized 401")]
       }
+
+      // Concatenate all res
+      let resString = "";
+      res.forEach((cur, idx)=>{resString += (JSON.stringify(cur) + ";");});
+      console.log(resString);
+
       return [true, (JSON.stringify(res[0]))]
    }
 
+   
    async function f() {
       const [state, res] = await fetchExample();
       setResult(res);
