@@ -61,7 +61,7 @@ function initSearchItem(node: HTMLElement) {
    const root = document.createElement("div");
    createRoot(root).render(
       <React.StrictMode>
-         <GradeChartLoader />
+         {/* <GradeChartLoader /> */}
       </React.StrictMode>
    );
    node.querySelectorAll(".MuiBox-root").item(1).appendChild(root);

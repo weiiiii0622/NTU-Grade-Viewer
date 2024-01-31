@@ -2,11 +2,11 @@ import React from 'react';
 import { DefaultizedPieValueType } from '@mui/x-charts';
 import { PieChart, pieArcLabelClasses  } from '@mui/x-charts/PieChart';
 
-interface IScoreChart {
+export interface IScoreChart {
 	datas: IChartData[];
 }
 
-interface IChartData {
+export interface IChartData {
 	id?: number,
 	value: number,
 	label: string

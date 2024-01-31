@@ -37,11 +37,15 @@ const Popup = () => {
    const [exampleFetched, setExampleFetched] = useState(false);
    const [result, setResult] = useState('');
    async function fetchExample(): Promise<[boolean, string]> {
+      // const res = await sendRuntimeMessage('service', {
+      //    funcName: 'queryGradesQueryGradesGet',
+      //    args: {
+      //       id1: 'CSIE1214'
+      //    }
+      // })
       const res = await sendRuntimeMessage('service', {
-         funcName: 'queryGradesQueryGradesGet',
-         args: {
-            id1: 'CSIE1212'
-         }
+         funcName: 'getAllGradesGradesAllGet',
+         args: {}
       })
       //@ts-ignore
       if (res === 401) {
