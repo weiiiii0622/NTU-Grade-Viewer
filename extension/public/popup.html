@@ -1,14 +1,29 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>NTU 選課小幫手</title>
-    <link rel="stylesheet" href="popup.css">
-    <script src="js/vendor.js"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script src="js/popup.js"></script>
-  </body>
-</html>
+   <head>
+      <meta charset="UTF-8" />
+      <title>NTU 選課小幫手</title>
+      <link rel="stylesheet" href="popup.css" />
+      <script src="js/vendor.js"></script>
+   </head>
+   <body>
+      <style>
+         body {
+            height: 300px;
+            width: 400px;
+         }
 
+         #root {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 15px;
+         }
+      </style>
+
+      <div id="root"></div>
+      <script src="js/popup.js"></script>
+   </body>
+</html>

@@ -47,11 +47,6 @@ module.exports = {
                from: ".",
                to: "../",
                context: "public",
-               // transform(content, path) {
-               //    if (V2 && path.endsWith("manifest.json"))
-               //       return content.toString().replace("background.js", "background_v2.js");
-               //    return content;
-               // },
             },
          ],
       }),

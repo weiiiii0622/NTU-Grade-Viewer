@@ -1,10 +1,19 @@
 // Reference: https://github.com/type-challenges/type-challenges
 
+/* ------------------------------ Type Checking ----------------------------- */
+
+export type Expect<T extends true> = T;
+export type ExpectTrue<T extends true> = T;
+export type ExpectFalse<T extends false> = T;
 export type IsTrue<T extends true> = T;
+export type IsFalse<T extends false> = T;
+
 export type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
    ? true
    : false;
 export type NotEqual<X, Y> = true extends Equal<X, Y> ? false : true;
+
+/* ---------------------------------- Union --------------------------------- */
 
 /**
  * Union to intersection/tuple (https://tsch.js.org/730/solutions)
@@ -40,13 +49,36 @@ type UnionToTuple<U, L = GetLast<U>> = [U] extends [never]
    ? []
    : [...UnionToTuple<Exclude<U, L>>, L];
 
+export type { UnionToTuple };
+
 /**
  * Object to tuple
  */
 
-type ObjectToEntriesTuple<T extends {}, K = keyof T> = UnionToTuple<
+export type ObjectToEntriesTuple<T extends {}, K = keyof T> = UnionToTuple<
    K extends keyof T ? [K, T[K]] : never
 >;
+
+/**
+ * Index Union
+ */
+
+type IndexFromTuple<T, K> = T extends [infer F, ...infer R]
+   ? (K extends keyof F ? F[K] : never) | IndexFromTuple<R, K>
+   : never;
+
+type IndexFromUnion<U, K> = IndexFromTuple<UnionToTuple<U>, K>;
+
+export type { IndexFromTuple, IndexFromUnion };
+
+type IndexFromTupleWithUnionKey<T, K, _K = K> = _K extends _K
+   ? T extends [infer F, ...infer R]
+      ? (_K extends keyof F ? F[_K] : never) | IndexFromTupleWithUnionKey<R, K>
+      : never
+   : [_K];
+type IndexFromUnionWithUnionKey<U, K> = IndexFromTupleWithUnionKey<UnionToTuple<U>, K>;
+
+export type { IndexFromTupleWithUnionKey, IndexFromUnionWithUnionKey };
 
 /**
  * Join strings

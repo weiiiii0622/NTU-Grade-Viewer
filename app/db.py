@@ -1,3 +1,5 @@
+import pymysqlpool
+from pymysqlpool import ConnectionPool
 from dataclasses import asdict
 from datetime import datetime
 import os
@@ -59,13 +61,13 @@ def gen_sql_init_commands() -> list[str]:
 
             segments VARCHAR(100) 
         )""",
-        # 
+        #
         """-- sql
         CREATE TABLE IF NOT EXISTS `user` (
             student_id CHAR(9) PRIMARY KEY,
             token CHAR(24)
         )
-        """
+        """,
     ]
     return commands
 
@@ -75,8 +77,14 @@ def gen_sql_init_commands() -> list[str]:
 # ---------------------------------------------------------------------------- #
 
 
+class DatabaseConnectionError(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+
+
 class Database:
-    connection: "pymysql.Connection[DictCursor]"
+    # connection: "pymysql.Connection[DictCursor]"
+    connection_pool: pymysqlpool.ConnectionPool
 
     def __init__(
         self,
@@ -88,7 +96,16 @@ class Database:
         init_commands: list[str] = [],
         timeout=5,
     ) -> None:
-        self.connection = None  # type: ignore
+        self.connection_pool = None  # type: ignore
+
+        config = {
+            "host": host,
+            "port": port,
+            "user": user,
+            "password": password,
+            "database": db,
+            "cursorclass": DictCursor,
+        }
 
         # TODO: current is blocking, perhaps change to async?
         st = datetime.now()
@@ -96,47 +113,37 @@ class Database:
         print(host, port, user, password)
         while (datetime.now() - st).seconds < timeout:
             try:
-                self.connection = pymysql.connect(
-                    host=host,
-                    port=port,
-                    user=user,
-                    password=password,
-                    database=db,
-                    cursorclass=DictCursor,
-                )
+                # self.connection = pymysql.connect(**config)
+                self.connection_pool = ConnectionPool(**config)
                 break
             except OperationalError as e:
                 print(e)
                 time.sleep(1)
                 pass
-        if not self.connection:
-            raise Exception(f"Cannot connect to db after timeout {timeout} secs.")
+        if not self.connection_pool:
+            # raise Exception(f"Cannot connect to db after timeout {timeout} secs.")
+            raise DatabaseConnectionError()
 
         self.post_init(init_commands)
 
-    def post_init(self, init_commands: list[str]):
-        with self.connection.cursor() as cursor:
-            for cmd in init_commands:
-                cursor.execute(cmd)
+    def get_connection(self, *args, **kwargs) -> "pymysql.Connection[DictCursor]":
+        return self.connection_pool.get_connection()
 
-        self.connection.commit()
+    def post_init(self, init_commands: list[str]):
+        with self.get_connection() as connection:
+            with connection.cursor() as cursor:
+                for cmd in init_commands:
+                    cursor.execute(cmd)
+            connection.commit()
 
     def test(self):
-        with self.connection.cursor() as cursor:
-            # Read a single record
-            sql = """SELECT 'HELLO WORLD!'"""
-            cursor.execute(sql)
-            result = cursor.fetchone()
-            return result  # {'HELLO WORLD!': 'HELLO WORLD!'} expected
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *exc_info):
-        self.connection.__exit__(*exc_info)
-
-    def close(self):
-        self.connection.close()
+        with self.get_connection() as connection:
+            with connection.cursor() as cursor:
+                # Read a single record
+                sql = """SELECT 'HELLO WORLD!'"""
+                cursor.execute(sql)
+                result = cursor.fetchone()
+                return result  # {'HELLO WORLD!': 'HELLO WORLD!'} expected
 
 
 _db: Database = None  # type: ignore
@@ -165,49 +172,51 @@ def get_db():
 # TODO: prevent SQLi
 def insert_course(course: Course):
     db = get_db()
-    with db.connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM course WHERE id1='{id1}'".format(id1=course.id1))
-        print("course", course)
-        if res := cursor.fetchone():
-            print(res)
-            assert Course(**res) == course, f"Existing: {res}, new: {course}"
-            print(f"Course {course.title} already exist")
-            return
-        print("res", res)
+    with db.get_connection() as con:
+        with con.cursor() as cursor:
+            cursor.execute("SELECT * FROM course WHERE id1='{id1}'".format(id1=course.id1))
+            print("course", course)
+            if res := cursor.fetchone():
+                print(res)
+                assert Course(**res) == course, f"Existing: {res}, new: {course}"
+                print(f"Course {course.title} already exist")
+                return
+            print("res", res)
 
-        cmd = """-- sql
-        INSERT INTO course (
-            id1,
-            id2,
-            title
-        ) VALUES (
-            '{c.id1}',
-            '{c.id2}',
-            '{c.title}'
-        )
-        """.format(
-            c=course
-        )
-        cursor.execute(cmd)
-    db.connection.commit()
+            cmd = """-- sql
+            INSERT INTO course (
+                id1,
+                id2,
+                title
+            ) VALUES (
+                '{c.id1}',
+                '{c.id2}',
+                '{c.title}'
+            )
+            """.format(
+                c=course
+            )
+            cursor.execute(cmd)
+        con.commit()
 
 
 def insert_courses(courses: list[Course]):
     db = get_db()
-    with db.connection.cursor() as cursor:
-        values = ",".join("('{c.id1}', '{c.id2}', '{c.title}')".format(c=c) for c in courses)
+    with db.get_connection() as con:
+        with con.cursor() as cursor:
+            values = ",".join("('{c.id1}', '{c.id2}', '{c.title}')".format(c=c) for c in courses)
 
-        # TODO: perhaps need to check duplicates
-        cmd = """-- sql
-        INSERT IGNORE INTO course (
-            id1,
-            id2,
-            title
-        ) VALUES {values} """.format(
-            values=values
-        )
-        cursor.execute(cmd)
-    db.connection.commit()
+            # TODO: perhaps need to check duplicates
+            cmd = """-- sql
+            INSERT IGNORE INTO course (
+                id1,
+                id2,
+                title
+            ) VALUES {values} """.format(
+                values=values
+            )
+            cursor.execute(cmd)
+        con.commit()
 
 
 # ----------------------------------- Grade ---------------------------------- #
@@ -256,9 +265,10 @@ def insert_grade_elements(grade_eles: list[GradeElement]):
     )
 
     db = get_db()
-    with db.connection.cursor() as cursor:
-        cursor.execute(cmd)
-    db.connection.commit()
+    with db.get_connection() as con:
+        with con.cursor() as cursor:
+            cursor.execute(cmd)
+        con.commit()
 
 
 # ----------------------------------- Query ---------------------------------- #
@@ -289,21 +299,25 @@ def do_query_grades(fields: dict[str, str], filters: dict[str, str]) -> list[Gra
     """
 
     db = get_db()
-    with db.connection.cursor() as cursor:
-        cursor.execute(cmd)
-        ids = ("",) + tuple(c["id1"] for c in cursor.fetchall())  # type: ignore
-        id1_filter_s = "course_id1 in (" + ",".join(quote(id1) for id1 in ids) + ")"
+    with db.get_connection() as con:
+        with con.cursor() as cursor:
+            cursor.execute(cmd)
+            ids = ("",) + tuple(c["id1"] for c in cursor.fetchall())  # type: ignore
+            id1_filter_s = "course_id1 in (" + ",".join(quote(id1) for id1 in ids) + ")"
 
-        filter_s = " AND ".join(
-            (id1_filter_s, *(f"{k}={quote(v) if type(v)==str else v }" for k, v in filters.items()))
-        )
-        cmd = f"""-- sql
-        SELECT * FROM `grade` WHERE {filter_s}
-        """
+            filter_s = " AND ".join(
+                (
+                    id1_filter_s,
+                    *(f"{k}={quote(v) if type(v)==str else v }" for k, v in filters.items()),
+                )
+            )
+            cmd = f"""-- sql
+            SELECT * FROM `grade` WHERE {filter_s}
+            """
 
-        cursor.execute(cmd)
-        results = cursor.fetchall()
-        return [dict2GradeElement(d) for d in results]
+            cursor.execute(cmd)
+            results = cursor.fetchall()
+            return [dict2GradeElement(d) for d in results]
 
 
 # ----------------------------------- Test ----------------------------------- #

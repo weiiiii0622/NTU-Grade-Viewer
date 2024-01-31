@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { GradeElement } from '../models/GradeElement';
 import type { Page } from '../models/Page';
+import type { PageResponse } from '../models/PageResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -13,10 +14,20 @@ export class DefaultService {
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getRootGet(): CancelablePromise<any> {
+    public static getRootGet({
+        a,
+    }: {
+        a: number,
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/',
+            query: {
+                'a': a,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
         });
     }
     /**
@@ -42,14 +53,14 @@ export class DefaultService {
     }
     /**
      * Submit Page
-     * @returns any Successful Response
+     * @returns PageResponse Successful Response
      * @throws ApiError
      */
     public static submitPagePagePost({
         requestBody,
     }: {
         requestBody: Page,
-    }): CancelablePromise<any> {
+    }): CancelablePromise<PageResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/page',
@@ -66,15 +77,20 @@ export class DefaultService {
      * @throws ApiError
      */
     public static getAllGradesGradesAllGet({
-        token,
+        xToken = '',
+        cookieToken = '',
     }: {
-        token: string,
+        xToken?: string,
+        cookieToken?: string,
     }): CancelablePromise<Array<GradeElement>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/grades/all',
             cookies: {
-                'token': token,
+                'cookie_token': cookieToken,
+            },
+            headers: {
+                'x-token': xToken,
             },
             errors: {
                 422: `Validation Error`,
@@ -87,21 +103,31 @@ export class DefaultService {
      * @throws ApiError
      */
     public static queryGradesQueryGradesGet({
-        id1,
-        id2,
-        title,
-        classId,
-        semester,
+        id1 = '',
+        id2 = '',
+        title = '',
+        classId = '',
+        semester = '',
+        xToken = '',
+        cookieToken = '',
     }: {
-        id1?: (string | null),
-        id2?: (string | null),
-        title?: (string | null),
-        classId?: (string | null),
-        semester?: (string | null),
+        id1?: string,
+        id2?: string,
+        title?: string,
+        classId?: string,
+        semester?: string,
+        xToken?: string,
+        cookieToken?: string,
     }): CancelablePromise<Array<GradeElement>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/query/grades',
+            cookies: {
+                'cookie_token': cookieToken,
+            },
+            headers: {
+                'x-token': xToken,
+            },
             query: {
                 'id1': id1,
                 'id2': id2,
@@ -132,16 +158,21 @@ export class DefaultService {
      */
     public static fTestGet({
         a,
-        token,
+        xToken = '',
+        cookieToken = '',
     }: {
         a: number,
-        token: string,
+        xToken?: string,
+        cookieToken?: string,
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/test',
             cookies: {
-                'token': token,
+                'cookie_token': cookieToken,
+            },
+            headers: {
+                'x-token': xToken,
             },
             query: {
                 'a': a,

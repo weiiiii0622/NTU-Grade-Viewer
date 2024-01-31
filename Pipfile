@@ -17,6 +17,7 @@ chardet = "*"
 openpyxl = "*"
 pydantic-to-typescript = "*"
 pycryptodome = "*"
+pymysql-pool = "*"
 
 [dev-packages]
 
