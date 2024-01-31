@@ -28,23 +28,9 @@ addMessageListener('contextMenu', (msg) => {
 
 /* --------------------------------- Submit --------------------------------- */
 
-const handleSubmitScore = async (sendResponse: (response?: any) => void) => {
-   const res = await submitPageV2();
-   sendResponse({
-      data: res.data,
-      status: res.status_code,
-   });
-};
 
-addMessageListener('submitPage', (msg, sender, sendResponse) => {
-   console.log(`Current Window Location: ${window.location.href}`);
-   try {
-      handleSubmitScore(sendResponse);
-      return true;
-   } catch (error) {
-      console.log("SubmitScore Error:", error);
-      sendResponse(`SubmitScore Error: ${error}`);
-   }
+addMessageListener('submitPage', async (msg, sender) => {
+   return await submitPageV2();
 })
 
 /* -------------------------------- Cookies --------------------------------- */

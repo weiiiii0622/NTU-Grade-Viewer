@@ -1,10 +1,5 @@
 import { fetchApp, fetchAppProxy } from "./api";
-import {
-   RuntimeMessage,
-   RuntimeMessageService,
-   ServiceFuncName,
-   sendRuntimeMessage,
-} from "./api_v2";
+import { ServiceFuncName, sendRuntimeMessage } from "./api_v2";
 import { Page } from "./models";
 import { getHashCode } from "./utils";
 
@@ -41,13 +36,11 @@ async function submitPageV2() {
    const hashCode = getHashCode(content);
 
    const page: Page = { content, hashCode };
-   const r = await sendRuntimeMessage<
-      RuntimeMessageService<"submitPagePagePost">,
-      "submitPagePagePost"
-   >({
-      action: "service",
+   // const r  = await sendRuntimeMessage("service", {
+   const y: { x: 1 } = { x: 1 };
+   let r = await sendRuntimeMessage("service", {
       funcName: "submitPagePagePost",
-      args: [{ requestBody: page }],
+      args: { requestBody: page },
    });
    console.log("submitPage result: ", r);
 

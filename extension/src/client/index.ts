@@ -10,6 +10,7 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 export type { GradeElement } from './models/GradeElement';
 export type { HTTPValidationError } from './models/HTTPValidationError';
 export type { Page } from './models/Page';
+export type { PageResponse } from './models/PageResponse';
 export type { Segment } from './models/Segment';
 export type { ValidationError } from './models/ValidationError';
 

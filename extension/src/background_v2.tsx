@@ -1,29 +1,43 @@
-import { RuntimeMessageService, ServiceFuncName, addMessageListener, sendRuntimeMessage, sendTabMessage } from "./api_v2";
-import { DefaultService, OpenAPI } from "./client";
+import { ServiceFuncName, addMessageListener, getStorage, removeStorage, sendRuntimeMessage, sendTabMessage, setStorage } from "./api_v2";
+import { ApiError, DefaultService, OpenAPI } from "./client";
 
+OpenAPI['BASE'] = APP_URL
+
+/* ---------------------------------- Token --------------------------------- */
 
 
 /* ----------------------------- Service Handler ---------------------------- */
 
-OpenAPI['BASE'] = APP_URL
 
-async function serviceHandler<F extends ServiceFuncName>(
-   msg: Omit<RuntimeMessageService<F>["msg"], "action">,
-   sender: chrome.runtime.MessageSender,
-   sendResponse: (response: RuntimeMessageService<F>["response"]) => void
-) {
-   const { funcName, args } = msg;
-   console.log("Sevice: ", funcName)
-   const func = DefaultService[funcName];
-
-   const response = await func(...(args as [any]));
-   sendResponse(response);
-}
 
 console.log('background-v2')
 
-addMessageListener<RuntimeMessageService<ServiceFuncName>, ServiceFuncName>('service', serviceHandler)
+addMessageListener('service', async (msg, sender) => {
+   const { funcName, args } = msg;
+   const func = DefaultService[funcName];
+   let token = await getStorage('token');
+   if (token)
+      token = token.replaceAll('=', '%3D')
 
+
+   try {
+      const response = await func({ ...args, xToken: token } as any);
+
+      if ('token' in response) {
+         const { token } = response;
+         await setStorage({ token })
+      }
+
+      return response
+   } catch (e) {
+      if (e instanceof ApiError) {
+         // console.log(e.status)
+         return e.status
+      }
+      else
+         throw 'QQ'
+   }
+})
 
 
 /* ------------------------------ Context Menu ------------------------------ */
@@ -38,7 +52,7 @@ chrome.contextMenus.create(
 );
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-   sendTabMessage(tab?.id!, { action: 'contextMenu' })
+   sendTabMessage(tab?.id!, 'contextMenu', {})
 })
 
 chrome.tabs.onActivated.addListener((info) => {
