@@ -6,6 +6,7 @@ from bs4 import Tag
 from fastapi.exceptions import RequestValidationError
 
 from models import Course, GradeInfo
+from utils import extract_dict
 
 
 GRADES = ("A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "F")
@@ -39,7 +40,7 @@ def parse_page(text: str) -> tuple[str, list[tuple[Course, GradeInfo]]]:
         "table-column-course-title ",
         "table-column-grade",
     ]
-    results = []
+    results: list[tuple[Course, GradeInfo]] = []
     for row in grade_rows:
         infos = get_infos(row, extract_cls)
         semester, id1, id2, class_id, title, grade = infos
@@ -68,7 +69,8 @@ def parse_page(text: str) -> tuple[str, list[tuple[Course, GradeInfo]]]:
             # assert semester == "112-1"
             continue
 
-        course = Course(id1, id2, title)
+        # course = Course(id1=id1, id2=id2, title=title)
+        course = Course(**extract_dict(["id1", "id2", "title"], locals()))
         grade = GradeInfo(
             course_id1=id1,
             semester=semester,
@@ -82,5 +84,3 @@ def parse_page(text: str) -> tuple[str, list[tuple[Course, GradeInfo]]]:
     return student_id, results
 
 
-# example = open("./example.html", encoding="utf-8").read()
-# print(parse(example))

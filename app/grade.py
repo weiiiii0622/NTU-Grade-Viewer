@@ -1,4 +1,5 @@
 from db import insert_courses, insert_grade_elements
+from grade_utils import query_lecturer
 from models import GRADE_MAP_INV, Course, GradeElement, GradeInfo, Segment
 from segment_list import SegmentList
 
@@ -7,6 +8,8 @@ def handle_grade_infos(results: list[tuple[Course, GradeInfo]]):
     insert_courses([c for c, _ in results])
 
     def grade_info_to_ele(course: Course, info: GradeInfo):
+        info.lecturer = query_lecturer(course, info)
+
         seg_list = SegmentList(10, 100.0)
         # TODO: update grade by incoming info
         seg_list.update(GRADE_MAP_INV[info.grade], *info.dist)
