@@ -47,22 +47,36 @@ addMessageListener('submitPage', (msg, sender, sendResponse) => {
    }
 })
 
+/* -------------------------------- Cookies --------------------------------- */
+function checkCookie(cookieName: string) {
+   let cookies = document.cookie.split(';');
+
+   for (let i = 0; i < cookies.length; i++) {
+       if (cookies[i].trim().indexOf(cookieName + '=') === 0) {
+           return true;
+       }
+   }
+   return false;
+}
+
 
 /* ------------------------------ Search Items ------------------------------ */
 
-function initSearchItem(node: HTMLElement) {
+function initSearchItem(node: HTMLElement, isAuth: boolean) {
    if (node.getAttribute("inited") === "true") {
       console.log(node, "is inited");
       return;
    }
 
-   const root = document.createElement("div");
+   const root = document.createElement("span");
+   root.className = "mui-ahcpjm"
    createRoot(root).render(
       <React.StrictMode>
-         <GradeChart />
+        <GradeChart auth={isAuth} />
       </React.StrictMode>
    );
-   node.querySelectorAll(".MuiBox-root").item(1).appendChild(root);
+   const childList = node.querySelectorAll(".MuiBox-root")
+   childList.item(childList.length - 1).prepend(root);
    node.setAttribute("inited", "true");
 }
 
@@ -72,10 +86,12 @@ async function searchPageFeature() {
 
    await waitUntil(() => !!document.querySelector(LIST));
 
+   const isAuth = checkCookie("NTU_SCORE_VIEWER");
+
    const listParent = document.querySelector(LIST)!;
    listParent
       .querySelectorAll(ITEM)
-      .forEach((node) => initSearchItem(node as HTMLElement));
+      .forEach((node) => initSearchItem(node as HTMLElement, isAuth));
 
    function callback(mutations: MutationRecord[]) {
       mutations.forEach((m) => {
@@ -84,7 +100,7 @@ async function searchPageFeature() {
                console.log(`Got ${node.nodeName}, ignored`);
                return;
             }
-            initSearchItem(node as HTMLElement);
+            initSearchItem(node as HTMLElement, isAuth);
          });
       });
    }
@@ -93,6 +109,8 @@ async function searchPageFeature() {
 }
 
 if (window.location.href.startsWith("https://course.ntu.edu.tw/search/")) {
+   // TEST only: Set Auth Cookie
+   document.cookie = "NTU_SCORE_VIEWER=test123"   
    searchPageFeature();
 }
 
