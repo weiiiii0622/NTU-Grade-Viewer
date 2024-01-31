@@ -2,7 +2,7 @@ import React from "react";
 import { submitPage } from "./submitPage";
 import { waitUntil } from "./utils";
 import { createRoot } from "react-dom/client";
-import { GradeChart } from "./components/gradeChart";
+import { GradeChartLoader } from "./components/gradeChartLoader";
 import { FixedBox } from "./components/fixedBox";
 import { addMessageListener } from "./api_v2";
 
@@ -61,7 +61,7 @@ function initSearchItem(node: HTMLElement) {
    const root = document.createElement("div");
    createRoot(root).render(
       <React.StrictMode>
-         <GradeChart />
+         <GradeChartLoader />
       </React.StrictMode>
    );
    node.querySelectorAll(".MuiBox-root").item(1).appendChild(root);

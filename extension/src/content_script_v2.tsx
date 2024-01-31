@@ -2,7 +2,7 @@ import React from "react";
 import { submitPage, submitPageV2 } from "./submitPage";
 import { waitUntil } from "./utils";
 import { createRoot } from "react-dom/client";
-import { GradeChart } from "./components/gradeChart";
+import { GradeChartLoader } from "./components/gradeChartLoader";
 import { FixedBox } from "./components/fixedBox";
 import { addMessageListener } from "./api_v2";
 
@@ -72,7 +72,7 @@ function initSearchItem(node: HTMLElement, isAuth: boolean) {
    root.className = "mui-ahcpjm"
    createRoot(root).render(
       <React.StrictMode>
-        <GradeChart auth={isAuth} />
+        <GradeChartLoader auth={isAuth} />
       </React.StrictMode>
    );
    const childList = node.querySelectorAll(".MuiBox-root")
