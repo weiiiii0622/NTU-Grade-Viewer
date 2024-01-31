@@ -6,7 +6,13 @@
  * Page submitted by user.
  */
 export type Page = {
+    /**
+     * The html content of user's grade page.
+     */
     content: string;
+    /**
+     * Hashed value of `content`.
+     */
     hashCode: number;
 };
 
