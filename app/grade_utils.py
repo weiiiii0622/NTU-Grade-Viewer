@@ -1,10 +1,21 @@
+from datetime import datetime
+import aiohttp
+import asyncio
+from platform import java_ver
 from bs4 import BeautifulSoup, Tag
 import requests
 
 from models import Course, GradeBase
 from page import parse_page
 
+
+def course_table_url(course: Course, grade: GradeBase):
+    BASE = "https://nol.ntu.edu.tw/nol/coursesearch/print_table.php"
+    return BASE + f"?course_id={course.id2}&semester={grade.semester}&class={grade.class_id or ''}"
+
+
 SEARCH_URL = "https://nol.ntu.edu.tw/nol/coursesearch/search_result.php"
+
 
 default_params = {
     "alltime": "yes",
@@ -15,7 +26,7 @@ default_params = {
 }
 
 
-def fetch_id1(id1: str, semester: str):
+def fetch_by_id1(id1: str, semester: str):
     params = default_params | {
         "current_sem": semester,
         "cstype": "3",
@@ -25,6 +36,20 @@ def fetch_id1(id1: str, semester: str):
     return requests.get(
         SEARCH_URL, params=params, headers={"Content-Type": "text/html; charset=utf-8"}
     ).text
+
+
+async def fetch_by_id1_async(session: aiohttp.ClientSession, id1: str, semester: str) -> str:
+    params = default_params | {
+        "current_sem": semester,
+        "cstype": "3",
+        "csname": id1,
+    }
+
+    return await (
+        await session.get(
+            SEARCH_URL, params=params, headers={"Content-Type": "text/html; charset=utf-8"}
+        )
+    ).text()
 
 
 def row_to_dict(row: Tag):
@@ -79,7 +104,15 @@ def extract_lecturer(text: str, course: Course, grade: GradeBase):
 # TODO rewrite with new api
 def query_lecturer(course: Course, grade: GradeBase):
     assert course.id1 == grade.course_id1
-    text = fetch_id1(course.id1, grade.semester)  # TODO: add fallback for id2?
+    text = fetch_by_id1(course.id1, grade.semester)  # TODO: add fallback for id2?
+    return extract_lecturer(text, course, grade)
+
+
+async def query_lecturer_async(session: aiohttp.ClientSession, course: Course, grade: GradeBase):
+    assert course.id1 == grade.course_id1
+    text = await fetch_by_id1_async(
+        session, course.id1, grade.semester
+    )  # TODO: add fallback for id2?
     return extract_lecturer(text, course, grade)
 
 
@@ -90,12 +123,35 @@ def test1():
         lec = query_lecturer(c, g)
         print(c.title, lec)
 
+
 def test2():
-    example = open("./app/example.html", encoding="utf-8").read()
+    example = open("./app/error.html", encoding="utf-8").read()
+    # example = open("./app/example.html", encoding="utf-8").read()
     _, results = parse_page(example)
     for c, g in results:
-        lec = query_lecturer(c, g)
-        print(c.title, lec)
+        table = requests.get(course_table_url(c, g)).text
+        soup = BeautifulSoup(table, "html.parser")
+        td: Tag = soup.find_all("tbody")[2].find("tr").find_all("td")[-1]
+        title = td.encode_contents().decode().split("<br/>")[0]
+        assert title == c.title, f"{title}, {c.title}"
+
+
+async def main():
+    example = open("./app/example.html", encoding="utf-8").read()
+    _, results = parse_page(example)
+
+    st = datetime.now()
+    async with aiohttp.ClientSession() as session:
+        # ? async: 0:00:01.741525
+        results = await asyncio.gather(*(query_lecturer_async(session, c, g) for c, g in results))
+
+        # ? sync:  0:00:14.845645
+        # for c, g in results:
+        #     lec = await query_lecturer_async(session, c, g)
+    print((datetime.now() - st))
+
+
+# asyncio.run(main())
 
 # test1()
 # test2()
