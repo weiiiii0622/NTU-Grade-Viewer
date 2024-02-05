@@ -13,13 +13,6 @@ const Popup = () => {
    let studentId = "";
    const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
 
-
-   useEffect(() => {
-      const checkAuth = async () => {
-         // const r = await fetchAppProxy(`/auth/${studentId}`, { method: "GET", body: page });
-      };
-   }, []);
-
    const handleSubmitScore = () => {
       chrome.tabs.query(
          { active: true, currentWindow: true },
