@@ -4,9 +4,22 @@ import { waitUntil } from "./utils";
 import { createRoot } from "react-dom/client";
 import { GradeChartLoader } from "./components/gradeChartLoader";
 import { FixedBox } from "./components/fixedBox";
+import { SnackBar, ISnackBarProps } from "./components/snackBar";
 import { addMessageListener, sendRuntimeMessage, getStorage } from "./api_v2";
 
-sendRuntimeMessage("service", { funcName: 'queryGradesQueryGradesGet', args: { id1: 'CSIE1212' } }).then(console.log)
+
+/* ------------------------------ Popup Message ----------------------------- */
+
+addMessageListener('snackBar', (msg: ISnackBarProps) => {
+   console.log(msg);
+   const root = document.createElement("div");
+   createRoot(root).render(
+      <React.StrictMode>
+        <SnackBar msg={msg.msg} severity={msg.severity} action={msg.action}/>
+      </React.StrictMode>
+   );
+   document.body.append(root);
+})
 
 /* ------------------------------ Context Menu ------------------------------ */
 
@@ -22,14 +35,12 @@ const rootEle = document.createElement("div");
 const root = createRoot(rootEle);
 document.body.insertBefore(rootEle, document.body.firstChild);
 
-console.log('hi')
 addMessageListener('contextMenu', (msg) => {
    root.render(<FixedBox position={contextPos} />);
    // TODO: unmount
 })
 
 /* --------------------------------- Submit --------------------------------- */
-
 
 addMessageListener('submitPage', async (msg, sender) => {
    return await submitPageV2();
@@ -106,7 +117,7 @@ async function searchPageFeature() {
 
 if (window.location.href.startsWith("https://course.ntu.edu.tw/search/")) {
    // TEST only: Set Auth Cookie
-   document.cookie = "NTU_SCORE_VIEWER=test123"
+   //document.cookie = "NTU_SCORE_VIEWER=test123"
    searchPageFeature();
 }
 

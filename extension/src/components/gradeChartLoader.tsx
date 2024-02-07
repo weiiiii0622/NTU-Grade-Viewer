@@ -125,7 +125,8 @@ export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title
 
 
   useEffect(() => {
-    handleFetchGrade();
+    if(isAuth)
+      handleFetchGrade();
   }, [])
   
   // FOR TESTING
