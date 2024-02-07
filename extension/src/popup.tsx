@@ -5,11 +5,21 @@ import { Box } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import { grey, red, green } from '@mui/material/colors';
 import Avatar from '@mui/material/Avatar';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
-import LoadingButton from '@mui/lab/LoadingButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemIcon from '@mui/material/ListItemIcon';
 
-import SendIcon from '@mui/icons-material/Send';
+import MenuIcon from '@mui/icons-material/Menu';
+import LoginIcon from '@mui/icons-material/Login';
+import SearchIcon from '@mui/icons-material/Search';
+
+import { RegisterPage } from "./components/registerPage";
+import { SearchPage } from "./components/searchPage";
 
 import { fetchAppProxy } from "./api";
 import { getStorage, removeStorage, sendRuntimeMessage, sendTabMessage } from "./api_v2";
@@ -23,99 +33,84 @@ OpenAPI['BASE'] = APP_URL
 const Popup = () => {
 
    const [msg, setMsg] = useState<string>('');
-   const [isAuth, setIsAuth] = useState<boolean>(false);
-   const [isLoading, setIsLoading] = useState<boolean>(false);
+	const [page, setPage] = useState<number>(0);
 
-   const sendSnackBarMessage = (msg: ISnackBarProps) => {
-      chrome.tabs.query(
-         { active: true, currentWindow: true },
-         async function (tabs: chrome.tabs.Tab[]) {
-            const tab: chrome.tabs.Tab = tabs[0];
-
-            if (tab.id) {
-               sendTabMessage(tab.id, 'snackBar', msg);
-            }
-         }
-      );      
-   }
-
-   const handleSubmitScore = () => {
-      setIsLoading(true);
-      chrome.tabs.query(
-         { active: true, currentWindow: true },
-         async function (tabs: chrome.tabs.Tab[]) {
-            const tab: chrome.tabs.Tab = tabs[0];
-
-            if(!tab.url?.startsWith("https://if190.aca.ntu.edu.tw/graderanking")){
-               console.log("Wrong Page SubmitGrade")
-               sendSnackBarMessage({msg:"請確認您的頁面位於「成績與名次查詢及探索學分申請系統」！", severity: "error", action: true});
-            }
-            else if (tab.id) {
-               try {
-                  const { message } = await sendTabMessage(tab.id, 'submitPage', {})
-                  console.log("msg:", message);
-                  setIsAuth(true);
-                  sendSnackBarMessage({msg:"註冊成功！歡迎使用 NTU 選課小幫手！", severity: "success", action: true});
-                  
-               } catch (error) {
-                  console.log("error:", error);
-               }
-            }
-            setIsLoading(false);
-         }
-      );
+   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+   const open = Boolean(anchorEl);
+   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+      setAnchorEl(event.currentTarget);
    };
-
-   const checkToken = async () => {
-      let token = await getStorage('token');
-         if (token) {
-            setIsAuth(true);
-         }
-         else {
-            setIsAuth(false);
-         }
-   }
-
-   useEffect(() => {
-      if(isAuth == false)
-         checkToken();
-   }, [isAuth])
+   const handleClose = (page: number) => {
+		setPage(page);
+      setAnchorEl(null);
+   };
    
    return (
    <>
-      <Box sx={{ width: "100%", height: "100%", mt: "10px", display: "flex", flexDirection: "column", justifyContent: 'center', alignContent: 'center', alignItems: 'center', bgcolor: "#F8F8F8" }}>
-         <Box sx={{height: "20%"}}>
-            <Typography variant="h5" color={{ color: grey[700] }} fontWeight="bold">
-               NTU 選課小幫手
-            </Typography>
-            <div><button onClick={() => {removeStorage('token'); setIsAuth(false);}}>Clear Token</button></div>
-         </Box>
-         <Box sx={{width: "100%", height: "50%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
-            Hi
-         </Box>
-         <Box sx={{width: "100%", height: "20%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
-            <Box sx={{width: "50%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
-               <Typography variant="body1" color={{ color: grey[700] }}  fontWeight="bold">
-                  目前狀態：
-               </Typography>
-               <Typography variant="body1" color={ isAuth ? { color: green[500] } : { color: red[500] }} fontWeight="bold">
-                  {isAuth ? "已註冊" : "尚未註冊"}
-               </Typography>
-            </Box>
-            <Box sx={{width: "50%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
-               <LoadingButton
-                  size="small"
-                  onClick={handleSubmitScore}
-                  color="info"
-                  loadingPosition="end"
-                  loading={isLoading}
-                  variant="outlined"
-                  endIcon={<SendIcon />}
+      <Box sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: 'center', alignContent: 'center', alignItems: 'center', bgcolor: "#F8F8F8" }}>
+         
+			{/* Header */}
+			<Box sx={{width: "100%", height: "10%", mt: "10px", mb: "20px", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
+            <Box sx={{width: "20%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
+               <IconButton
+                  size="medium"
+                  color="inherit"
+                  aria-label="menu"
+                  id="menu-button"
+                  aria-controls={open ? 'basic-menu' : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={open ? 'true' : undefined}
+                  onClick={handleClick}
                >
-                  <span>上傳成績</span>
-               </LoadingButton>
+                  <MenuIcon />
+               </IconButton>
+               <Menu
+                  id="basic-menu"
+                  anchorEl={anchorEl}
+                  open={open}
+                  onClose={handleClose}
+                  MenuListProps={{
+                     'dense': true,
+                     'aria-labelledby': 'menu-button',
+                  }}
+                  >
+                  <MenuItem onClick={() => handleClose(0)}>
+							<ListItemIcon>
+								<LoginIcon fontSize="small" />
+							</ListItemIcon>
+							註冊
+						</MenuItem>
+						<MenuItem onClick={() => handleClose(1)}>
+							<ListItemIcon>
+								<SearchIcon fontSize="small" />
+							</ListItemIcon>
+							尋找課程
+						</MenuItem>
+               </Menu>
+            </Box>
+            <Box sx={{width: "80%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
+               <Typography variant="h5" color={{ color: grey[700] }} fontWeight="bold">
+                  NTU 選課小幫手
+               </Typography>
+            </Box>
+            <Box sx={{width: "20%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
+					<></>
             </Box>
          </Box>
+			
+			{/* Body */}
+			<Box sx={{width: "100%", height: "80%"}}>
+				{
+					page == 0 ?
+						<RegisterPage />
+					: page == 1 ?
+						<SearchPage />
+					: 
+						<RegisterPage />
+				}
+			</Box>
+
+			{/* Footer */}
          <Box sx={{width: "100%", height: "10%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center', '& hr': {mx: 1,} }}>
             <Typography variant="caption" display="block" color={{ color: grey[600] }} fontWeight="bold">
                Made By

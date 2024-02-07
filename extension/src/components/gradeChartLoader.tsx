@@ -18,12 +18,13 @@ interface IGradeChartLoaderProps {
   title: (string | undefined),                    // 課程名稱
   course_id1: (string | undefined),               // 課號
   course_id2: (string | undefined),               // 識別碼
+  class_id: (string | undefined),                 // 班次
   lecturer: (string | undefined),
 }
 
 const GRADES = ['F', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+']
 
-export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title, course_id1, course_id2, lecturer }) => {
+export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title, course_id1, course_id2, class_id, lecturer }) => {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [status, setStatus] = useState<number>(0);
@@ -32,19 +33,19 @@ export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title
   const [isAuth, setIsAuth] = useState<boolean>(auth);
 
   async function fetchGrade(): Promise<[number, string]> {
-    const res = await sendRuntimeMessage('service', {
-       funcName: 'queryGradesQueryGradesGet',
-       args: {
-          id1: course_id1,
-          id2: course_id2,
-          title: title,
-          //classId: '',
-       }
-    })
     // const res = await sendRuntimeMessage('service', {
-    //   funcName: 'getAllGradesGradesAllGet',
-    //   args: {}
+    //    funcName: 'queryGradesQueryGradesGet',
+    //    args: {
+    //       id1: course_id1,
+    //       id2: course_id2,
+    //       title: title,
+    //       classId: class_id,
+    //    }
     // })
+    const res = await sendRuntimeMessage('service', {
+      funcName: 'getAllGradesGradesAllGet',
+      args: {}
+    })
 
     switch (res) {
       //@ts-ignore

@@ -74,16 +74,25 @@ function initSearchItem(node: HTMLElement, isAuth: boolean) {
    const title = childList[1].childNodes[0].textContent;                            // 課程名稱
    const course_id1 = childList[0].childNodes[0].childNodes[1].textContent;         // 課號
    const course_id2 = childList[0].childNodes[0].childNodes[2].textContent;         // 識別碼
+   let class_id = "";                                                               // 班次
    const lecturer = childList[2].childNodes[0].childNodes[0].textContent;
    
+   const infos = childList[1].childNodes[1].childNodes;
+   infos.forEach((info, idx) => {
+      if (info.textContent?.startsWith("班次")) {
+         class_id = info.textContent.slice(3);
+      }
+   })
+
    createRoot(root).render(
       <React.StrictMode>
-        <GradeChartLoader auth={isAuth} title={title== null?"":title} course_id1={course_id1== null?"":course_id1} course_id2={course_id2== null?"":course_id2} lecturer={lecturer== null?"":lecturer}/>
+        <GradeChartLoader auth={isAuth} title={title== null?"":title} course_id1={course_id1== null?"":course_id1} course_id2={course_id2== null?"":course_id2} lecturer={lecturer== null?"":lecturer} class_id={class_id== null?"":class_id}/>
       </React.StrictMode>
    );
    childList.item(childList.length - 1).prepend(root);
    node.setAttribute("inited", "true");
 }
+
 
 async function searchPageFeature() {
    const LIST = "ul.table";
@@ -94,6 +103,27 @@ async function searchPageFeature() {
    //const isAuth = checkCookie("NTU_SCORE_VIEWER");
    let token = await getStorage('token');
    const isAuth = (token!==undefined);
+
+   const optionButton : any = document.querySelectorAll(".mui-tpbkxp")[1];
+   console.log(optionButton)
+   if(optionButton){
+      // TODO restore user option setting
+      let hasModified: boolean[] = [false, false, false, false, false, false, false, false, false, false, false]
+      optionButton.click()
+      await waitUntil(() => !!document.querySelector(".mui-12efj16"));
+      const options = document.querySelector(".mui-12efj16")
+      options?.childNodes.forEach((option:any, idx) => {
+         // if (!option.childNodes[0].childNodes[0].checked) {
+         //    option.click();
+         //    hasModified[idx] = true;   
+         // }
+         if (option.textContent.startsWith("班次") && !option.childNodes[0].childNodes[0].checked) {
+            option.click();
+            hasModified[idx] = true;   
+         }
+      })
+      optionButton.click()
+   }
 
    const listParent = document.querySelector(LIST)!;
    listParent
