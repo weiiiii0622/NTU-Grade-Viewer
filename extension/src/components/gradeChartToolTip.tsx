@@ -3,8 +3,11 @@ import { useEffect, useState } from 'react';
 import { styled } from '@mui/material/styles';
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import Zoom from '@mui/material/Zoom';
-import BarChartIcon from '@mui/icons-material/BarChart';
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import { grey } from '@mui/material/colors';
+
+import BarChartIcon from '@mui/icons-material/BarChart';
 import IconButton from '@mui/material/IconButton';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -14,12 +17,13 @@ import { GradeElement } from '../client';
 import { IChartData } from './gradeChart';
 
 
-export interface IGradeChartTooltip {
+export interface IGradeChartTooltipProps {
 	grades: IGradeChartTooltipData[],
-	title: string,
+	title?: string,		// From 課程網
 }
 
 export interface IGradeChartTooltipData {
+	title?: string,	 // From back-end
 	semester: string,
 	lecturer: (string|null),
 	datas: IChartData[]
@@ -29,17 +33,17 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
     <Tooltip {...props} classes={{ popper: className }} />
   ))(({ theme }) => ({
     [`& .${tooltipClasses.tooltip}`]: {
-			backgroundColor: theme.palette.common.white,
+			backgroundColor: "#F8F8F8",
 			boxShadow: theme.shadows[1],
       color: 'rgba(0, 0, 0, 0.87)',
-      fontSize: theme.typography.pxToRem(12),
+      fontSize: theme.typography.pxToRem(10),
       border: '1px solid #dadde9',
 			maxWidth: 'none',
     },
   }));
 
 
-export const GradeChartToolTip: React.FC<IGradeChartTooltip> = ({grades, title}) => {
+export const GradeChartToolTip: React.FC<IGradeChartTooltipProps> = ({grades, title}) => {
 
 	const [datas, setDatas] = useState<IChartData[]>(grades[0].datas);
 	const [lecturer, setLecturer] = useState<string|null>(grades[0].lecturer);
@@ -73,22 +77,32 @@ export const GradeChartToolTip: React.FC<IGradeChartTooltip> = ({grades, title})
 		<HtmlTooltip
 			title={
 				<>
-					<Box sx={{ display: "flex", bgcolor: 'background.paper' }}>
-						<h4> {title} {lecturer==null?"":lecturer} </h4>
-						<h4> {semester} </h4>
+					<Box sx={{ display: "flex", justifyContent: 'space-evenly', alignContent: 'center', alignItems: 'center', mt: "5px", bgcolor: "#F8F8F8" }}>
+						<Typography variant="subtitle2" color={{ color: grey[700] } } fontWeight="bold">
+							{title}
+						</Typography>
+						<Typography variant="subtitle2" color={{ color: grey[700] } } fontWeight="bold">
+							{semester} {lecturer==""?"查無授課教授":lecturer}
+						</Typography>
 					</Box>
-					<Box sx={{ display: "flex", bgcolor: 'background.paper' }}>
-						<IconButton aria-label="before" onClick={() => {setValue((value>0?value-1:0));}}>
+
+					<Box sx={{ display: "flex", bgcolor: "#F8F8F8" }}>
+
+						<IconButton aria-label="before" disabled={value==0} onClick={() => {setValue((value>0?value-1:0));}}>
 							<NavigateBeforeIcon />
 						</IconButton>
+						
 						<GradeChart datas={datas} />
-						<IconButton aria-label="next" onClick={() => {setValue((value<grades.length-1?value+1:value));}}>
+
+						<IconButton aria-label="next" disabled={value==grades.length-1} onClick={() => {setValue((value<grades.length-1?value+1:value));}}>
 							<NavigateNextIcon />
 						</IconButton>
+
 					</Box>
 					
 				</>
 			}
+			
 			placement="top"
 			TransitionComponent={Zoom}
 			leaveDelay={200}

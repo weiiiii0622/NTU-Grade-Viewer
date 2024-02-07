@@ -2,7 +2,7 @@ import React from 'react';
 import { DefaultizedPieValueType } from '@mui/x-charts';
 import { PieChart, pieArcLabelClasses  } from '@mui/x-charts/PieChart';
 
-export interface IScoreChart {
+export interface IScoreChartProps {
 	datas: IChartData[];
 }
 
@@ -28,11 +28,10 @@ const getArcLabel = (params: DefaultizedPieValueType): string => {
   return `${params.value!}%`;
 };
 
-export const GradeChart: React.FC<IScoreChart> = ( {datas} ) => {
+export const GradeChart: React.FC<IScoreChartProps> = ( {datas} ) => {
 	return (
 		<>
 			<PieChart
-				colors={['#f94144','#f3722c','#f8961e','#f9844a','#f9c74f','#90be6d','#43aa8b','#4d908e','#577590','#277da1']}
 				series={[
 					{
 						data: [...datas],
@@ -48,6 +47,7 @@ export const GradeChart: React.FC<IScoreChart> = ( {datas} ) => {
 						fontSize: 10,
 					},
 				}}
+				colors={['#f94144','#f3722c','#f8961e','#f9844a','#f9c74f','#90be6d','#43aa8b','#4d908e','#577590','#277da1']}
 				slotProps={{
 					legend: {
 						direction: 'column',

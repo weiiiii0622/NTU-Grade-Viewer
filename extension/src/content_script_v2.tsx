@@ -4,7 +4,7 @@ import { waitUntil } from "./utils";
 import { createRoot } from "react-dom/client";
 import { GradeChartLoader } from "./components/gradeChartLoader";
 import { FixedBox } from "./components/fixedBox";
-import { addMessageListener, sendRuntimeMessage } from "./api_v2";
+import { addMessageListener, sendRuntimeMessage, getStorage } from "./api_v2";
 
 sendRuntimeMessage("service", { funcName: 'queryGradesQueryGradesGet', args: { id1: 'CSIE1212' } }).then(console.log)
 
@@ -80,7 +80,9 @@ async function searchPageFeature() {
 
    await waitUntil(() => !!document.querySelector(LIST));
 
-   const isAuth = checkCookie("NTU_SCORE_VIEWER");
+   //const isAuth = checkCookie("NTU_SCORE_VIEWER");
+   let token = await getStorage('token');
+   const isAuth = (token!==undefined);
 
    const listParent = document.querySelector(LIST)!;
    listParent
