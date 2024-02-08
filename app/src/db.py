@@ -123,7 +123,7 @@ class Database:
             try:
                 return self.connection_pool.get_connection(retry_num=20)
             except:
-                pass
+                time.sleep(0.1)
         raise DatabaseConnectionError()
 
     def post_init(self, init_commands: list[str]):
