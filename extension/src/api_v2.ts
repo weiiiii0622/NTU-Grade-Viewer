@@ -1,4 +1,13 @@
-import { DefaultService, Page, PageResponse } from "./client";
+import {
+   DefaultService,
+   InternalErrorResponse,
+   Page,
+   PageResponse,
+   UnauthorizedErrorDetail,
+   UnauthorizedErrorResponse,
+   ValidationErrorDetail,
+   ValidationErrorResponse,
+} from "./client";
 import {
    ClassMethodName,
    Equal,
@@ -27,18 +36,18 @@ type GetResponseType<M extends { msg: unknown; response: unknown }, P> = M exten
 /* ------------------------------- Tab Message ------------------------------ */
 
 type TabMessageMap = {
-   'contextMenu': {
+   contextMenu: {
       msg: {};
       response: void;
    };
-   'submitPage': {
+   submitPage: {
       msg: {};
       response: PageResponse;
    };
-   'snackBar': {
+   snackBar: {
       msg: {};
       response: void;
-   }
+   };
 };
 type TabAction = keyof TabMessageMap;
 export type { TabMessageMap, TabAction };
@@ -53,24 +62,26 @@ export async function sendTabMessage<
 
 /* ----------------------------- Runtime Message ---------------------------- */
 
-type ServiceFuncName = ClassMethodName<typeof DefaultService>;
+export type ServiceFuncName = ClassMethodName<typeof DefaultService>;
 
-export type { ServiceFuncName };
+export type ServiceError =
+   | { status: 401; response: UnauthorizedErrorResponse }
+   | { status: 422; response: ValidationErrorResponse }
+   | { status: 500; response: InternalErrorResponse };
 
 type GetFuncMessage<F extends ServiceFuncName> = {
    msg: {
       funcName: F;
-      args: Omit<Parameters<(typeof DefaultService)[F]>[0], 'xToken'|'cookieToken'>;
+      args: Omit<Parameters<(typeof DefaultService)[F]>[0], "xToken" | "cookieToken">;
    };
    response: ReturnType<(typeof DefaultService)[F]>;
 };
 
 type RuntimeMessageServiceMap<F extends ServiceFuncName = ServiceFuncName> = F extends F
-   ? { 'service': GetFuncMessage<F> }
+   ? { service: GetFuncMessage<F> }
    : "never";
 
-type RuntimeMessageMap = RuntimeMessageServiceMap & {
-};
+type RuntimeMessageMap = RuntimeMessageServiceMap & {};
 type RuntimeAction = keyof RuntimeMessageMap;
 
 export type { RuntimeMessageMap, RuntimeMessageServiceMap };
@@ -128,7 +139,7 @@ async function test() {
    // @ts-expect-error
    sendRuntimeMessage("service", { funcName: "submitPagePagePost", args: [] });
    const x3 = await sendRuntimeMessage("service", {
-      funcName:"submitPageSubmitPagePost",
+      funcName: "submitPageSubmitPagePost",
       args: { requestBody: 0 as any as Page },
    });
    type A3 = typeof x3;

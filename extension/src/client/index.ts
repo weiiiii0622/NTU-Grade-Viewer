@@ -7,11 +7,15 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
+export type { Course } from './models/Course';
 export type { GradeElement } from './models/GradeElement';
-export type { HTTPValidationError } from './models/HTTPValidationError';
+export type { InternalErrorResponse } from './models/InternalErrorResponse';
 export type { Page } from './models/Page';
 export type { PageResponse } from './models/PageResponse';
 export type { Segment } from './models/Segment';
-export type { ValidationError } from './models/ValidationError';
+export type { UnauthorizedErrorDetail } from './models/UnauthorizedErrorDetail';
+export type { UnauthorizedErrorResponse } from './models/UnauthorizedErrorResponse';
+export type { ValidationErrorDetail } from './models/ValidationErrorDetail';
+export type { ValidationErrorResponse } from './models/ValidationErrorResponse';
 
 export { DefaultService } from './services/DefaultService';

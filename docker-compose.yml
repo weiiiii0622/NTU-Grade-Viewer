@@ -10,6 +10,7 @@ services:
       dockerfile: ./app/Dockerfile
     environment:
       - DOCKER=TRUE
+      - MODE=DEV
     env_file:
       - .env
     depends_on:

@@ -18,6 +18,11 @@ export class DefaultService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/',
+            errors: {
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
         });
     }
     /**
@@ -36,7 +41,9 @@ export class DefaultService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
             },
         });
     }
@@ -49,6 +56,11 @@ export class DefaultService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/submit/grade',
+            errors: {
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
         });
     }
     /**
@@ -60,6 +72,11 @@ export class DefaultService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/submit/grades',
+            errors: {
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
         });
     }
     /**
@@ -122,7 +139,9 @@ export class DefaultService {
                 'semester': semester,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
             },
         });
     }
@@ -166,7 +185,9 @@ export class DefaultService {
                 'x-token': xToken,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
             },
         });
     }
@@ -179,43 +200,10 @@ export class DefaultService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/db',
-        });
-    }
-    /**
-     * F
-     * @auth_required
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static fTestGet({
-        a,
-        xToken = '',
-        cookieToken = '',
-    }: {
-        a: number,
-        /**
-         * Token represented student_id via X-Token header, automatically sent by background.js. Same as `cookie_token`.
-         */
-        xToken?: string,
-        /**
-         * Token represented student_id via cookie. Same as `x_token`. This parameter is for testing purpose. You should generally rely on `x_token`.
-         */
-        cookieToken?: string,
-    }): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/test',
-            cookies: {
-                'cookie_token': cookieToken,
-            },
-            headers: {
-                'x-token': xToken,
-            },
-            query: {
-                'a': a,
-            },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
             },
         });
     }
@@ -245,7 +233,9 @@ export class DefaultService {
                 'student_id': studentId,
             },
             errors: {
-                422: `Validation Error`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
             },
         });
     }

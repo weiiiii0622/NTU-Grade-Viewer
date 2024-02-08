@@ -2,15 +2,13 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { Course } from './Course';
 import type { Segment } from './Segment';
 /**
  * Grade element stored in db and consumed by client. The values are between 0~100.
  */
 export type GradeElement = {
-    /**
-     * '課號', e.g. 'CSIE1212'
-     */
-    course_id1: string;
+    course: Course;
     /**
      * Semester between 90-1 ~ 130-2
      */
@@ -18,11 +16,11 @@ export type GradeElement = {
     /**
      * The lecturer.
      */
-    lecturer?: (string | null);
+    lecturer?: string;
     /**
      * '班次'
      */
-    class_id?: (string | null);
+    class_id?: string;
     /**
      * A list of segments. The segments are expected to be disjoint, and taking up the whole [0, 9] range. The sum is expected to be (nearly) 100.
      */

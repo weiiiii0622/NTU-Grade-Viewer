@@ -13,6 +13,7 @@
             "url": "http://json.schemastore.org/chrome-manifest"
         }
     ],
+    "json.format.enable": false,
     // "typescript.preferences.useAliasesForRenames": false,
     // "python.analysis.importFormat": "relative",
     "python.analysis.extraPaths": [
@@ -21,6 +22,7 @@
         "src",
         "app/src"
     ],
+    "python.analysis.importFormat": "absolute",
     "python.analysis.autoImportCompletions": true,
     "prettier.tabWidth": 3,
     "inlineSQL.enableDBIntegration": true,

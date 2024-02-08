@@ -46,7 +46,7 @@ export const SearchPage = () => {
 
 	async function fetchGrade(): Promise<[number, string]> {
 		const res = await sendRuntimeMessage('service', {
-			funcName: 'queryGradesQueryGradesGet',
+			funcName: 'queryGradesQueryGet',
 			args: {
 				id1: course_id1,
 				id2: course_id2,

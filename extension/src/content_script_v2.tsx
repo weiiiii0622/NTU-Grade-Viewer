@@ -15,7 +15,7 @@ addMessageListener('snackBar', (msg: ISnackBarProps) => {
    const root = document.createElement("div");
    createRoot(root).render(
       <React.StrictMode>
-        <SnackBar msg={msg.msg} severity={msg.severity} action={msg.action}/>
+         <SnackBar msg={msg.msg} severity={msg.severity} action={msg.action} />
       </React.StrictMode>
    );
    document.body.append(root);
@@ -76,7 +76,7 @@ function initSearchItem(node: HTMLElement, isAuth: boolean) {
    const course_id2 = childList[0].childNodes[0].childNodes[2].textContent;         // 識別碼
    let class_id = "";                                                               // 班次
    const lecturer = childList[2].childNodes[0].childNodes[0].textContent;
-   
+
    const infos = childList[1].childNodes[1].childNodes;
    infos.forEach((info, idx) => {
       if (info.textContent?.startsWith("班次")) {
@@ -86,7 +86,7 @@ function initSearchItem(node: HTMLElement, isAuth: boolean) {
 
    createRoot(root).render(
       <React.StrictMode>
-        <GradeChartLoader auth={isAuth} title={title== null?"":title} course_id1={course_id1== null?"":course_id1} course_id2={course_id2== null?"":course_id2} lecturer={lecturer== null?"":lecturer} class_id={class_id== null?"":class_id}/>
+         <GradeChartLoader auth={isAuth} title={title == null ? "" : title} course_id1={course_id1 == null ? "" : course_id1} course_id2={course_id2 == null ? "" : course_id2} lecturer={lecturer == null ? "" : lecturer} class_id={class_id == null ? "" : class_id} />
       </React.StrictMode>
    );
    childList.item(childList.length - 1).prepend(root);
@@ -108,22 +108,22 @@ async function searchPageFeature() {
    let token = await getStorage('token');
    const isAuth = (token !== undefined);
 
-   const optionButton : any = document.querySelectorAll(".mui-tpbkxp")[1];
+   const optionButton: any = document.querySelectorAll(".mui-tpbkxp")[1];
    console.log(optionButton)
-   if(optionButton){
+   if (optionButton) {
       // TODO restore user option setting
       let hasModified: boolean[] = [false, false, false, false, false, false, false, false, false, false, false]
       optionButton.click()
       await waitUntil(() => !!document.querySelector(".mui-12efj16"));
       const options = document.querySelector(".mui-12efj16")
-      options?.childNodes.forEach((option:any, idx) => {
+      options?.childNodes.forEach((option: any, idx) => {
          // if (!option.childNodes[0].childNodes[0].checked) {
          //    option.click();
          //    hasModified[idx] = true;   
          // }
          if (option.textContent.startsWith("班次") && !option.childNodes[0].childNodes[0].checked) {
             option.click();
-            hasModified[idx] = true;   
+            hasModified[idx] = true;
          }
       })
       optionButton.click()
@@ -149,6 +149,7 @@ async function searchPageFeature() {
    ob.observe(listParent, { childList: true });
 }
 
+/* ---------------------------- Register Feature ---------------------------- */
 
 function registerFeature(fn: () => void, pattern: string | RegExp) {
    let previousUrl = "";
@@ -173,7 +174,4 @@ function registerFeature(fn: () => void, pattern: string | RegExp) {
 
 
 registerFeature(searchPageFeature, "https://course.ntu.edu.tw/search/")
-// if (window.location.href.startsWith()) {
-//    searchPageFeature();
-// }
 
