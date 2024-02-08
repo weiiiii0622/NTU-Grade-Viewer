@@ -118,8 +118,13 @@ class Database:
 
         self.post_init(init_commands)
 
-    def get_connection(self, *args, **kwargs) -> "pymysql.Connection[DictCursor]":
-        return self.connection_pool.get_connection()
+    def get_connection(self, retries=20) -> "pymysql.Connection[DictCursor]":
+        for _ in range(retries):
+            try:
+                return self.connection_pool.get_connection(retry_num=20)
+            except:
+                pass
+        raise DatabaseConnectionError()
 
     def post_init(self, init_commands: list[str]):
         with self.get_connection() as connection:
