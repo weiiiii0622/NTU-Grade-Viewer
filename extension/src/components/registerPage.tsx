@@ -10,7 +10,11 @@ import SendIcon from '@mui/icons-material/Send';
 import { sendTabMessage, getStorage, removeStorage } from "../api_v2";
 import { ISnackBarProps } from "./snackBar";
 
-export const RegisterPage = () => {
+interface IRegisterPageProps {
+   reset: boolean
+}
+
+export const RegisterPage: React.FC<IRegisterPageProps>  = ( {reset} ) => {
 
 	const [isAuth, setIsAuth] = useState<boolean>(false);
    const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -34,8 +38,9 @@ export const RegisterPage = () => {
          { active: true, currentWindow: true },
          async function (tabs: chrome.tabs.Tab[]) {
             const tab: chrome.tabs.Tab = tabs[0];
-
-            if(!tab.url?.startsWith("https://if190.aca.ntu.edu.tw/graderanking")){
+            
+            console.log(tab.url);
+            if(!tab.url?.startsWith("https://if190.aca.ntu.edu.tw/graderanking") || tab.url?.startsWith("https://if190.aca.ntu.edu.tw/graderanking/Error")){
                console.log(tab.url)
                console.log("Wrong Page SubmitGrade")
                sendSnackBarMessage({msg:"請確認您的頁面位於「成績與名次查詢及探索學分申請系統」！", severity: "error", action: true});
@@ -49,6 +54,8 @@ export const RegisterPage = () => {
                   
                } catch (error) {
                   console.log("error:", error);
+                  alert("發生錯誤！請重新整理頁面再試一次！");
+                  sendSnackBarMessage({msg:"發生錯誤！請重新整理頁面再試一次！", severity: "error", action: true});
                }
             }
             setIsLoading(false);
@@ -67,15 +74,15 @@ export const RegisterPage = () => {
    }
 
    useEffect(() => {
-      if(isAuth == false)
+      if(isAuth == false || reset)
          checkToken();
-   }, [isAuth])
+   }, [isAuth, reset])
+
 
 	return (
 		<>
-			<Box sx={{width: "100%", height: "70%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
-				Hi
-				<div><button onClick={() => {removeStorage('token'); setIsAuth(false);}}>Reset</button></div>
+			<Box sx={{width: "100%", height: "70%"}}>
+
 			</Box>
 			<Box sx={{width: "100%", height: "30%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
 				<Box sx={{width: "50%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>

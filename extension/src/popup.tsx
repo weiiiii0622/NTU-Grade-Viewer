@@ -16,6 +16,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 
 import MenuIcon from '@mui/icons-material/Menu';
 import LoginIcon from '@mui/icons-material/Login';
+import ReplayIcon from '@mui/icons-material/Replay';
 import SearchIcon from '@mui/icons-material/Search';
 
 import { RegisterPage } from "./components/registerPage";
@@ -33,6 +34,7 @@ OpenAPI['BASE'] = APP_URL
 const Popup = () => {
 
    const [msg, setMsg] = useState<string>('');
+	const [reset, setReset] = useState<boolean>(false);
 	const [page, setPage] = useState<number>(0);
 
    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -94,7 +96,16 @@ const Popup = () => {
                </Typography>
             </Box>
             <Box sx={{width: "20%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
-					<></>
+					<IconButton
+                  size="medium"
+                  color="inherit"
+                  aria-label="reset"
+                  id="reset-button"
+                  onClick={()=>{removeStorage('token'); setReset(true);}}
+               >
+                  <ReplayIcon />
+               </IconButton>
+					
             </Box>
          </Box>
 			
@@ -102,11 +113,11 @@ const Popup = () => {
 			<Box sx={{width: "100%", height: "80%"}}>
 				{
 					page == 0 ?
-						<RegisterPage />
+						<RegisterPage  reset={reset}/>
 					: page == 1 ?
-						<SearchPage />
+						<SearchPage  reset={reset}/>
 					: 
-						<RegisterPage />
+						<RegisterPage  reset={reset}/>
 				}
 			</Box>
 

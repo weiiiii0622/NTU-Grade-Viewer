@@ -19,7 +19,11 @@ import { fetchGrade, parseGrade } from "../utils";
 
 const GRADES = ['F', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+']
 
-export const SearchPage = () => {
+interface ISearchPageProps {
+	reset: boolean
+}
+
+export const SearchPage: React.FC<ISearchPageProps> = ( {reset} ) => {
 
 	const [isAuth, setIsAuth] = useState<boolean>(false);
    const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -88,9 +92,9 @@ export const SearchPage = () => {
    }
 
    useEffect(() => {
-      if(isAuth == false)
+      if(isAuth == false || reset)
          checkToken();
-   }, [isAuth])
+   }, [isAuth, reset])
 
 	return (
 		<>
