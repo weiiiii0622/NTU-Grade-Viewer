@@ -1,6 +1,14 @@
 import asyncio
+from pathlib import Path
 
-from utils.search import search_course
+import requests
 
-res = asyncio.run(search_course(({"title": "專題研究一", "lecturer": "張宏浩", "semester": "110-1"})))
-print(res)
+from models import Page
+
+content = open(str(Path(__file__).parent / "../examples/error.html")).read()
+
+r = requests.post(
+    "http://localhost:5000/submit/page", json={"content": content, "hashCode": Page.get_hash_code(content)}
+)
+
+print(r.text)

@@ -44,7 +44,7 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://if190.aca.ntu.edu.tw"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -60,76 +60,6 @@ for router in routes.ROUTERS:
     app.include_router(router)
 
 
-class PageResponse(BaseModel):
-    message: str
-    token: str
-
-
-# @app.post("/page", status_code=200)
-# def submit_page(page: Page, response: Response) -> PageResponse:
-#     # if hashCode(page.content) != page.hashCode:
-#     # Fail to submit score
-#     # response.status_code = status.HTTP_400_BAD_REQUEST
-#     # return {"message": "Failed to Submit Score!"}
-#     # raise RequestValidationError([])
-
-#     student_id, results = parse_page(page.content)
-#     handle_grade_infos(results)
-
-#     token = add_user(student_id)
-#     response.set_cookie("token", token)
-
-#     return PageResponse(**{"message": "Successfully Submit Score!", "token": token})
-
-
-# @app.get("/grades/all")
-# @auth_required
-# @test_only
-# def get_all_grades() -> list[GradeElement]:
-#     """
-#     Just get all grades.
-#     """
-
-#     return do_query_grades({"1": "1"}, {})
-
-
-# async def get_query_dict(
-#     # id1: Annotated[str, Query(description="'課號', e.g. CSIE1212")] = "",
-#     # id2: Annotated[
-#     #     str, Query(description="'課程識別碼', e.g. '902 10750'. Note the space character.")
-#     # ] = "",
-#     id1: Literal[""] | Id1 = "",
-#     id2: Literal[""] | Id2 = "",
-#     title: Annotated[str, Query(description="'課程名稱'")] = "",
-#     class_id: Annotated[str, Query(description="'班次'")] = "",
-#     semester: Annotated[
-#         Literal[""] | Semester, Query(description="Semester between 90-1 ~ 130-2")
-#     ] = "",
-# ):
-#     d = locals()
-#     keys = QUERY_FIELDS + QUERY_FILTERS
-#     return {k: v for k in keys if (v := d[k])}
-
-
-# @app.get("/query/grades")
-# @auth_required
-# def query_grades(query: dict = Depends(get_query_dict)) -> list[GradeElement]:
-#     """
-#     Each query should provide at least one of `id1`, `id2` or `title`. The `class_id` and `semester` parameters are for further filtering results.
-
-#     Returns:
-#         A list of `GradeElement` satisfing given filters.
-#     """
-
-#     fields = {k: v for k, v in query.items() if k in QUERY_FIELDS}
-#     filters = {k: v for k, v in query.items() if k in QUERY_FILTERS}
-
-#     if not fields:
-#         raise HTTPException(status_code=400, detail="At least one field has to be specified!")
-
-#     return do_query_grades(fields, filters)
-
-
 @app.get("/db")
 def db_test():
     return test()
@@ -138,7 +68,6 @@ def db_test():
 @app.get("/add-auth/{student_id}")
 @test_only
 def _add_auth(
-
     student_id: Annotated[StudentId, Path(description="A student's id, e.g. b10401006.")],
     response: Response,
 ):
@@ -152,17 +81,6 @@ def _add_auth(
     token = add_user(student_id)
     response.set_cookie("cookie_token", quote(token))
     return token
-
-
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    errors = exc.args[0]
-    if any(err["loc"] == ("cookie", "token") for err in errors):
-        # print(errors)
-        # print(request.cookies)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="no token specified")
-
-    return JSONResponse({"detail": errors}, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 @app.exception_handler(DatabaseConnectionError)

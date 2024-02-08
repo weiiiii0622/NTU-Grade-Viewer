@@ -35,9 +35,9 @@ addMessageListener('service', async (msg, sender) => {
          // console.log(e.status)
          return e.status
       }
-      else{
-         return 'QQ'
-         throw 'QQ'
+      else {
+         // return 'QQ'
+         throw e
       }
    }
 })
@@ -61,24 +61,28 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 chrome.tabs.onActivated.addListener((info) => {
    chrome.tabs.get(info.tabId, async (tab) => {
       // ? Avoid chrome:// tabs
-      if (tab.url) {
+      if (!tab.url?.includes("chrome://")) {
+         // console.log(tab.)
+         
+         return;
          const CONTENT_RUNNING = "contentScriptRunning";
          const target = { tabId: info.tabId };
-         const running = !! await chrome.scripting.executeScript({ target, func: (key) => window.localStorage.getItem(key), args: [CONTENT_RUNNING] })
-         if (!running) {
-            chrome.scripting.executeScript({
-               target, func: (key) => {
-                  window.localStorage.setItem(key, 'true');
-                  window.addEventListener('close', () => window.localStorage.removeItem(key))
-               }, args: [CONTENT_RUNNING]
-            })
-            chrome.scripting
-               .executeScript({
-                  target,
-                  files: ["js/vendor.js", "js/content_script.js"],
-               })
-               .then(() => console.log("success"));
-         }
+         // const running = !! await chrome.scripting.executeScript({ target, func: (key) => window.localStorage.getItem(key), args: [CONTENT_RUNNING] })
+         // if (!running) {
+         //    chrome.scripting.executeScript({
+         //       target, func: (key) => {
+         //          window.localStorage.setItem(key, 'true');
+         //          window.addEventListener('close', () => window.localStorage.removeItem(key))
+         //       }, args: [CONTENT_RUNNING]
+         //    })
+         // chrome.scripting
+         //    .executeScript({
+         //       target,
+         //       files: ["js/vendor.js", "js/content_script.js"],
+         //    })
+         //    .then(() => console.log("success"));
       }
-   });
+   }
+   )
 });
+
