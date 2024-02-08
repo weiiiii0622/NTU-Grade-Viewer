@@ -33,6 +33,15 @@ export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title
   const [isAuth, setIsAuth] = useState<boolean>(auth);
 
   async function fetchGrade(): Promise<[number, string]> {
+    const res = await sendRuntimeMessage('service', {
+       funcName: 'queryGradesQueryGet',
+       args: {
+          id1: course_id1,
+          id2: course_id2,
+          title: title,
+          //classId: '',
+       }
+    })
     // const res = await sendRuntimeMessage('service', {
     //    funcName: 'queryGradesQueryGradesGet',
     //    args: {
@@ -42,10 +51,10 @@ export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title
     //       classId: class_id,
     //    }
     // })
-    const res = await sendRuntimeMessage('service', {
-      funcName: 'getAllGradesGradesAllGet',
-      args: {}
-    })
+    // const res = await sendRuntimeMessage('service', {
+    //   funcName: 'getAllGradesGradesAllGet',
+    //   args: {}
+    // })
 
     switch (res) {
       //@ts-ignore

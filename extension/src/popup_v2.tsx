@@ -20,7 +20,7 @@ const Popup = () => {
             const tab: chrome.tabs.Tab = tabs[0];
 
             if (tab.id) {
-               const { message } = await sendTabMessage(tab.id, 'submitPage', {})
+               const { } = await sendTabMessage(tab.id, 'submitPage', {})
                setHasSubmitted(true);
             }
          }
@@ -37,8 +37,8 @@ const Popup = () => {
       //    }
       // })
       const res = await sendRuntimeMessage('service', {
-         funcName: 'getAllGradesGradesAllGet',
-         args: {}
+         funcName: 'getAllGradesGradeAllGet',
+         args: {},
       })
       //@ts-ignore
       if (res === 401) {
@@ -47,13 +47,13 @@ const Popup = () => {
 
       // Concatenate all res
       let resString = "";
-      res.forEach((cur, idx)=>{resString += (JSON.stringify(cur) + ";");});
+      res.forEach((cur, idx) => { resString += (JSON.stringify(cur) + ";"); });
       console.log(resString);
 
       return [true, (JSON.stringify(res[0]))]
    }
 
-   
+
    async function f() {
       const [state, res] = await fetchExample();
       setResult(res);

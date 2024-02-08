@@ -1,5 +1,7 @@
 // Reference: https://github.com/type-challenges/type-challenges
 
+type NoInfer<T> = [T][T extends any?0:never]
+
 /* ------------------------------ Type Checking ----------------------------- */
 
 export type Expect<T extends true> = T;

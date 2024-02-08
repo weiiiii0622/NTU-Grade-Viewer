@@ -8,7 +8,7 @@ import type { Segment } from './Segment';
  */
 export type GradeElement = {
     /**
-     * '課號', e.g. CSIE1212
+     * '課號', e.g. 'CSIE1212'
      */
     course_id1: string;
     /**
@@ -18,11 +18,11 @@ export type GradeElement = {
     /**
      * The lecturer.
      */
-    lecturer: (string | null);
+    lecturer?: (string | null);
     /**
      * '班次'
      */
-    class_id: (string | null);
+    class_id?: (string | null);
     /**
      * A list of segments. The segments are expected to be disjoint, and taking up the whole [0, 9] range. The sum is expected to be (nearly) 100.
      */

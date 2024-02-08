@@ -95,6 +95,10 @@ function initSearchItem(node: HTMLElement, isAuth: boolean) {
 
 
 async function searchPageFeature() {
+
+   // TEST only: Set Auth Cookie
+   document.cookie = "NTU_SCORE_VIEWER=test123"
+
    const LIST = "ul.table";
    const ITEM = "li.MuiListItem-root";
 
@@ -102,7 +106,7 @@ async function searchPageFeature() {
 
    //const isAuth = checkCookie("NTU_SCORE_VIEWER");
    let token = await getStorage('token');
-   const isAuth = (token!==undefined);
+   const isAuth = (token !== undefined);
 
    const optionButton : any = document.querySelectorAll(".mui-tpbkxp")[1];
    console.log(optionButton)
@@ -145,9 +149,31 @@ async function searchPageFeature() {
    ob.observe(listParent, { childList: true });
 }
 
-if (window.location.href.startsWith("https://course.ntu.edu.tw/search/")) {
-   // TEST only: Set Auth Cookie
-   //document.cookie = "NTU_SCORE_VIEWER=test123"
-   searchPageFeature();
+
+function registerFeature(fn: () => void, pattern: string | RegExp) {
+   let previousUrl = "";
+   console.log('hi')
+
+   const callback = () => {
+      if (window.location.href !== previousUrl) {
+         console.log(`URL changed from ${previousUrl} to ${window.location.href}`);
+         previousUrl = window.location.href;
+
+         if (window.location.href.match(pattern)) {
+            fn();
+         }
+      }
+   }
+
+   const observer = new MutationObserver(callback);
+   observer.observe(document, { subtree: true, childList: true });
+
+   callback();
 }
+
+
+registerFeature(searchPageFeature, "https://course.ntu.edu.tw/search/")
+// if (window.location.href.startsWith()) {
+//    searchPageFeature();
+// }
 

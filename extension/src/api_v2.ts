@@ -60,7 +60,7 @@ export type { ServiceFuncName };
 type GetFuncMessage<F extends ServiceFuncName> = {
    msg: {
       funcName: F;
-      args: Parameters<(typeof DefaultService)[F]>[0];
+      args: Omit<Parameters<(typeof DefaultService)[F]>[0], 'xToken'|'cookieToken'>;
    };
    response: ReturnType<(typeof DefaultService)[F]>;
 };
@@ -128,13 +128,13 @@ async function test() {
    // @ts-expect-error
    sendRuntimeMessage("service", { funcName: "submitPagePagePost", args: [] });
    const x3 = await sendRuntimeMessage("service", {
-      funcName: "submitPagePagePost",
+      funcName:"submitPageSubmitPagePost",
       args: { requestBody: 0 as any as Page },
    });
    type A3 = typeof x3;
 
    const x4 = await sendRuntimeMessage("service", {
-      funcName: "queryGradesQueryGradesGet",
+      funcName: "queryGradesQueryGet",
       args: { id1: "CSIE8888" },
    });
    type A4 = typeof x4;
@@ -142,8 +142,8 @@ async function test() {
    type cases = [
       Expect<Equal<A1, TabMessageMap["contextMenu"]["response"]>>,
       Expect<Equal<A2, TabMessageMap["submitPage"]["response"]>>,
-      Expect<Equal<A3, Awaited<ReturnType<typeof DefaultService.submitPagePagePost>>>>,
-      Expect<Equal<A4, Awaited<ReturnType<typeof DefaultService.queryGradesQueryGradesGet>>>>
+      Expect<Equal<A3, Awaited<ReturnType<typeof DefaultService.submitPageSubmitPagePost>>>>,
+      Expect<Equal<A4, Awaited<ReturnType<typeof DefaultService.queryGradesQueryGet>>>>
    ];
 
    addMessageListener("contextMenu", async (msg) => {

@@ -39,7 +39,7 @@ async function submitPageV2() {
    // const r  = await sendRuntimeMessage("service", {
    const y: { x: 1 } = { x: 1 };
    let r = await sendRuntimeMessage("service", {
-      funcName: "submitPagePagePost",
+      funcName: "submitPageSubmitPagePost",
       args: { requestBody: page },
    });
    console.log("submitPage result: ", r);

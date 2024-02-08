@@ -8,7 +8,6 @@ beautifulsoup4 = "==4.10.0"
 fastapi = "==0.109.0"
 pydantic = "==2.5.3"
 requests = "==2.31.0"
-tqdm = "==4.65.0"
 uvicorn = "==0.26.0"
 python-dotenv = "==1.0.0"
 pymysql = {extras = ["rsa"], version = "*"}
@@ -19,6 +18,7 @@ pydantic-to-typescript = "*"
 pycryptodome = "*"
 pymysql-pool = "*"
 aiohttp = "*"
+tqdm = "*"
 
 [dev-packages]
 

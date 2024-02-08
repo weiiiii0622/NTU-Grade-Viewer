@@ -17,8 +17,11 @@
     // "python.analysis.importFormat": "relative",
     "python.analysis.extraPaths": [
         "app",
-        "scripts"
+        "scripts",
+        "src",
+        "app/src"
     ],
+    "python.analysis.autoImportCompletions": true,
     "prettier.tabWidth": 3,
     "inlineSQL.enableDBIntegration": true,
     "inlineSQL.dbDriver": "mysql",

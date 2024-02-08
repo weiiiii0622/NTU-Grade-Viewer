@@ -14,20 +14,10 @@ export class DefaultService {
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getRootGet({
-        a,
-    }: {
-        a: number,
-    }): CancelablePromise<any> {
+    public static getRootGet(): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/',
-            query: {
-                'a': a,
-            },
-            errors: {
-                422: `Validation Error`,
-            },
         });
     }
     /**
@@ -35,14 +25,14 @@ export class DefaultService {
      * @returns PageResponse Successful Response
      * @throws ApiError
      */
-    public static submitPagePagePost({
+    public static submitPageSubmitPagePost({
         requestBody,
     }: {
         requestBody: Page,
     }): CancelablePromise<PageResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/page',
+            url: '/submit/page',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
@@ -51,39 +41,25 @@ export class DefaultService {
         });
     }
     /**
-     * Get All Grades
-     * @auth_required
-     * @test_only
-     *
-     * Just get all grades.
-     * @returns GradeElement Successful Response
+     * Submit Grade
+     * @returns any Successful Response
      * @throws ApiError
      */
-    public static getAllGradesGradesAllGet({
-        xToken = '',
-        cookieToken = '',
-    }: {
-        /**
-         * Token represented student_id via X-Token header, automatically sent by background.js. Same as `cookie_token`.
-         */
-        xToken?: string,
-        /**
-         * Token represented student_id via cookie. Same as `x_token`. This parameter is for testing purpose. You should generally rely on `x_token`.
-         */
-        cookieToken?: string,
-    }): CancelablePromise<Array<GradeElement>> {
+    public static submitGradeSubmitGradePost(): CancelablePromise<any> {
         return __request(OpenAPI, {
-            method: 'GET',
-            url: '/grades/all',
-            cookies: {
-                'cookie_token': cookieToken,
-            },
-            headers: {
-                'x-token': xToken,
-            },
-            errors: {
-                422: `Validation Error`,
-            },
+            method: 'POST',
+            url: '/submit/grade',
+        });
+    }
+    /**
+     * Submit Grades
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static submitGradesSubmitGradesPost(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/submit/grades',
         });
     }
     /**
@@ -97,22 +73,16 @@ export class DefaultService {
      * @returns GradeElement Successful Response
      * @throws ApiError
      */
-    public static queryGradesQueryGradesGet({
-        id1 = '',
-        id2 = '',
+    public static queryGradesQueryGet({
+        id1,
+        id2,
         title = '',
         classId = '',
-        semester = '',
+        semester,
         xToken = '',
         cookieToken = '',
     }: {
-        /**
-         * '課號', e.g. CSIE1212
-         */
         id1?: string,
-        /**
-         * '課程識別碼', e.g. '902 10750'. Note the space character.
-         */
         id2?: string,
         /**
          * '課程名稱'
@@ -137,7 +107,7 @@ export class DefaultService {
     }): CancelablePromise<Array<GradeElement>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/query/grades',
+            url: '/query',
             cookies: {
                 'cookie_token': cookieToken,
             },
@@ -150,6 +120,50 @@ export class DefaultService {
                 'title': title,
                 'class_id': classId,
                 'semester': semester,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get All Grades
+     * @test_only
+     *
+     * Just get all grades.
+     * @returns GradeElement Successful Response
+     * @throws ApiError
+     */
+    public static getAllGradesGradeAllGet({
+        xToken = '',
+        cookieToken = '',
+    }: {
+        /**
+         *
+         * Token represented student_id via cookie.
+         * Same as `x_token`. This parameter is for testing purpose.
+         * You should generally rely on `x_token`.
+         *
+         */
+        xToken?: string,
+        /**
+         *
+         * Token represented student_id via cookie.
+         * Same as `x_token`.
+         * This parameter is for testing purpose.
+         * You should generally rely on `x_token`.
+         *
+         */
+        cookieToken?: string,
+    }): CancelablePromise<Array<GradeElement>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/grade/all',
+            cookies: {
+                'cookie_token': cookieToken,
+            },
+            headers: {
+                'x-token': xToken,
             },
             errors: {
                 422: `Validation Error`,
@@ -226,9 +240,9 @@ export class DefaultService {
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/add-auth/{studentId}',
+            url: '/add-auth/{student_id}',
             path: {
-                'studentId': studentId,
+                'student_id': studentId,
             },
             errors: {
                 422: `Validation Error`,
