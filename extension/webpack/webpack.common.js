@@ -11,7 +11,7 @@ const { V2 } = env;
 
 module.exports = {
    entry: {
-      popup: path.join(srcDir, V2 ? "popup_v2.tsx" : "popup.tsx"),
+      popup: path.join(srcDir, V2 ? "popup.tsx" : "popup_v2.tsx"),
       options: path.join(srcDir, "options.tsx"),
       background: path.join(srcDir, V2 ? "background_v2.tsx" : "background.tsx"),
       content_script: path.join(srcDir, V2 ? "content_script_v2.tsx" : "content_script.tsx"),

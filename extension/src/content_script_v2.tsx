@@ -4,9 +4,22 @@ import { waitUntil } from "./utils";
 import { createRoot } from "react-dom/client";
 import { GradeChartLoader } from "./components/gradeChartLoader";
 import { FixedBox } from "./components/fixedBox";
+import { SnackBar, ISnackBarProps } from "./components/snackBar";
 import { addMessageListener, sendRuntimeMessage, getStorage } from "./api_v2";
 
-sendRuntimeMessage("service", { funcName: 'queryGradesQueryGradesGet', args: { id1: 'CSIE1212' } }).then(console.log)
+
+/* ------------------------------ Popup Message ----------------------------- */
+
+addMessageListener('snackBar', (msg: ISnackBarProps) => {
+   console.log(msg);
+   const root = document.createElement("div");
+   createRoot(root).render(
+      <React.StrictMode>
+        <SnackBar msg={msg.msg} severity={msg.severity} action={msg.action}/>
+      </React.StrictMode>
+   );
+   document.body.append(root);
+})
 
 /* ------------------------------ Context Menu ------------------------------ */
 
@@ -22,14 +35,12 @@ const rootEle = document.createElement("div");
 const root = createRoot(rootEle);
 document.body.insertBefore(rootEle, document.body.firstChild);
 
-console.log('hi')
 addMessageListener('contextMenu', (msg) => {
    root.render(<FixedBox position={contextPos} />);
    // TODO: unmount
 })
 
 /* --------------------------------- Submit --------------------------------- */
-
 
 addMessageListener('submitPage', async (msg, sender) => {
    return await submitPageV2();
@@ -63,16 +74,25 @@ function initSearchItem(node: HTMLElement, isAuth: boolean) {
    const title = childList[1].childNodes[0].textContent;                            // 課程名稱
    const course_id1 = childList[0].childNodes[0].childNodes[1].textContent;         // 課號
    const course_id2 = childList[0].childNodes[0].childNodes[2].textContent;         // 識別碼
+   let class_id = "";                                                               // 班次
    const lecturer = childList[2].childNodes[0].childNodes[0].textContent;
    
+   const infos = childList[1].childNodes[1].childNodes;
+   infos.forEach((info, idx) => {
+      if (info.textContent?.startsWith("班次")) {
+         class_id = info.textContent.slice(3);
+      }
+   })
+
    createRoot(root).render(
       <React.StrictMode>
-        <GradeChartLoader auth={isAuth} title={title== null?"":title} course_id1={course_id1== null?"":course_id1} course_id2={course_id2== null?"":course_id2} lecturer={lecturer== null?"":lecturer}/>
+        <GradeChartLoader auth={isAuth} title={title== null?"":title} course_id1={course_id1== null?"":course_id1} course_id2={course_id2== null?"":course_id2} lecturer={lecturer== null?"":lecturer} class_id={class_id== null?"":class_id}/>
       </React.StrictMode>
    );
    childList.item(childList.length - 1).prepend(root);
    node.setAttribute("inited", "true");
 }
+
 
 async function searchPageFeature() {
    const LIST = "ul.table";
@@ -83,6 +103,27 @@ async function searchPageFeature() {
    //const isAuth = checkCookie("NTU_SCORE_VIEWER");
    let token = await getStorage('token');
    const isAuth = (token!==undefined);
+
+   const optionButton : any = document.querySelectorAll(".mui-tpbkxp")[1];
+   console.log(optionButton)
+   if(optionButton){
+      // TODO restore user option setting
+      let hasModified: boolean[] = [false, false, false, false, false, false, false, false, false, false, false]
+      optionButton.click()
+      await waitUntil(() => !!document.querySelector(".mui-12efj16"));
+      const options = document.querySelector(".mui-12efj16")
+      options?.childNodes.forEach((option:any, idx) => {
+         // if (!option.childNodes[0].childNodes[0].checked) {
+         //    option.click();
+         //    hasModified[idx] = true;   
+         // }
+         if (option.textContent.startsWith("班次") && !option.childNodes[0].childNodes[0].checked) {
+            option.click();
+            hasModified[idx] = true;   
+         }
+      })
+      optionButton.click()
+   }
 
    const listParent = document.querySelector(LIST)!;
    listParent
@@ -106,7 +147,7 @@ async function searchPageFeature() {
 
 if (window.location.href.startsWith("https://course.ntu.edu.tw/search/")) {
    // TEST only: Set Auth Cookie
-   document.cookie = "NTU_SCORE_VIEWER=test123"
+   //document.cookie = "NTU_SCORE_VIEWER=test123"
    searchPageFeature();
 }
 

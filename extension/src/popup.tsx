@@ -1,55 +1,144 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 
+import { Box } from '@mui/material';
+import Typography from '@mui/material/Typography';
+import { grey, red, green } from '@mui/material/colors';
+import Avatar from '@mui/material/Avatar';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Divider from '@mui/material/Divider';
+import Link from '@mui/material/Link';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemIcon from '@mui/material/ListItemIcon';
+
+import MenuIcon from '@mui/icons-material/Menu';
+import LoginIcon from '@mui/icons-material/Login';
+import SearchIcon from '@mui/icons-material/Search';
+
+import { RegisterPage } from "./components/registerPage";
+import { SearchPage } from "./components/searchPage";
+
 import { fetchAppProxy } from "./api";
+import { getStorage, removeStorage, sendRuntimeMessage, sendTabMessage } from "./api_v2";
+import { DefaultService, OpenAPI } from "./client";
+import { catchErrorCodes } from "./client/core/request";
+
+import { ISnackBarProps } from "./components/snackBar";
+
+OpenAPI['BASE'] = APP_URL
 
 const Popup = () => {
-   let studentId = "";
-   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
 
-   useEffect(() => {
-      const checkAuth = async () => {
-         // const r = await fetchAppProxy(`/auth/${studentId}`, { method: "GET", body: page });
-      };
-   }, []);
+   const [msg, setMsg] = useState<string>('');
+	const [page, setPage] = useState<number>(0);
 
-   const handleSubmitScore = () => {
-      chrome.tabs.query(
-         { active: true, currentWindow: true },
-         function (tabs: chrome.tabs.Tab[]) {
-            const tab: chrome.tabs.Tab = tabs[0];
-
-            if (tab.id) {
-               chrome.tabs.sendMessage(tab.id, { action: "submit-score" }, (msg) => {
-                  console.log("submit-score result:", msg);
-                  if (msg.status == 200) {
-                     // Successfully Submit Grade
-                     setHasSubmitted(true);
-                  } else {
-                     throw "上傳成績失敗！";
-                  }
-               });
-            }
-         }
-      );
+   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+   const open = Boolean(anchorEl);
+   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+      setAnchorEl(event.currentTarget);
    };
-
+   const handleClose = (page: number) => {
+		setPage(page);
+      setAnchorEl(null);
+   };
+   
    return (
-      <>
-         <h3>NTU 選課小幫手</h3>
-         {hasSubmitted ? (
-            <h4>感謝您的分享! 歡迎使用小幫手</h4>
-         ) : (
-            <button onClick={handleSubmitScore}>上傳成績</button>
-         )}
-      </>
+   <>
+      <Box sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: 'center', alignContent: 'center', alignItems: 'center', bgcolor: "#F8F8F8" }}>
+         
+			{/* Header */}
+			<Box sx={{width: "100%", height: "10%", mt: "10px", mb: "20px", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
+            <Box sx={{width: "20%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
+               <IconButton
+                  size="medium"
+                  color="inherit"
+                  aria-label="menu"
+                  id="menu-button"
+                  aria-controls={open ? 'basic-menu' : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={open ? 'true' : undefined}
+                  onClick={handleClick}
+               >
+                  <MenuIcon />
+               </IconButton>
+               <Menu
+                  id="basic-menu"
+                  anchorEl={anchorEl}
+                  open={open}
+                  onClose={handleClose}
+                  MenuListProps={{
+                     'dense': true,
+                     'aria-labelledby': 'menu-button',
+                  }}
+                  >
+                  <MenuItem onClick={() => handleClose(0)}>
+							<ListItemIcon>
+								<LoginIcon fontSize="small" />
+							</ListItemIcon>
+							註冊
+						</MenuItem>
+						<MenuItem onClick={() => handleClose(1)}>
+							<ListItemIcon>
+								<SearchIcon fontSize="small" />
+							</ListItemIcon>
+							尋找課程
+						</MenuItem>
+               </Menu>
+            </Box>
+            <Box sx={{width: "80%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
+               <Typography variant="h5" color={{ color: grey[700] }} fontWeight="bold">
+                  NTU 選課小幫手
+               </Typography>
+            </Box>
+            <Box sx={{width: "20%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
+					<></>
+            </Box>
+         </Box>
+			
+			{/* Body */}
+			<Box sx={{width: "100%", height: "80%"}}>
+				{
+					page == 0 ?
+						<RegisterPage />
+					: page == 1 ?
+						<SearchPage />
+					: 
+						<RegisterPage />
+				}
+			</Box>
+
+			{/* Footer */}
+         <Box sx={{width: "100%", height: "10%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center', '& hr': {mx: 1,} }}>
+            <Typography variant="caption" display="block" color={{ color: grey[600] }} fontWeight="bold">
+               Made By
+            </Typography>
+            <Avatar sx={{ width: 25, height: 25, font: "menu", ml: "8px", mr: "2px" }}>Wei</Avatar>
+            <Avatar sx={{ width: 25, height: 25, font: "menu", ml: "2px", mr: "2px" }}>KC</Avatar>
+            <Divider orientation="vertical" flexItem />
+            <Link href="https://google.com/" target="_blank" underline="hover" variant="caption" fontWeight="bold">
+               {'使用教學'}
+            </Link>
+            <Divider orientation="vertical" flexItem />
+            <Link href="https://google.com/" target="_blank" underline="hover" variant="caption" fontWeight="bold">
+               {'FAQ'}
+            </Link>
+            <Divider orientation="vertical" flexItem />
+            <Link href="https://google.com/" target="_blank" underline="hover" variant="caption" fontWeight="bold">
+               {'隱私權政策'}
+            </Link>
+         </Box>       
+      </Box>
+   </>
    );
 };
 
-// const root = createRoot(document.getElementById("root")!);
+const root = createRoot(document.getElementById("root")!);
 
-// root.render(
-//    <React.StrictMode>
-//       <Popup />
-//    </React.StrictMode>
-// );
+root.render(
+   <React.StrictMode>
+      <Popup />
+   </React.StrictMode>
+);

@@ -35,6 +35,10 @@ type TabMessageMap = {
       msg: {};
       response: PageResponse;
    };
+   'snackBar': {
+      msg: {};
+      response: void;
+   }
 };
 type TabAction = keyof TabMessageMap;
 export type { TabMessageMap, TabAction };
