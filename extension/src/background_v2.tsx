@@ -36,8 +36,8 @@ addMessageListener('service', async (msg, sender) => {
          return e.status
       }
       else {
-         return 'QQ'
-         throw 'QQ'
+         // return 'QQ'
+         throw e
       }
    }
 })
@@ -67,7 +67,6 @@ chrome.tabs.onActivated.addListener((info) => {
          return;
          const CONTENT_RUNNING = "contentScriptRunning";
          const target = { tabId: info.tabId };
-         chrome.scripting.executeScript({ target, func: reddenPage })
          // const running = !! await chrome.scripting.executeScript({ target, func: (key) => window.localStorage.getItem(key), args: [CONTENT_RUNNING] })
          // if (!running) {
          //    chrome.scripting.executeScript({
@@ -85,18 +84,5 @@ chrome.tabs.onActivated.addListener((info) => {
       }
    }
    )
-});
-
-function reddenPage() {
-   document.body.style.backgroundColor = 'red';
-}
-chrome.action.onClicked.addListener((tab) => {
-   console.log(tab)
-   if (!tab.url!.includes('chrome://')) {
-      chrome.scripting.executeScript({
-         target: { tabId: tab.id! },
-         func: reddenPage
-      });
-   }
 });
 
