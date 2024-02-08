@@ -36,6 +36,7 @@ export const RegisterPage = () => {
             const tab: chrome.tabs.Tab = tabs[0];
 
             if(!tab.url?.startsWith("https://if190.aca.ntu.edu.tw/graderanking")){
+               console.log(tab.url)
                console.log("Wrong Page SubmitGrade")
                sendSnackBarMessage({msg:"請確認您的頁面位於「成績與名次查詢及探索學分申請系統」！", severity: "error", action: true});
             }

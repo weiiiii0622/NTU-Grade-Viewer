@@ -41,7 +41,7 @@ def gen_sql_init_commands() -> list[str]:
             id1 VARCHAR(15) UNIQUE,
             id2 VARCHAR(15) UNIQUE,
             title VARCHAR(30)
-        )""",
+        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci """,
         #
         """-- sql
         CREATE TABLE IF NOT EXISTS `grade` (
@@ -52,13 +52,13 @@ def gen_sql_init_commands() -> list[str]:
             semester CHAR(5),
 
             segments VARCHAR(100) 
-        )""",
+        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci """,
         #
         """-- sql
         CREATE TABLE IF NOT EXISTS `user` (
             student_id CHAR(9) PRIMARY KEY,
             token CHAR(24)
-        )
+        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci 
         """,
     ]
     return commands
@@ -106,7 +106,7 @@ class Database:
         while (datetime.now() - st).seconds < timeout:
             try:
                 # self.connection = pymysql.connect(**config)
-                self.connection_pool = ConnectionPool(**config)
+                self.connection_pool = ConnectionPool(**config, maxsize=10)
                 break
             except OperationalError as e:
                 print(e)
@@ -133,13 +133,23 @@ _db: Database = None  # type: ignore
 
 
 def db_init():
-    in_docker = os.getenv("DOCKER")
-    host = "db" if in_docker else "localhost"
-    port = 3306 if in_docker else 3333
+    if os.getenv("MODE") == "DEV":
+        host = "db"
+        port = 3306
+        user = "root"
+        password = "root"
+        db = "db"
+    else:
+        host = os.getenv("DB_HOST", "localhost")
+        port = int(os.getenv("DB_PORT", 3333))
+        user = os.getenv("DB_USER", "root")
+        password = os.getenv("DB_PASSWORD", "root")
+        db = os.getenv("DB_DATABASE", "db")
+
     commands = gen_sql_init_commands()
 
     global _db
-    _db = Database(host, port, "root", "root", "db", commands)
+    _db = Database(host, port, user, password, db, commands)
 
 
 def get_db():
@@ -235,8 +245,8 @@ def insert_grade_elements(grade_eles: list[GradeElement]):
         return "'" + val + "'"
 
     def get_field(g: GradeElement, f: str):
-        if f == 'course_id1':
-            return parse_value(f,getattr(g,'course').id1)
+        if f == "course_id1":
+            return parse_value(f, getattr(g, "course").id1)
         return parse_value(f, getattr(g, f))
 
     values = ",".join("(" + ",".join(get_field(g, f) for f in fields) + ")" for g in grade_eles)

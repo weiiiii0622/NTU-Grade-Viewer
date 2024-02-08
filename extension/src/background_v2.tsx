@@ -2,6 +2,7 @@ import { ServiceFuncName, addMessageListener, getStorage, removeStorage, sendRun
 import { ApiError, DefaultService, OpenAPI } from "./client";
 
 OpenAPI['BASE'] = APP_URL
+console.log(APP_URL)
 
 /* ---------------------------------- Token --------------------------------- */
 

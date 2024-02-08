@@ -138,6 +138,7 @@ def db_test():
 @app.get("/add-auth/{student_id}")
 @test_only
 def _add_auth(
+
     student_id: Annotated[StudentId, Path(description="A student's id, e.g. b10401006.")],
     response: Response,
 ):
@@ -170,8 +171,8 @@ async def db_connection_error_handler(request: Request, exc: DatabaseConnectionE
     # raise RequestValidationError([])
 
 
-PORT = int(str(os.getenv("PORT_DEV")))
-HOST = str(os.getenv("HOST_DEV"))
-# print(PORT, HOST)
+PORT = int(os.getenv("PORT_DEV", 5000))
+# HOST = str(os.getenv("HOST_DEV"))
+
 if __name__ == "__main__":
     uvicorn.run("app:app", port=PORT, host="0.0.0.0", reload=True)
