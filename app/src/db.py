@@ -215,6 +215,7 @@ def insert_courses(courses: list[Course]):
 # ----------------------------------- Grade ---------------------------------- #
 
 
+# todo: use background task
 def insert_grade_elements(grade_eles: list[GradeElement]):
     fields = [
         "id",
