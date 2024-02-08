@@ -133,13 +133,23 @@ _db: Database = None  # type: ignore
 
 
 def db_init():
-    in_docker = os.getenv("DOCKER")
-    host = "db" if in_docker else "localhost"
-    port = 3306 if in_docker else 3333
+    if os.getenv("MODE") == "DEV":
+        host = "db"
+        port = 3306
+        user = "root"
+        password = "root"
+        db = "db"
+    else:
+        host = os.getenv("DB_HOST", "localhost")
+        port = int(os.getenv("DB_PORT", 3333))
+        user = os.getenv("DB_USER", "root")
+        password = os.getenv("DB_PASSWORD", "root")
+        db = os.getenv("DB_DATABASE", "db")
+
     commands = gen_sql_init_commands()
 
     global _db
-    _db = Database(host, port, "root", "root", "db", commands)
+    _db = Database(host, port, user, password, db, commands)
 
 
 def get_db():
@@ -235,8 +245,8 @@ def insert_grade_elements(grade_eles: list[GradeElement]):
         return "'" + val + "'"
 
     def get_field(g: GradeElement, f: str):
-        if f == 'course_id1':
-            return parse_value(f,getattr(g,'course').id1)
+        if f == "course_id1":
+            return parse_value(f, getattr(g, "course").id1)
         return parse_value(f, getattr(g, f))
 
     values = ",".join("(" + ",".join(get_field(g, f) for f in fields) + ")" for g in grade_eles)
