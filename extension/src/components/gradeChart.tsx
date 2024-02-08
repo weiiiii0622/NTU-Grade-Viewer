@@ -15,7 +15,7 @@ import { IGradeChartTooltipData } from './gradeChartToolTip';
 
 export interface IScoreChartProps {
 	grades: IGradeChartTooltipData[],
-	title?: string,		// From 課程網
+	defaultTitle: string,		// From 課程網 (only used when back-end has no title)
 	width: number,
 	height: number
 }
@@ -40,14 +40,19 @@ const getArcLabel = (params: DefaultizedPieValueType): string => {
   return `${params.value!}%`;
 };
 
-export const GradeChart: React.FC<IScoreChartProps> = ( {grades, title, width, height} ) => {
+export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, width, height} ) => {
 	const [datas, setDatas] = useState<IChartData[]>(grades[0].datas);
+	const [title, setTitle] = useState<string|null>(grades[0].title);
 	const [lecturer, setLecturer] = useState<string|null>(grades[0].lecturer);
 	const [semester, setSemester] = useState<string|null>(grades[0].semester);
 	const [value, setValue] = useState<number>(0);
 
 
 	useEffect(() => {
+		if(grades[value].title == "")
+			setTitle(defaultTitle);
+		else
+			setTitle(grades[value].title);
 		setLecturer(grades[value].lecturer);
 		setDatas(grades[value].datas);
 		setSemester(grades[value].semester);

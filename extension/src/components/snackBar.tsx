@@ -26,7 +26,6 @@ export const SnackBar: React.FC<ISnackBarProps> = ( {msg, severity, action} ) =>
 
     useEffect(() => {
         setOpen(true);
-        console.log("HI");
     }, [action])
     
 
