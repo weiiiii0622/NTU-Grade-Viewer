@@ -106,7 +106,7 @@ class Database:
         while (datetime.now() - st).seconds < timeout:
             try:
                 # self.connection = pymysql.connect(**config)
-                self.connection_pool = ConnectionPool(**config)
+                self.connection_pool = ConnectionPool(**config, maxsize=10)
                 break
             except OperationalError as e:
                 print(e)

@@ -4,5 +4,5 @@ const { DefinePlugin } = require("webpack");
 
 module.exports = merge(common, {
     mode: "production",
-    plugins: [new DefinePlugin({ APP_URL: JSON.stringify(process.env.APP_URL_PROD) })],
+    plugins: [new DefinePlugin({ APP_URL: JSON.stringify(process.env.APP_URL) })],
 });

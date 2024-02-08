@@ -78,6 +78,7 @@ export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title
 
     // Concatenate all res
     let resString = "";
+    console.log("res: ",res)
     res.forEach((cur, idx)=>{resString += (JSON.stringify(cur) + ";");});
     if (resString == "")
       return [404, resString]
