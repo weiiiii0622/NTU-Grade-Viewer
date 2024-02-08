@@ -41,7 +41,7 @@ def gen_sql_init_commands() -> list[str]:
             id1 VARCHAR(15) UNIQUE,
             id2 VARCHAR(15) UNIQUE,
             title VARCHAR(30)
-        )""",
+        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci """,
         #
         """-- sql
         CREATE TABLE IF NOT EXISTS `grade` (
@@ -52,13 +52,13 @@ def gen_sql_init_commands() -> list[str]:
             semester CHAR(5),
 
             segments VARCHAR(100) 
-        )""",
+        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci """,
         #
         """-- sql
         CREATE TABLE IF NOT EXISTS `user` (
             student_id CHAR(9) PRIMARY KEY,
             token CHAR(24)
-        )
+        ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci 
         """,
     ]
     return commands
