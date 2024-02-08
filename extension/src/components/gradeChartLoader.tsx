@@ -55,7 +55,7 @@ export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title
     //   funcName: 'getAllGradesGradesAllGet',
     //   args: {}
     // })
-
+    console.log("1", res);
     switch (res) {
       //@ts-ignore
       case 400:
@@ -74,7 +74,7 @@ export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title
         break;
     }
 
-    //console.log(res);
+    console.log("2", res);
 
     // Concatenate all res
     let resString = "";
@@ -98,7 +98,7 @@ export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title
     rawDatas.forEach((rawData, idx) => {
       let score:IGradeChartTooltipData = {semester:"", lecturer:"", datas:[]};
       const obj = JSON.parse(rawData);
-      console.log(obj);
+      //console.log(obj);
       score.semester = obj.semester;
       score.lecturer = obj.lecturer;
       for(let i = 0; i < obj.segments.length; i++) {
@@ -114,7 +114,7 @@ export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title
   const handleFetchGrade = async () => {
     const [statusCode, res] = await fetchGrade();
     let datas: IGradeChartTooltipData[] = [];
-    console.log(res);
+    //console.log(res);
 
     setStatus(statusCode);
 
