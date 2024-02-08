@@ -4,6 +4,9 @@ import { ApiError, DefaultService, OpenAPI } from "./client";
 OpenAPI['BASE'] = APP_URL
 console.log(APP_URL)
 
+
+// todo: notification, omnibox, commands
+
 /* ---------------------------------- Token --------------------------------- */
 
 
@@ -63,7 +66,7 @@ chrome.tabs.onActivated.addListener((info) => {
       // ? Avoid chrome:// tabs
       if (!tab.url?.includes("chrome://")) {
          // console.log(tab.)
-         
+
          return;
          const CONTENT_RUNNING = "contentScriptRunning";
          const target = { tabId: info.tabId };

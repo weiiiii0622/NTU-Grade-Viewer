@@ -48,7 +48,8 @@
     "activeTab"
   ],
   "host_permissions": [
-    "https://course.ntu.edu.tw/*"
+    "https://course.ntu.edu.tw/*",
+    "https://ntu.onrender.com/"
   ],
   "optional_permissions": [],
   "optional_host_permissions": [
