@@ -19,11 +19,11 @@ import { IChartData } from './gradeChart';
 
 export interface IGradeChartTooltipProps {
 	grades: IGradeChartTooltipData[],
-	title?: string,		// From 課程網
+	defaultTitle: string,		// From 課程網 (only used when back-end has no title)
 }
 
 export interface IGradeChartTooltipData {
-	title?: string,	 // From back-end
+	title: string,	    		// From back-end
 	semester: string,
 	lecturer: (string|null),
 	datas: IChartData[]
@@ -43,28 +43,13 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   }));
 
 
-export const GradeChartToolTip: React.FC<IGradeChartTooltipProps> = ({grades, title}) => {
-
-	// TEST ONLY
-	// const datas = [
-	// 	{ value: 30.5, label: 'A+' },
-	// 	{ value: 15, label: 'A' },
-	// 	{ value: 20, label: 'A-' },
-	// 	{ value: 5, label: 'B+' },
-	// 	{ value: 12, label: 'B' },
-	// 	{ value: 16, label: 'B-' },
-	// 	{ value: 5, label: 'C+' },
-	// 	{ value: 6, label: 'C' },
-	// 	{ value: 7, label: 'C-' },
-	// 	{ value: 21, label: 'F' },
-	// ];
-	
+export const GradeChartToolTip: React.FC<IGradeChartTooltipProps> = ({grades, defaultTitle}) => {
 
 	return (
 		<HtmlTooltip
 			title={
 				<>
-					<GradeChart grades={grades} title={title} width={300} height={200}/>
+					<GradeChart grades={grades} defaultTitle={defaultTitle} width={300} height={200}/>
 				</>
 			}
 			

@@ -1,3 +1,7 @@
+import { sendRuntimeMessage } from "./api_v2";
+
+import { IGradeChartTooltipData } from "./components/gradeChartToolTip";
+
 function getHashCode(s: string): number {
    const MAGIC = "TH3_M5G1C_OF_NTU".repeat(3);
 
@@ -44,52 +48,80 @@ function toURLQueryString<T extends Record<string, string | number>>(data: T) {
 
 export { toURLQueryString };
 
-const createIcon = () => {
-    // Create the button element
-    var buttonElement = document.createElement('button');
 
-    // Add classes to the button
-    buttonElement.className = 'MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeSmall MuiButton-textSizeSmall MuiButton-colorInherit MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeSmall MuiButton-textSizeSmall MuiButton-colorInherit MuiButton-disableElevation mui-ahcpjm';
+/* ------------------------------ Grade Related ----------------------------- */
 
-    // Set the tabindex and type attributes
-    buttonElement.tabIndex = 0;
-    buttonElement.type = 'button';
+export async function fetchGrade(course_id1:string, course_id2:string, title:string, class_id:string): Promise<[number, string]> {
+   const res = await sendRuntimeMessage('service', {
+      funcName: 'queryGradesQueryGet',
+      args: {
+         id1: course_id1,
+         id2: course_id2,
+         title: title,
+         classId: class_id,
+      }
+   })
 
-    // Create the span for the start icon
-    var startIconSpan = document.createElement('span');
-    startIconSpan.className = 'MuiButton-startIcon MuiButton-iconSizeSmall mui-fv0pue';
+   // const res = await sendRuntimeMessage('service', {
+   //   funcName: 'getAllGradesGradesAllGet',
+   //   args: {}
+   // })
 
-    // Create the SVG icon
-    var svgIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svgIcon.setAttribute('width', '18');
-    svgIcon.setAttribute('height', '18');
-    svgIcon.setAttribute('viewBox', '0 0 24 24');
-    svgIcon.setAttribute('fill', 'none');
-    svgIcon.setAttribute('stroke', 'currentColor');
-    svgIcon.setAttribute('stroke-width', '2');
-    svgIcon.setAttribute('stroke-linecap', 'round');
-    svgIcon.setAttribute('stroke-linejoin', 'round');
-    // svgIcon.className = 'lucide lucide-heart';
+   switch (res) {
+      //@ts-ignore
+      case 401:
+         return [401, ("Unauthorized 401")];
+      //@ts-ignore
+      case 404:
+         return [404, ("Not Found 404")];
+      //@ts-ignore
+      case 422:
+         return [422, ("Wrong Params 422")];
+      //@ts-ignore
+      case 500:
+         return [400, ("Internal Error 500")];
+               
+      default:
+         break;
+   }
 
-    // Create the path element inside the SVG
-    var pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    pathElement.setAttribute('d', 'M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z');
+   console.log(res);
 
-    // Append the path element to the SVG
-    svgIcon.appendChild(pathElement);
+   // Concatenate all res
+   let resString = "";
+   console.log("res: ",res)
+   res.forEach((cur, idx)=>{resString += (JSON.stringify(cur) + ";");});
+   if (resString == "")
+      return [404, resString]
+   return [200, resString]
+ }
 
-    // Append the SVG icon to the startIconSpan
-    startIconSpan.appendChild(svgIcon);
 
-    // Create the span for the TouchRipple
-    var touchRippleSpan = document.createElement('span');
-    touchRippleSpan.className = 'MuiTouchRipple-root mui-w0pj6f';
+const GRADES = ['F', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+']
 
-    // Append the startIconSpan and touchRippleSpan to the button
-    buttonElement.appendChild(startIconSpan);
-    buttonElement.appendChild(touchRippleSpan);
-
-    return buttonElement
+const getLabel = (seg: {l:number, r:number, value: number}) => {
+   return seg.l===seg.r ? GRADES[seg.l] : (GRADES[seg.r]+"~"+GRADES[seg.l]);
 }
 
-export { createIcon };
+// Convert Back-end Data to Front-End format
+export const parseGrade = (res: string) => {
+   let rawDatas = res.split(";");
+   rawDatas.pop();
+   let ret: IGradeChartTooltipData[] = [];
+
+   rawDatas.forEach((rawData, idx) => {
+      let score:IGradeChartTooltipData = {title:"", semester:"", lecturer:"", datas:[]};
+      const obj = JSON.parse(rawData);
+      //console.log(obj);
+      score.title = obj.course.title;
+      score.semester = obj.semester;
+      score.lecturer = obj.lecturer;
+      for(let i = 0; i < obj.segments.length; i++) {
+         score.datas.push({value: obj.segments[i].value, label: getLabel(obj.segments[i])});
+      }
+      score.datas.reverse();
+      ret.push(score);
+   });
+
+   return ret;
+}

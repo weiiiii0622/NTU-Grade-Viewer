@@ -14,6 +14,7 @@ import { sendRuntimeMessage, sendTabMessage, getStorage, removeStorage } from ".
 import { ISnackBarProps } from "./snackBar";
 import { IGradeChartTooltipData } from "./gradeChartToolTip";
 import { GradeChart } from "./gradeChart";
+import { fetchGrade, parseGrade } from "../utils";
 
 
 const GRADES = ['F', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+']
@@ -44,70 +45,6 @@ export const SearchPage = () => {
       );      
    }
 
-	async function fetchGrade(): Promise<[number, string]> {
-		const res = await sendRuntimeMessage('service', {
-			funcName: 'queryGradesQueryGet',
-			args: {
-				id1: course_id1,
-				id2: course_id2,
-				//title: title,
-				classId: class_id,
-			}
-		})
-
-		switch (res) {
-		//@ts-ignore
-		case 400:
-			return [400, ("Internal Error 400")];
-		//@ts-ignore
-		case 401:
-			return [401, ("Unauthorized 401")];
-		//@ts-ignore
-		case 404:
-			return [404, ("Not Found 404")];
-		//@ts-ignore
-		case 422:
-			return [422, ("Wrong Params 422")];
-		
-		default:
-			break;
-		}
-
-		//console.log(res);
-
-		// Concatenate all res
-		let resString = "";
-		res.forEach((cur, idx)=>{resString += (JSON.stringify(cur) + ";");});
-		if (resString == "")
-			return [404, resString]
-		return [200, resString]
-   }
-
-	const getLabel = (seg: {l:number, r:number, value: number}) => {
-		return seg.l===seg.r ? GRADES[seg.l] : (GRADES[seg.r]+"~"+GRADES[seg.l]);
-	}
-  
-	// Convert Back-end Data to Front-End format
-	const parseGrade = (res: string) => {
-		let rawDatas = res.split(";");
-		rawDatas.pop();
-		let ret: IGradeChartTooltipData[] = [];
-  
-		rawDatas.forEach((rawData, idx) => {
-		  	let score:IGradeChartTooltipData = {semester:"", lecturer:"", datas:[]};
-			const obj = JSON.parse(rawData);
-			console.log(obj);
-			score.semester = obj.semester;
-			score.lecturer = obj.lecturer;
-			for(let i = 0; i < obj.segments.length; i++) {
-				score.datas.push({value: obj.segments[i].value, label: getLabel(obj.segments[i])});
-			}
-			score.datas.reverse();
-			ret.push(score);
-		});
-  
-		return ret;
-	 }
   
 	const handleFetchGrade = async () => {
 		setIsLoading(true);
@@ -116,7 +53,7 @@ export const SearchPage = () => {
 			return
 		}
 		console.log("Input Valid", course_id1, course_id2, class_id)
-		const [statusCode, res] = await fetchGrade();
+		const [statusCode, res] = await fetchGrade(course_id1, course_id2, "", class_id);
 		let datas: IGradeChartTooltipData[] = [];
 		
 		//console.log(res);
@@ -227,7 +164,7 @@ export const SearchPage = () => {
 					!isAuth || isLoading || !hasGrade ?
 						<Skeleton variant="rounded" animation="wave" height="80%" width="75%" />
 					:
-						<GradeChart grades={grades} title={title==""?"暫無課名":title} width={270} height={170}/>
+						<GradeChart grades={grades} defaultTitle={title==""?"暫無課名":title} width={270} height={170}/>
 				}	
 			</Box>
 		</>
