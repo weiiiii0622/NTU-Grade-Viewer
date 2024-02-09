@@ -37,7 +37,6 @@ b = "現代科學與心靈科學"
 # print( "力" == "⼒"  ) # False
 
 
-
 def edit_distance(s1: str, s2: str) -> int:
     """
     I copypaste this :P
@@ -78,3 +77,13 @@ def edit_distance(s1: str, s2: str) -> int:
                 )  # Replace
 
     return dp[m][n]
+
+
+@add_decorator_doc
+def test_only(f):
+    # TODO: use some special header
+    @wraps(f)
+    def _f(*args, **kwargs):
+        return f(*args, **kwargs)
+
+    return _f

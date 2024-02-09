@@ -36,13 +36,12 @@ const Popup = () => {
       //       id1: 'CSIE1214'
       //    }
       // })
-      const res = await sendRuntimeMessage('service', {
+      const [res, err] = await sendRuntimeMessage('service', {
          funcName: 'getAllGradesGradeAllGet',
          args: {},
       })
-      //@ts-ignore
-      if (res === 401) {
-         return [false, ("Unauthorized 401")]
+      if (err) {
+         return [false, (`Error ${err.status}: ${err.response}`)]
       }
 
       // Concatenate all res

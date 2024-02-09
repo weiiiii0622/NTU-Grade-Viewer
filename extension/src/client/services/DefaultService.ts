@@ -19,6 +19,7 @@ export class DefaultService {
             method: 'GET',
             url: '/',
             errors: {
+                400: `Bad Request`,
                 401: `Unauthorized`,
                 422: `Unprocessable Entity`,
                 500: `Internal Server Error`,
@@ -41,6 +42,7 @@ export class DefaultService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
+                400: `Bad Request`,
                 401: `Unauthorized`,
                 422: `Unprocessable Entity`,
                 500: `Internal Server Error`,
@@ -57,6 +59,7 @@ export class DefaultService {
             method: 'POST',
             url: '/submit/grade',
             errors: {
+                400: `Bad Request`,
                 401: `Unauthorized`,
                 422: `Unprocessable Entity`,
                 500: `Internal Server Error`,
@@ -73,6 +76,7 @@ export class DefaultService {
             method: 'POST',
             url: '/submit/grades',
             errors: {
+                400: `Bad Request`,
                 401: `Unauthorized`,
                 422: `Unprocessable Entity`,
                 500: `Internal Server Error`,
@@ -139,6 +143,7 @@ export class DefaultService {
                 'semester': semester,
             },
             errors: {
+                400: `Bad Request`,
                 401: `Unauthorized`,
                 422: `Unprocessable Entity`,
                 500: `Internal Server Error`,
@@ -147,6 +152,7 @@ export class DefaultService {
     }
     /**
      * Get All Grades
+     * @auth_required
      * @test_only
      *
      * Just get all grades.
@@ -158,20 +164,11 @@ export class DefaultService {
         cookieToken = '',
     }: {
         /**
-         *
-         * Token represented student_id via cookie.
-         * Same as `x_token`. This parameter is for testing purpose.
-         * You should generally rely on `x_token`.
-         *
+         * Token represented student_id via X-Token header, automatically sent by background.js. Same as `cookie_token`.
          */
         xToken?: string,
         /**
-         *
-         * Token represented student_id via cookie.
-         * Same as `x_token`.
-         * This parameter is for testing purpose.
-         * You should generally rely on `x_token`.
-         *
+         * Token represented student_id via cookie. Same as `x_token`. This parameter is for testing purpose. You should generally rely on `x_token`.
          */
         cookieToken?: string,
     }): CancelablePromise<Array<GradeElement>> {
@@ -185,6 +182,104 @@ export class DefaultService {
                 'x-token': xToken,
             },
             errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Assertion Error
+     * @test_only
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static assertionErrorTestAssertionErrorGet(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/test/assertion-error',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Validation Error
+     * @test_only
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static validationErrorTestValidationErrorGet(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/test/validation-error',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Error 401
+     * @test_only
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static error401Test401Get(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/test/401',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Error 400
+     * @test_only
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static error400Test400Get(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/test/400',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Error 422
+     * @test_only
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static error422Test422Get({
+        a,
+    }: {
+        a: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/test/422',
+            query: {
+                'a': a,
+            },
+            errors: {
+                400: `Bad Request`,
                 401: `Unauthorized`,
                 422: `Unprocessable Entity`,
                 500: `Internal Server Error`,
@@ -201,6 +296,7 @@ export class DefaultService {
             method: 'GET',
             url: '/db',
             errors: {
+                400: `Bad Request`,
                 401: `Unauthorized`,
                 422: `Unprocessable Entity`,
                 500: `Internal Server Error`,
@@ -233,6 +329,7 @@ export class DefaultService {
                 'student_id': studentId,
             },
             errors: {
+                400: `Bad Request`,
                 401: `Unauthorized`,
                 422: `Unprocessable Entity`,
                 500: `Internal Server Error`,

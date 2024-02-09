@@ -1,4 +1,4 @@
-import { ServiceFuncName, addMessageListener, getStorage, removeStorage, sendRuntimeMessage, sendTabMessage, setStorage } from "./api_v2";
+import { ServiceError, ServiceFuncName, addMessageListener, getStorage, removeStorage, sendRuntimeMessage, sendTabMessage, setStorage } from "./api_v2";
 import { ApiError, DefaultService, OpenAPI } from "./client";
 
 OpenAPI['BASE'] = APP_URL
@@ -17,6 +17,8 @@ console.log(APP_URL)
 console.log('background-v2')
 
 addMessageListener('service', async (msg, sender) => {
+   console.log('service')
+
    const { funcName, args } = msg;
    const func = DefaultService[funcName];
    let token = await getStorage('token');
@@ -32,15 +34,17 @@ addMessageListener('service', async (msg, sender) => {
          await setStorage({ token })
       }
 
-      return response
+      return [response, null] as const;
    } catch (e) {
+      console.log("error: ", e)
+
       if (e instanceof ApiError) {
-         // console.log(e.status)
-         return e.status
+         console.log(e.status)
+         console.log(e.body)
+         return [null, { status: e.status, response: e.body } as ServiceError] as const;
       }
       else {
-         // return 'QQ'
-         throw e
+         return [null, { status: 400, response: { detail: `UnhandledError: ${e}` } }] as const;
       }
    }
 })
@@ -65,6 +69,8 @@ chrome.tabs.onActivated.addListener((info) => {
    chrome.tabs.get(info.tabId, async (tab) => {
       // ? Avoid chrome:// tabs
       if (!tab.url?.includes("chrome://")) {
+
+         // chrome.action.openPopup({ windowId: tab.windowId })
          // console.log(tab.)
 
          return;

@@ -4,6 +4,6 @@
 /* eslint-disable */
 import type { ValidationErrorDetail } from './ValidationErrorDetail';
 export type ValidationErrorResponse = {
-    detail: ValidationErrorDetail;
+    detail: Array<ValidationErrorDetail>;
 };
 

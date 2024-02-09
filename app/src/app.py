@@ -9,7 +9,9 @@ from auth import add_user
 from db import DatabaseConnectionError, test
 from dotenv import load_dotenv
 from errors import (
+    BadRequestResponse,
     InternalErrorResponse,
+    UnauthorizedErrorDetail,
     UnauthorizedErrorResponse,
     ValidationErrorResponse,
 )
@@ -18,25 +20,15 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from utils.general import add_decorator_doc
+from utils.general import add_decorator_doc, test_only
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "../.env"))
 
 from models import StudentId
 
-
-@add_decorator_doc
-def test_only(f):
-    # TODO: use some special header
-    @wraps(f)
-    def _f(*args, **kwargs):
-        return f(*args, **kwargs)
-
-    return _f
-
-
 app = FastAPI(
     responses={
+        400: {'model': BadRequestResponse},
         401: {"model": UnauthorizedErrorResponse},
         422: {"model": ValidationErrorResponse},
         500: {"model": InternalErrorResponse},
@@ -83,14 +75,38 @@ def _add_auth(
     return token
 
 
-@app.exception_handler(DatabaseConnectionError)
-async def db_connection_error_handler(request: Request, exc: DatabaseConnectionError):
-    return JSONResponse({"msg": "db error"}, status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
-    # raise RequestValidationError([])
+@app.exception_handler(500)
+async def internal_error_handler(request: Request, exc: Exception):
+    exc.__class__.__name__
+    resp = InternalErrorResponse(detail=f"{exc.__class__.__name__}: {exc.args}")
+    return JSONResponse(resp.model_dump(), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_error(request: Request, exc: RequestValidationError):
+    raise HTTPException(422, detail=exc.args[0])
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    print(exc.args)
+    match exc.status_code:
+        case 401:
+            try:
+                detail = UnauthorizedErrorDetail(type=exc.detail)  # type: ignore
+            except:
+                detail = UnauthorizedErrorDetail(type="invalid")
+            resp = UnauthorizedErrorResponse(detail=detail)
+        case 422:
+            resp = ValidationErrorResponse(detail=exc.detail)  # type: ignore
+        case _:
+            resp = BadRequestResponse(detail=f"HTTPException ({exc.status_code}): {exc.detail}")
+
+    return JSONResponse(resp.model_dump(), status_code=exc.status_code)
 
 
 PORT = int(os.getenv("PORT_DEV", 5000))
 # HOST = str(os.getenv("HOST_DEV"))
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", port=PORT, host="0.0.0.0", reload=True)
+    uvicorn.run("app:app", port=PORT, host="0.0.0.0", reload=os.getenv("MODE") == "DEV")

@@ -1,4 +1,5 @@
 import {
+   BadRequestResponse,
    DefaultService,
    InternalErrorResponse,
    Page,
@@ -65,16 +66,19 @@ export async function sendTabMessage<
 export type ServiceFuncName = ClassMethodName<typeof DefaultService>;
 
 export type ServiceError =
+   | { status: 400; response: BadRequestResponse }
    | { status: 401; response: UnauthorizedErrorResponse }
    | { status: 422; response: ValidationErrorResponse }
    | { status: 500; response: InternalErrorResponse };
+
+type OneOf<T, P> = readonly[T, null] |readonly [null, P];
 
 type GetFuncMessage<F extends ServiceFuncName> = {
    msg: {
       funcName: F;
       args: Omit<Parameters<(typeof DefaultService)[F]>[0], "xToken" | "cookieToken">;
    };
-   response: ReturnType<(typeof DefaultService)[F]>;
+   response: Promise<OneOf<Awaited<ReturnType<(typeof DefaultService)[F]>>, ServiceError>>;
 };
 
 type RuntimeMessageServiceMap<F extends ServiceFuncName = ServiceFuncName> = F extends F
@@ -138,16 +142,18 @@ async function test() {
 
    // @ts-expect-error
    sendRuntimeMessage("service", { funcName: "submitPagePagePost", args: [] });
-   const x3 = await sendRuntimeMessage("service", {
+   const [x3, e3] = await sendRuntimeMessage("service", {
       funcName: "submitPageSubmitPagePost",
       args: { requestBody: 0 as any as Page },
    });
+   if(!x3)return;
    type A3 = typeof x3;
 
-   const x4 = await sendRuntimeMessage("service", {
+   const [x4,e4]= await sendRuntimeMessage("service", {
       funcName: "queryGradesQueryGet",
       args: { id1: "CSIE8888" },
    });
+   if(!x4)return;
    type A4 = typeof x4;
 
    type cases = [

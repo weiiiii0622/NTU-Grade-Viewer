@@ -45,9 +45,10 @@ def validate_token(token: str) -> bool:
             return bool(res)
 
 
-@deprecated(
-    "This can be done with fastapi's `dependencies`. But I think this function is still quite cool :)"
-)
+# ? I end up use this bc this can modify doc.
+# @deprecated(
+#     "This can be done with fastapi's `dependencies`. But I think this function is still quite cool :)"
+# )
 @add_decorator_doc
 def auth_required(f: Callable):
     """
@@ -56,7 +57,6 @@ def auth_required(f: Callable):
         - Headers: `X-Token`
     with `=` replaced by `%3D`
     """
-
 
     @wraps(f)
     def _f(cookie_token: str, x_token: str, *args, **kwargs):
@@ -112,7 +112,7 @@ def auth_required_dependency(
             You should generally rely on `x_token`.
             """,
         ),
-    ]='',
+    ] = "",
     cookie_token: Annotated[
         str,
         Cookie(
@@ -123,7 +123,7 @@ def auth_required_dependency(
             You should generally rely on `x_token`.
             """,
         ),
-    ]='',
+    ] = "",
 ):
     print(cookie_token)
     print(x_token)
