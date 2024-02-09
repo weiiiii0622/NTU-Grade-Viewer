@@ -12,8 +12,8 @@ desc: "恭喜你找到這裡！快來邀請大家下載 NTU 選課小幫手吧�
 #menu
 menu:
   關於: /About
-  使用教學: /Usage
-  Q&A: /Q&A
+  使用教學: /Tutorial
+  FAQ: /FAQ
   隱私權政策: /Privacy-Policy
 
 #index/main page max show posts (in number)

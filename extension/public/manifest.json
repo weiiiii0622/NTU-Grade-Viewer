@@ -29,11 +29,20 @@
   "content_scripts": [
     {
       "matches": [
+        "https://course.ntu.edu.tw/*",
+        "https://if190.aca.ntu.edu.tw/graderanking/*"
+      ],
+      "js": [
+        "js/content_script.js"
+      ]
+    },
+    {
+      "matches": [
         "<all_urls>"
       ],
       "js": [
         "js/vendor.js",
-        "js/content_script.js"
+        "js/content_script_popup.js"
       ]
     }
   ],

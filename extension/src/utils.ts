@@ -1,8 +1,12 @@
-import { sendRuntimeMessage } from "./api_v2";
+import { sendRuntimeMessage } from "./api";
+import { Page } from "./models";
 
 import { IGradeChartTooltipData } from "./components/gradeChartToolTip";
 
-function getHashCode(s: string): number {
+
+/* ---------------------------- Utility Function ---------------------------- */
+
+const getHashCode = (s: string): number => {
    const MAGIC = "TH3_M5G1C_OF_NTU".repeat(3);
 
    const magic_idx = [];
@@ -23,9 +27,7 @@ function getHashCode(s: string): number {
    return h;
 }
 
-export { getHashCode };
-
-async function waitUntil(pred: () => boolean, timeout = 60) {
+const waitUntil = async (pred: () => boolean, timeout = 60) => {
    return new Promise<void>((res, rej) => {
       const st = Date.now();
       const f = () => {
@@ -38,21 +40,43 @@ async function waitUntil(pred: () => boolean, timeout = 60) {
    });
 }
 
-export { waitUntil };
 
-function toURLQueryString<T extends Record<string, string | number>>(data: T) {
+const toURLQueryString = <T extends Record<string, string | number>>(data: T) => {
    return Object.entries(data)
       .map(([k, v]) => `${k}=${v}`)
       .join("&");
 }
 
-export { toURLQueryString };
+export { getHashCode, waitUntil, toURLQueryString };
+
+/* ------------------------------- Submit Page ------------------------------ */
+
+const submitPage = async () => {
+   if (!window.location.href.startsWith("https://if190.aca.ntu.edu.tw/graderanking/"))
+      throw "You should submit on your grade page.";
+
+   if (!document.querySelector(".table-grade .table-rows")) throw "No available grades to submit.";
+
+   const content = await fetch(window.location.href).then((r) => r.text());
+   const hashCode = getHashCode(content);
+
+   const page: Page = { content, hashCode };
+
+   let r = await sendRuntimeMessage("service", {
+      funcName: "submitPageSubmitPagePost",
+      args: { requestBody: page },
+   });
+
+   return r;
+}
+
+export { submitPage };
 
 
 /* ------------------------------ Grade Related ----------------------------- */
 
-export async function fetchGrade(course_id1:string, course_id2:string, title:string, class_id:string): Promise<[number, string]> {
-   const res = await sendRuntimeMessage('service', {
+const fetchGrade = async (course_id1:string, course_id2:string, title:string, class_id:string): Promise<[number, string]> => {
+   const [res, err] = await sendRuntimeMessage('service', {
       funcName: 'queryGradesQueryGet',
       args: {
          id1: course_id1,
@@ -62,34 +86,35 @@ export async function fetchGrade(course_id1:string, course_id2:string, title:str
       }
    })
 
-   // const res = await sendRuntimeMessage('service', {
-   //   funcName: 'getAllGradesGradesAllGet',
-   //   args: {}
+   // const [res, err] = await sendRuntimeMessage('service', {
+   //    funcName: 'getAllGradesGradeAllGet',
+   //    args: {},
    // })
+   // if (err) {
+   //    return [false, (`Error ${err.status}: ${err.response}`)]
+   // }
 
-   switch (res) {
-      //@ts-ignore
-      case 401:
-         return [401, ("Unauthorized 401")];
-      //@ts-ignore
-      case 404:
-         return [404, ("Not Found 404")];
-      //@ts-ignore
-      case 422:
-         return [422, ("Wrong Params 422")];
-      //@ts-ignore
-      case 500:
-         return [400, ("Internal Error 500")];
-               
-      default:
-         break;
+   if (err) {
+      console.log("fetchGrade Error: ", err);
+      switch (err.status) {
+         case 400:
+            return [400, ("Bad Request 400")];
+         case 401:
+            return [401, ("Unauthorized 401")];
+         case 422:
+            return [422, ("Validation Error 422")];
+         case 500:
+            return [500, ("Internal Error 500")];
+              
+         default:
+            return [503, ("Unknown Error 503")]
+      }
    }
 
-   console.log(res);
+   console.log("fetchGrade result: ", res)
 
    // Concatenate all res
    let resString = "";
-   console.log("res: ",res)
    res.forEach((cur, idx)=>{resString += (JSON.stringify(cur) + ";");});
    if (resString == "")
       return [404, resString]
@@ -104,7 +129,7 @@ const getLabel = (seg: {l:number, r:number, value: number}) => {
 }
 
 // Convert Back-end Data to Front-End format
-export const parseGrade = (res: string) => {
+const parseGrade = (res: string) => {
    let rawDatas = res.split(";");
    rawDatas.pop();
    let ret: IGradeChartTooltipData[] = [];
@@ -112,7 +137,7 @@ export const parseGrade = (res: string) => {
    rawDatas.forEach((rawData, idx) => {
       let score:IGradeChartTooltipData = {title:"", semester:"", lecturer:"", datas:[]};
       const obj = JSON.parse(rawData);
-      //console.log(obj);
+      
       score.title = obj.course.title;
       score.semester = obj.semester;
       score.lecturer = obj.lecturer;
@@ -125,3 +150,5 @@ export const parseGrade = (res: string) => {
 
    return ret;
 }
+
+export { fetchGrade, parseGrade }

@@ -1,9 +1,4 @@
-import { LoadingIcon } from "./loadingIcon";
-import { GradeChartToolTip } from "./gradeChartToolTip";
-import { IChartData } from './gradeChart';
-import { IGradeChartTooltipData } from "./gradeChartToolTip";
-import { fetchGrade, parseGrade } from "../utils";
-import { getStorage, removeStorage, sendRuntimeMessage } from "../api_v2";
+import React, { useState, useEffect } from "react";
 
 import { red, grey } from '@mui/material/colors';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -12,7 +7,10 @@ import Tooltip from '@mui/material/Tooltip';
 import Badge from '@mui/material/Badge';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 
-import React, { useState, useEffect } from "react";
+import { LoadingIcon } from "./loadingIcon";
+import { GradeChartToolTip, IGradeChartTooltipData } from "./gradeChartToolTip";
+import { fetchGrade, parseGrade } from "../utils";
+
 
 interface IGradeChartLoaderProps {
   auth: boolean,
@@ -22,8 +20,6 @@ interface IGradeChartLoaderProps {
   class_id: (string | undefined),                 // 班次
   lecturer: (string | undefined),
 }
-
-const GRADES = ['F', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+']
 
 export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title, course_id1, course_id2, class_id, lecturer }) => {
 
@@ -36,7 +32,6 @@ export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title
   const handleFetchGrade = async () => {
     const [statusCode, res] = await fetchGrade(course_id1!, course_id2!, title!, class_id!);
     let datas: IGradeChartTooltipData[] = [];
-    //console.log(res);
 
     setStatus(statusCode);
 

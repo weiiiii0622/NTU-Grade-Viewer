@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Box } from '@mui/material';
 import Typography from '@mui/material/Typography';
@@ -7,17 +7,14 @@ import { grey, red, green } from '@mui/material/colors';
 import TextField from '@mui/material/TextField';
 
 import IconButton from '@mui/material/IconButton';
-import LoadingButton from '@mui/lab/LoadingButton';
 import SearchIcon from '@mui/icons-material/Search';
 
-import { sendRuntimeMessage, sendTabMessage, getStorage, removeStorage } from "../api_v2";
+import { sendTabMessage, getStorage } from "../api";
 import { ISnackBarProps } from "./snackBar";
 import { IGradeChartTooltipData } from "./gradeChartToolTip";
 import { GradeChart } from "./gradeChart";
 import { fetchGrade, parseGrade } from "../utils";
 
-
-const GRADES = ['F', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+']
 
 interface ISearchPageProps {
 	reset: boolean
@@ -56,11 +53,9 @@ export const SearchPage: React.FC<ISearchPageProps> = ( {reset} ) => {
 			sendSnackBarMessage({msg:"請填寫「課號」與「識別碼」！", severity:"error", action:true});
 			return
 		}
-		console.log("Input Valid", course_id1, course_id2, class_id)
+
 		const [statusCode, res] = await fetchGrade(course_id1, course_id2, "", class_id);
 		let datas: IGradeChartTooltipData[] = [];
-		
-		//console.log(res);
 
 		setStatus(statusCode);
 
@@ -159,7 +154,7 @@ export const SearchPage: React.FC<ISearchPageProps> = ( {reset} ) => {
 						)
 					:
 						<Typography variant="body1" color={{ color: red[500] }} fontWeight="bold">
-							請先去註冊頁面上傳成績！
+							請先點選左上角選單，前往註冊頁面上傳成績！
 						</Typography>
 				}
 			</Box>

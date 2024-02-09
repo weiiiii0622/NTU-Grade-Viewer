@@ -1,17 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 
 import { Box } from '@mui/material';
-import Typography from '@mui/material/Typography';
 import { grey, red, green } from '@mui/material/colors';
+import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 
 import MenuIcon from '@mui/icons-material/Menu';
@@ -22,18 +20,14 @@ import SearchIcon from '@mui/icons-material/Search';
 import { RegisterPage } from "./components/registerPage";
 import { SearchPage } from "./components/searchPage";
 
-import { fetchAppProxy } from "./api";
-import { getStorage, removeStorage, sendRuntimeMessage, sendTabMessage } from "./api_v2";
-import { DefaultService, OpenAPI } from "./client";
-import { catchErrorCodes } from "./client/core/request";
 
-import { ISnackBarProps } from "./components/snackBar";
+import { removeStorage} from "./api";
+import { OpenAPI } from "./client";
 
 OpenAPI['BASE'] = APP_URL
 
 const Popup = () => {
 
-   const [msg, setMsg] = useState<string>('');
 	const [reset, setReset] = useState<boolean>(false);
 	const [page, setPage] = useState<number>(0);
 
@@ -129,15 +123,15 @@ const Popup = () => {
             <Avatar sx={{ width: 25, height: 25, font: "menu", ml: "8px", mr: "2px" }}>Wei</Avatar>
             <Avatar sx={{ width: 25, height: 25, font: "menu", ml: "2px", mr: "2px" }}>KC</Avatar>
             <Divider orientation="vertical" flexItem />
-            <Link href="https://google.com/" target="_blank" underline="hover" variant="caption" fontWeight="bold">
+            <Link href="https://weiiiii0622.github.io/NTU-Grade-Viewer/Tutorial/" target="_blank" underline="hover" variant="caption" fontWeight="bold">
                {'使用教學'}
             </Link>
             <Divider orientation="vertical" flexItem />
-            <Link href="https://google.com/" target="_blank" underline="hover" variant="caption" fontWeight="bold">
+            <Link href="https://weiiiii0622.github.io/NTU-Grade-Viewer/FAQ/" target="_blank" underline="hover" variant="caption" fontWeight="bold">
                {'FAQ'}
             </Link>
             <Divider orientation="vertical" flexItem />
-            <Link href="https://google.com/" target="_blank" underline="hover" variant="caption" fontWeight="bold">
+            <Link href="https://weiiiii0622.github.io/NTU-Grade-Viewer/Privacy-Policy/" target="_blank" underline="hover" variant="caption" fontWeight="bold">
                {'隱私權政策'}
             </Link>
          </Box>       

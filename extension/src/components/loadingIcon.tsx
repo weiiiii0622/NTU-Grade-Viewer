@@ -1,4 +1,4 @@
-import React, { ReactElement, SVGProps } from 'react'
+import { ReactElement, SVGProps } from 'react'
 
 export function LoadingIcon(
 	props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>,

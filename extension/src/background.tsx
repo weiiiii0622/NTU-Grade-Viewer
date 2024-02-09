@@ -1,38 +1,54 @@
-import { createRoot } from "react-dom/client";
-import { RequestType, Route, fetchApp } from "./api";
-import { FixedBox } from "./components/fixedBox";
+import { ServiceError, ServiceFuncName, addMessageListener, getStorage, removeStorage, sendRuntimeMessage, sendTabMessage, setStorage } from "./api";
+import { ApiError, DefaultService, OpenAPI } from "./client";
 
-type MessageType = "fetch-proxy";
-type MessageArgs<T extends Route> = {
-   "fetch-proxy": { route: T; req: RequestType[T] };
-};
+OpenAPI['BASE'] = APP_URL
+//console.log(APP_URL)
 
-function addMessageListener<T extends MessageType, R extends Route>(
-   msgType: T,
-   handler: (
-      args: MessageArgs<R>[T],
-      responseCallback: (res: unknown) => void
-   ) => void
-) {
-   chrome.runtime.onMessage.addListener(
-      (msg: { type: MessageType }, sender, sendResponse) => {
-         const { type, ...args } = msg;
-         console.log(type)
-         if (type === msgType) {
-            console.log('handle', type)
-            handler(args as any, sendResponse);
-         }
-         return true;
+
+// todo: notification, omnibox, commands
+
+/* ---------------------------------- Token --------------------------------- */
+
+
+/* ----------------------------- Service Handler ---------------------------- */
+
+
+
+//console.log('background-v2')
+
+addMessageListener('service', async (msg, sender) => {
+   //console.log('service')
+
+   const { funcName, args } = msg;
+   const func = DefaultService[funcName];
+   let token = await getStorage('token');
+   if (token)
+      token = token.replaceAll('=', '%3D')
+
+
+   try {
+      const response = await func({ ...args, xToken: token } as any);
+
+      if ('token' in response) {
+         const { token } = response;
+         await setStorage({ token })
       }
-   );
-}
 
-addMessageListener("fetch-proxy", async ({ route, req }, sendResponse) => {
-   console.log('fetch proxy')
-   fetchApp(route, req).then((r) => {
-      if (r) sendResponse(r);
-   });
-});
+      return [response, null] as const;
+   } catch (e) {
+      //console.log("error: ", e)
+
+      if (e instanceof ApiError) {
+         //console.log(e.status)
+         //console.log(e.body)
+         return [null, { status: e.status, response: e.body } as ServiceError] as const;
+      }
+      else {
+         return [null, { status: 400, response: { detail: `UnhandledError: ${e}` } }] as const;
+      }
+   }
+})
+
 
 /* ------------------------------ Context Menu ------------------------------ */
 
@@ -46,31 +62,36 @@ chrome.contextMenus.create(
 );
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-   console.log(tab)
-   chrome.tabs.sendMessage(tab?.id!, 'contextMenu');
+   sendTabMessage(tab?.id!, 'contextMenu', {})
 })
 
 chrome.tabs.onActivated.addListener((info) => {
    chrome.tabs.get(info.tabId, async (tab) => {
       // ? Avoid chrome:// tabs
-      if (tab.url) {
+      if (!tab.url?.includes("chrome://")) {
+
+         // chrome.action.openPopup({ windowId: tab.windowId })
+         // console.log(tab.)
+
+         return;
          const CONTENT_RUNNING = "contentScriptRunning";
          const target = { tabId: info.tabId };
-         const running = !! await chrome.scripting.executeScript({ target, func: (key) => window.localStorage.getItem(key), args: [CONTENT_RUNNING] })
-         if (!running) {
-            chrome.scripting.executeScript({
-               target, func: (key) => {
-                  window.localStorage.setItem(key, 'true');
-                  window.addEventListener('close', () => window.localStorage.removeItem(key))
-               }, args: [CONTENT_RUNNING]
-            })
-            chrome.scripting
-               .executeScript({
-                  target,
-                  files: ["js/vendor.js", "js/content_script.js"],
-               })
-               .then(() => console.log("success"));
-         }
+         // const running = !! await chrome.scripting.executeScript({ target, func: (key) => window.localStorage.getItem(key), args: [CONTENT_RUNNING] })
+         // if (!running) {
+         //    chrome.scripting.executeScript({
+         //       target, func: (key) => {
+         //          window.localStorage.setItem(key, 'true');
+         //          window.addEventListener('close', () => window.localStorage.removeItem(key))
+         //       }, args: [CONTENT_RUNNING]
+         //    })
+         // chrome.scripting
+         //    .executeScript({
+         //       target,
+         //       files: ["js/vendor.js", "js/content_script.js"],
+         //    })
+         //    .then(() => console.log("success"));
       }
-   });
+   }
+   )
 });
+
