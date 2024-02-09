@@ -43,7 +43,7 @@ type TabMessageMap = {
    };
    submitPage: {
       msg: {};
-      response: PageResponse;
+      response: GetFuncMessage<'submitPageSubmitPagePost'>['response'];
    };
    snackBar: {
       msg: {};
@@ -78,7 +78,7 @@ type GetFuncMessage<F extends ServiceFuncName> = {
       funcName: F;
       args: Omit<Parameters<(typeof DefaultService)[F]>[0], "xToken" | "cookieToken">;
    };
-   response: Promise<OneOf<Awaited<ReturnType<(typeof DefaultService)[F]>>, ServiceError>>;
+   response: OneOf<Awaited<ReturnType<(typeof DefaultService)[F]>>, ServiceError>;
 };
 
 type RuntimeMessageServiceMap<F extends ServiceFuncName = ServiceFuncName> = F extends F
