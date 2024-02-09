@@ -29,8 +29,6 @@
   "content_scripts": [
     {
       "matches": [
-        "https://course.ntu.edu.tw/*",
-        "https://if190.aca.ntu.edu.tw/*",
         "<all_urls>"
       ],
       "js": [
@@ -50,8 +48,6 @@
     "activeTab"
   ],
   "host_permissions": [
-    "https://course.ntu.edu.tw/*",
-    "https://ntu.onrender.com/",
     "<all_urls>"
   ],
   "optional_permissions": [],

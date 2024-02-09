@@ -13,8 +13,8 @@ timezone: ''
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-url: https://weiiiii0622.github.io/NTU-Score-Viewer/
-root: /NTU-Score-Viewer/
+url: https://weiiiii0622.github.io/NTU-Grade-Viewer/
+root: /NTU-Grade-Viewer/
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:
@@ -103,5 +103,5 @@ theme: minima
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: git
-  repo: https://github.com/weiiiii0622/NTU-Score-Viewer.git
+  repo: https://github.com/weiiiii0622/NTU-Grade-Viewer.git
   branch: gh-pages
