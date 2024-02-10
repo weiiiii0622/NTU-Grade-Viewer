@@ -6,10 +6,11 @@ from typing import Annotated, Callable
 from urllib.parse import unquote
 
 from Crypto.Cipher import AES
-from db import get_db
-from db_utils import insert_objs, select_by_obj
+from db import get_engine
 from fastapi import Cookie, Header, HTTPException, status
-from models import validate_student_id
+from fastapi.exceptions import RequestValidationError
+from models import User
+from sqlmodel import Session
 from typing_extensions import deprecated
 from utils.general import add_decorator_doc, extract_dict
 
@@ -18,31 +19,37 @@ cipher = AES.new(aes_key, AES.MODE_ECB)
 
 
 @cache
-def get_token(studentId: str) -> str:
-    assert len(studentId) == 9
-    return base64.b64encode(cipher.encrypt(studentId.ljust(16).encode())).decode()
+def get_token(student_id: str) -> str:
+    try:
+        assert len(student_id) == 9
+        return base64.b64encode(cipher.encrypt(student_id.ljust(16).encode())).decode()
+    except:
+        raise RequestValidationError(
+            [{"loc": "student_id", "msg": "get_token failed", "type": "invalid"}]
+        )
 
 
 @cache
 def get_student_id(token: str) -> str:
-    return cipher.decrypt(base64.b64decode(token.encode())).decode()[:9]
+    try:
+        return cipher.decrypt(base64.b64decode(token.encode())).decode()[:9]
+    except:
+        raise RequestValidationError(
+            [{"loc": "token", "msg": "get_student_id failed", "type": "invalid"}]
+        )
 
 
 # ? this is not pure function
 # @cache
 def validate_token(token: str) -> bool:
+    session = Session(get_engine())
     try:
         student_id = get_student_id(token)
     except:
         return False
 
-    obj = extract_dict(["student_id", "token"], locals())
-
-    db = get_db()
-    with db.get_connection() as con:
-        with con.cursor() as cursor:
-            res = select_by_obj(cursor, "token", "user", obj)
-            return bool(res)
+    user = session.get(User, student_id)
+    return bool(user)
 
 
 # ? I end up use this bc this can modify doc.
@@ -73,7 +80,7 @@ def auth_required(f: Callable):
         *sig.parameters.values(),
         Parameter(
             "x_token",
-            Parameter.POSITIONAL_OR_KEYWORD,
+            Parameter.KEYWORD_ONLY,
             annotation=Annotated[
                 str,
                 Header(
@@ -84,7 +91,7 @@ def auth_required(f: Callable):
         ),
         Parameter(
             "cookie_token",
-            Parameter.POSITIONAL_OR_KEYWORD,
+            Parameter.KEYWORD_ONLY,
             annotation=Annotated[
                 str,
                 Cookie(
@@ -133,17 +140,3 @@ def auth_required_dependency(
     if not validate_token(token):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token")
 
-
-def add_user(student_id: str) -> str:
-    student_id = validate_student_id(student_id)
-
-    token = get_token(student_id)
-    assert get_student_id(token) == student_id
-
-    db = get_db()
-    obj = extract_dict(["token", "student_id"], locals())
-    with db.get_connection() as con:
-        with con.cursor() as cursor:
-            insert_objs(cursor, "user", obj)
-        con.commit()
-    return token

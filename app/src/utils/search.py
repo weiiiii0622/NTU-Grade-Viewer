@@ -3,7 +3,6 @@ Searching information from official NTU website.
 """
 
 from math import inf
-from re import L
 from typing import Literal, TypeAlias
 
 import aiohttp

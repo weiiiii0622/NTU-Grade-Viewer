@@ -1,12 +1,13 @@
 # @app.get("/grades/all")
 
-from functools import wraps
 
-from auth import auth_required, auth_required_dependency
-from db import do_query_grades
+from auth import auth_required
+from db import get_session
 from fastapi import APIRouter, Depends
-from models import GradeElement
-from utils.general import add_decorator_doc, test_only
+from models import Grade, GradeElement
+from sqlmodel import Session, select
+from utils.general import test_only
+from utils.grade import get_grade_element
 
 router = APIRouter(prefix="/grade")
 
@@ -14,9 +15,11 @@ router = APIRouter(prefix="/grade")
 @router.get("/all")
 @auth_required
 @test_only
-def get_all_grades() -> list[GradeElement]:
+def get_all_grades(*, session: Session = Depends(get_session)) -> list[GradeElement]:
     """
     Just get all grades.
     """
 
-    return do_query_grades({"1": "1"}, {})
+    return [get_grade_element(grade) for grade in session.exec(select(Grade)).all()]
+
+    # return do_query_grades({"1": "1"}, {})

@@ -3,27 +3,64 @@ import math
 import re
 
 import bs4
-from auth import add_user
-from bs4 import ResultSet, Tag
-from db import insert_courses, insert_grade_elements
-from errors import ValidationErrorResponse
-from fastapi import APIRouter, Response
+from auth import get_token
+from bs4 import Tag
+from db import engine, get_session
+from fastapi import APIRouter, BackgroundTasks, Depends, Response
 from fastapi.exceptions import RequestValidationError
-from models import (
-    GRADE_MAP_INV,
-    GRADES,
-    Course,
-    GradeElement,
-    GradeUpdate,
-    Page,
-    Segment,
-)
-from pydantic import BaseModel, ValidationError
-from utils.general import extract_dict
+
+# from models import (
+#     GRADE_MAP_INV,
+#     GRADES,
+#     Course,
+#     GradeElement,
+#     GradeUpdate,
+#     Page,
+#     Segment,
+# )
+from models import *
+from pydantic import BaseModel
+from utils.general import extract_dict, test_only
+from utils.grade import get_grade_element
 from utils.search import global_session, search_course
-from utils.segment_list import SegmentList
 
 router = APIRouter(prefix="/submit")
+
+
+async def insert_grades(*, grades: list[GradeWithUpdate]):
+    session = Session(engine)
+
+    async with global_session():
+        await asyncio.gather(*[set_lecturer(grade) for grade in grades])
+    grades = [grade for grade in grades if grade.lecturer]
+
+    print("inserting grades...")
+    for grade in grades:
+        try:
+            assert grade.id
+            course: CourseBase = grade.course
+            update: UpdateBase = grade.update
+
+            db_course = session.get(Course, (course.id1, course.id2)) or Course.model_validate(
+                course
+            )
+            db_grade = session.get(Grade, grade.id) or Grade(
+                **{k: v for k, v in grade.model_dump().items() if k != "course"}
+            )
+            db_update = Update(grade_id=grade.id, **update.model_dump())
+            print("update: ", update)
+            print("db_update: ", db_update)
+
+            # objs += [db_course, db_grade, db_update]
+            session.add(db_course)  # todo: (optimize) no need to add if exists
+            session.add(db_grade)
+            session.add(db_update)
+        except Exception as e:
+            print("error: ", e.with_traceback(None))
+            pass
+
+    session.commit()
+    session.close()
 
 
 class PageResponse(BaseModel):
@@ -31,71 +68,84 @@ class PageResponse(BaseModel):
     message: str
 
 
+async def set_lecturer(grade: GradeWithUpdate) -> None:
+    # * Get lecturer
+    course: Course = grade.course
+    assert not grade.lecturer
+    result = await search_course(
+        {
+            **extract_dict(["id1", "id2", "title"], course.model_dump()),
+            **extract_dict(["class_id", "semester", "lecturer"], grade.model_dump()),
+        },
+        thresholds={"lecturer": -1},  # lecturer unknown, hence unbound
+    )
+
+    assert result, grade
+    assert result["lecturer"]
+    grade.lecturer = result["lecturer"]
+
+
 @router.post("/page")
-async def submit_page(page: Page, response: Response) -> PageResponse:
+async def submit_page(
+    *,
+    session: Session = Depends(get_session),
+    page: Page,
+    response: Response,
+    background: BackgroundTasks,
+) -> PageResponse:
 
     student_id, results = parse_page(page.content)
 
-    insert_courses([c for c, _ in results])
+    semesters: list[str] = [grade.semester for grade in results]
+    last_semester = sorted(semesters, key=lambda s: tuple(map(int, s.split("-"))))[-1]
 
-    # TODO: update grade by incoming info
-    async with global_session():
-        grade_eles = await asyncio.gather(*[get_grade_element(g, []) for c, g in results])
-        insert_grade_elements(grade_eles)
+    user = session.get(User, student_id)
+    if user:
+        user.last_semester = last_semester
+    else:
+        user = User(id=student_id, last_semester=last_semester)
+    session.add(user)
+    session.commit()
 
-    token = add_user(student_id)
+    background.add_task(insert_grades, grades=results)
+
+    token = get_token(user.id)
     response.set_cookie("token", token)
 
     return PageResponse(token=token, message="success")
 
 
-# TODO
+@test_only
 @router.post("/grade")
-def submit_grade():
-    pass
+def submit_grade(
+    *, session: Session = Depends(get_session), grade: GradeWithUpdate
+) -> GradeElement:
+    course: CourseBase = grade.course
+    db_course = session.get(Course, (course.id1, course.id2))
+    if not db_course:
+        db_course = session.add(Course.model_validate(course))
+
+    db_grade = session.get(Grade, grade.id)
+    if not db_grade:
+        session.add(Grade(**(grade.model_dump() | {"course": db_course})))
+
+    db_update = Update(**(grade.update.model_dump() | {"grade_id": grade.id}))
+    session.add(db_update)
+
+    session.commit()
+    print(db_update)
+    return get_grade_element(session.exec(select(Grade).where(Grade.id == grade.id)).one())
 
 
-# TODO
+@test_only
 @router.post("/grades")
-def submit_grades():
-    pass
+def submit_grades(
+    *, session: Session = Depends(get_session), grades: list[GradeWithUpdate]
+) -> list[GradeElement]:
+    return [submit_grade(grade=grade) for grade in grades]
 
 
-async def get_grade_element(grade: GradeUpdate, init_segments: list[Segment]):
-    course = grade.course
-
-    if not grade.lecturer:
-        result = await search_course(
-            {
-                **extract_dict(["id1", "id2", "title"], course.model_dump()),  # type: ignore
-                **extract_dict(["class_id", "semester", "lecturer"], grade.model_dump()),
-            },
-            thresholds={"lecturer": -1},  # lecturer unknown, hence unbound
-        )
-
-        # if result is None:
-        #     return
-        assert result, grade
-        assert result["lecturer"]
-        grade.lecturer = result["lecturer"]
-
-    seg_list = SegmentList(10, 100.0, [seg.unpack() for seg in init_segments])
-    seg_list.update(GRADE_MAP_INV[grade.grade], *grade.dist)
-    segments = [Segment.from_iterable(seg) for seg in seg_list.dump()]
-
-    ele = GradeElement(
-        # course_id1=result['lecturer']
-        course=grade.course,
-        semester=grade.semester,
-        lecturer=grade.lecturer,
-        class_id=grade.class_id,
-        segments=segments,
-    )
-
-    return ele
-
-
-def parse_page(text: str) -> tuple[str, list[tuple[Course, GradeUpdate]]]:
+def parse_page(text: str) -> tuple[str, list[GradeWithUpdate]]:
     """
     Returns:
         (student_id, [(course1, grade1), ...])
@@ -123,14 +173,14 @@ def parse_page(text: str) -> tuple[str, list[tuple[Course, GradeUpdate]]]:
         "table-column-course-title ",
         "table-column-grade",
     ]
-    results: list[tuple[Course, GradeUpdate]] = []
+    results: list[GradeWithUpdate] = []
     for row in grade_rows:
         infos = get_infos(row, extract_cls)
-        semester, id1, id2, class_id, title, grade = infos
+        semester, id1, id2, class_id, title, grade_str = infos
         # if not class_id:
         #     class_id = None
 
-        if grade not in GRADES:
+        if grade_str not in GRADES:
             continue
 
         # ! fuck bs4 typing
@@ -141,7 +191,7 @@ def parse_page(text: str) -> tuple[str, list[tuple[Course, GradeUpdate]]]:
 
         try:
             dist = tuple(
-                float(obj.group(1))
+                Decimal(obj.group(1))
                 for p in dropdown.select("p")
                 if (obj := re.match(r"(\d+(\.\d+)?)\%", p.text))
             )
@@ -152,15 +202,17 @@ def parse_page(text: str) -> tuple[str, list[tuple[Course, GradeUpdate]]]:
             # assert semester == "112-1"
             continue
 
-        course = Course(**extract_dict(["id1", "id2", "title"], locals()))
-        grade = GradeUpdate(
-            # course_id1=id1,
+        course = CourseBase(**extract_dict(["id1", "id2", "title"], locals()))
+        update = UpdateBase(pos=GRADE_MAP_INV[grade_str], lower=dist[0], higher=dist[-1])
+        grade = GradeWithUpdate(
+            course_id1=id1,
+            course_id2=id2,
             course=course,
             semester=semester,
             class_id=class_id,
-            grade=grade,
-            dist=dist,
+            lecturer="",
+            update=update,
         )
-        results.append((course, grade))
+        results.append(grade)
 
     return student_id, results

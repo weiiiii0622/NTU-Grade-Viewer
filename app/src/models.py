@@ -1,22 +1,25 @@
 import hashlib
 import math
 import re
-from abc import ABC
-from typing import Annotated, Iterable, Optional, TypeAlias
+from datetime import datetime
+from decimal import Decimal
+from typing import Annotated, Iterable, Optional, Self, TypeAlias
 
+from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from pydantic import (
     AfterValidator,
     BaseModel,
-    Field,
     ValidationError,
     field_validator,
     model_validator,
-    validator,
 )
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, UniqueConstraint
+from sqlmodel import Field, Relationship, Session, SQLModel, create_engine, select
 
-# ---------------------------------- Course ---------------------------------- #
+# ------------------------------- Primary Types ------------------------------ #
 
+# * Course
 
 Id1: TypeAlias = Annotated[
     str,
@@ -34,16 +37,9 @@ Id2: TypeAlias = Annotated[
 ]
 
 
-class Course(BaseModel):
-    id1: Id1
-    id2: Id2
-    title: str
+# * Grade
 
 
-# ----------------------------------- Grade ---------------------------------- #
-
-
-# ? Change to this def. because I cannot fix openapi tuple issue🥲
 def validate_semester(s: str):
     a, b = list(map(int, s.split("-")))
     if 130 >= a >= 90 and 2 >= b >= 1:
@@ -51,9 +47,22 @@ def validate_semester(s: str):
     raise ValidationError()
 
 
-Semester = Annotated[
-    str, Field(description="semester", pattern=r"^\d+-\d+$"), AfterValidator(validate_semester)
+SemesterStr = Annotated[
+    str,
+    Field(
+        description="Semester between 90-1 ~ 130-2",
+        schema_extra={"examples": ["111-2"]},
+        regex=r"^\d+-\d+$",
+    ),
+    AfterValidator(validate_semester),
 ]
+
+Lecturer = Annotated[
+    str, Field(default="", description="The lecturer.", schema_extra={"examples": "林軒田"})
+]
+
+
+ClassId = Annotated[str, Field(description="'班次'", schema_extra={"examples": "01"}, default="")]
 
 
 # A+: 9, A: 8, ..., F: 0
@@ -79,41 +88,9 @@ def validate_grade_str(s: str):
 
 GradeStr: TypeAlias = Annotated[str, AfterValidator(validate_grade_str)]
 
-
-class GradeBase(ABC, BaseModel):
-
-    # course_id1: Id1
-    course: Course
-    semester: Semester = Field(description="Semester between 90-1 ~ 130-2", examples=["111-2"])
-
-    # TODO: use scraper to get lecturer
-    lecturer: str = Field(
-        description="The lecturer.", examples=["林軒田"], default=''
-    )  # ! this can not be obtained from page
-
-    # TODO: consider using default ''
-    class_id: str = Field(description="'班次'", examples=["01"], default='')
+Percent = Annotated[Decimal, Field(ge=0, le=100, decimal_places=2, max_digits=5)]
 
 
-# --------------------------------- GradeInfo -------------------------------- #
-
-
-class GradeUpdate(GradeBase):
-    """
-    Grade information extracted from user page submited. The values are between 0~100.
-    """
-
-    grade: GradeStr
-    dist: tuple[float, float, float]  # lower, same, higher
-
-    @validator("dist")
-    def valid_dist(cls, v: tuple[float, float, float]):
-        if math.isclose(sum(v), 100, abs_tol=1) and len(v) != 3:
-            raise ValidationError()
-        return v
-
-
-# ------------------------------- GradeElement ------------------------------- #
 
 
 class Segment(BaseModel):
@@ -123,16 +100,16 @@ class Segment(BaseModel):
 
     l: GradeInt
     r: GradeInt
-    value: float = Field(description="A float in [0, 100].", ge=-1, le=101)
+    value: Percent
 
     def __iter__(self):
         return iter((self.l, self.r, self.value))
 
-    def unpack(self) -> tuple[int, int, float]:
+    def unpack(self) -> tuple[int, int, Decimal]:
         return self.l, self.r, self.value
 
     @staticmethod
-    def from_iterable(x: Iterable):
+    def from_iterable(x: tuple[int, int, Decimal]):
         l, r, value = x
         return Segment(l=l, r=r, value=value)
 
@@ -140,26 +117,106 @@ class Segment(BaseModel):
         return self.r - self.l + 1
 
 
+# * User
+
+
+def validate_student_id(id: str):
+    if re.match(r"[a-zA-Z0-9]{9}", id):
+        return id.capitalize()
+    raise RequestValidationError([])  # TODO: is this error suitable?
+
+
+StudentId = Annotated[
+    str, Field(description="A student's id, e.g. b10401006."), AfterValidator(validate_student_id)
+]
+
+
+# ------------------------------- Table Schema ------------------------------- #
+
+
+class HeroBase(SQLModel):
+    name: str = Field(index=True)
+    secret_name: str
+    age: Optional[int] = Field(default=None, index=True)
+
+
+class Hero(HeroBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+
+class CourseBase(SQLModel):
+    id1: str = Field()
+    id2: str = Field()
+    title: str = Field(index=True)
+
+
+class Course(CourseBase, table=True):
+    grades: list["Grade"] = Relationship(back_populates="")
+
+    __table_args__ = (
+        PrimaryKeyConstraint("id1", "id2"),
+        UniqueConstraint("id1"),
+        UniqueConstraint("id2"),
+    )
+
+
+class GradeBase(SQLModel):
+    id: Optional[int] = Field(
+        primary_key=True,
+        default=None,
+        description="""
+    This id is hashed from course, semester and class_id. 
+    You should set id=-1 to let server compute it.
+""",
+    )
+
+    course_id1: Id1
+    course_id2: Id2
+
+    semester: SemesterStr
+    class_id: ClassId
+    lecturer: Lecturer
+
+    # * Do the composite key ourself
+    @staticmethod
+    def get_id(grade: "GradeBase") -> int:
+        return int.from_bytes(
+            hashlib.sha256(
+                repr((grade.course_id1, grade.course_id2, grade.semester, grade.class_id)).encode()
+            ).digest()[:3]
+        )
+
+    @model_validator(mode="after")
+    def check_passwords_match(self) -> Self:
+        if not self.id:
+            self.id = GradeBase.get_id(self)
+        elif self.id != GradeBase.get_id(self):
+            raise ValueError("Invalid grade.id")
+        return self
+
+
+class Grade(GradeBase, table=True):
+    course: "Course" = Relationship(back_populates="grades")
+    updates: list["Update"] = Relationship(back_populates="grade")
+
+    # * If two grade has same `semester` and `class_id` but different `lecturer`,
+    # * we should just discard that grade.
+
+    __table_args__ = (
+        # UniqueConstraint("semester", "class_id"),
+        ForeignKeyConstraint(["course_id1", "course_id2"], ["course.id1", "course.id2"]),
+    )
+
+
 class GradeElement(GradeBase):
     """
     Grade element stored in db and consumed by client. The values are between 0~100.
     """
 
+    course: "CourseBase"
     segments: list[Segment] = Field(
         description="A list of segments. The segments are expected to be disjoint, and taking up the whole [0, 9] range. The sum is expected to be (nearly) 100."
     )
-    id: Annotated[str, Field(min_length=16, max_length=16)] = Field(
-        default="", description="A string generated by backend server."
-    )
-
-    def __init__(self, **data):
-        super().__init__(**data)
-        self.id = self.get_id()
-
-    def get_id(self):
-        return hashlib.sha256(
-            repr((self.course.id1, self.class_id, self.semester, self.class_id)).encode()
-        ).hexdigest()[:16]
 
     @field_validator("segments")
     def valiadte_grade_eles(cls, v: list[Segment]):
@@ -169,48 +226,40 @@ class GradeElement(GradeBase):
             assert v[i].r + 1 == v[i + 1].l, v
         return v
 
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "course_id1": "CSIE1212",
-                    "semester": "110-2",
-                    "lecturer": "林軒田",
-                    "class_id": "01",
-                    "segments": [{"l": 0, "r": 8, "value": 91}, {"l": 9, "r": 9, "value": 9}],
-                    "id": -1,
-                }
-            ]
-        }
-    }
+
+class UpdateBase(SQLModel):
+
+    pos: GradeInt
+    lower: Percent
+    higher: Percent
 
 
-# ----------------------------------- Query ---------------------------------- #
 
-QUERY_FIELDS = ("id1", "id2", "title")
-# QueryField: TypeAlias = Literal["id1", "id2", "title"]
-QUERY_FILTERS = ("class_id", "semester")
-# QueryFilter: TypeAlias = Literal["class_id", "semester"]
+class GradeWithUpdate(GradeBase):
+    course: "CourseBase"
+    update: "UpdateBase"
 
-
-class QueryCourse(BaseModel):
-    """
-    Partial of `Course`.
-    """
-
-    id1: Id1 = Field(default="", validate_default=False)
-    id2: Id2 = Field(default="", validate_default=False)
-    title: str = ""
+    # ? used for pre-collected since their source are not 100% correct.
+    # ? if new updates comes, just drop those with `solid` false.
+    solid: bool = Field(default=True)
 
 
-class QueryFilter(BaseModel):
-    """
-    Additinoal filters for querying grades.
-    """
+class Update(UpdateBase, table=True):
+    id: Optional[int] = Field(primary_key=True, default=None)
 
-    class_id: str = ""
-    semester: Semester = Field(default="111-1", validate_default=False)
+    grade_id: int = Field(foreign_key="grade.id")
+    grade: Grade = Relationship(back_populates="updates")
 
+
+class User(SQLModel, table=True):
+    id: StudentId = Field(unique=True)
+    # token: str
+    last_semester: SemesterStr
+
+    __table_args__ = (PrimaryKeyConstraint("id"),)
+
+
+# ---------------------------- Function Signature ---------------------------- #
 
 # ----------------------------------- Page ----------------------------------- #
 
@@ -222,12 +271,6 @@ class Page(BaseModel):
 
     content: str = Field(description="The html content of user's grade page.")
     hashCode: int = Field(description="Hashed value of `content`.")
-
-    # TODO: use base64 to encode content
-    # @field_validator("content")
-    # @classmethod
-    # def parse_content(cls, v: bytes):
-    #     return base64.decodebytes(v)
 
     @staticmethod
     def get_hash_code(content: str):
@@ -259,15 +302,6 @@ class Page(BaseModel):
         return self
 
 
-# ----------------------------------- User ----------------------------------- #
-
-
-def validate_student_id(id: str):
-    if re.match(r"[a-zA-Z0-9]{9}", id):
-        return id.capitalize()
-    raise RequestValidationError([])  # TODO: is this error suitable?
-
-
-StudentId = Annotated[
-    str, Field(description="A student's id, e.g. b10401006."), AfterValidator(validate_student_id)
-]
+QUERY_FIELDS = ("id1", "id2", "title")
+# QueryField: TypeAlias = Literal["id1", "id2", "title"]
+QUERY_FILTERS = ("class_id", "semester")

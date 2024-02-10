@@ -22,6 +22,8 @@ tqdm = "*"
 fastapi-admin = "*"
 redis = ">=4.2.0rc1"
 tortoise = "*"
+sqlmodel = "*"
+sqlalchemy = "*"
 
 [dev-packages]
 

@@ -1,5 +1,6 @@
 import math
 from dataclasses import dataclass, field
+from decimal import Decimal
 from typing import Generic, TypeVar
 
 # ? Cool but not neccessary
@@ -13,14 +14,12 @@ from typing import Generic, TypeVar
 #     def __sub__(self,b:Self, /)->Self:
 #         raise NotImplementedError
 
-T = TypeVar("T", int, float)
-
 
 @dataclass
-class Node(Generic[T]):
+class Node:
     l: int
     r: int
-    value: T
+    value: Decimal
     is_nil: bool = False
     next: "Node" = field(default_factory=lambda: f())
     prev: "Node" = field(default_factory=lambda: f())
@@ -42,23 +41,25 @@ def f():
     return f.__globals__["Nil"]  # some hack to avoid circular reference
 
 
-class SegmentList(Generic[T]):
+class SegmentList:
     size: int
-    total: T
-    head: Node[T]
-    err: T
+    total: Decimal
+    head: Node
+    err: Decimal
 
     def __init__(
         self,
         size: int,
-        total: T,
-        segments: list[tuple[int, int, T]] | None = None,
-        err: T = 1,
+        total: Decimal,
+        segments: list[tuple[int, int, Decimal]] | None = None,
+        err: Decimal | None = None,
         strict=True,
     ) -> None:
         self.size = size
         self.total = total
-        self.err = err
+        if not err:
+            err = total * Decimal("0.01")
+        self.err =err
         if not segments:
             self.head = Node(0, size - 1, total)
         else:
@@ -88,7 +89,7 @@ class SegmentList(Generic[T]):
 
         raise Exception(f"Idx {idx} not found!")
 
-    def remove(self, l: int, r: int, value: T):
+    def remove(self, l: int, r: int, value: Decimal):
         """
         Use to find the "empty" ranges.
         ex. removing [0, 0], [2, 3] from [0, 3], find out [1, 1] is empty.
@@ -122,7 +123,7 @@ class SegmentList(Generic[T]):
             p.r = l - 1
         else:
             # split
-            new_node = Node(r + 1, p.r, 0)
+            new_node = Node(r + 1, p.r, Decimal(0))
             p.r = l - 1
             p.next.prev = new_node
             new_node.next = p.next
@@ -131,7 +132,7 @@ class SegmentList(Generic[T]):
 
         # print('after: ', self.dump())
 
-    def update(self, idx: int, lower: T, same: T, higher: T):
+    def update(self, idx: int, lower: Decimal, same: Decimal, higher: Decimal):
         assert math.isclose(same, self.total - lower - higher, abs_tol=self.err)
 
         cur = self.find(idx)
@@ -153,7 +154,7 @@ class SegmentList(Generic[T]):
         ), f"{new_l_val}, {same}, {new_r_val}"
 
         if cur.l < idx:
-            new_l: Node[T] = Node(cur.l, idx - 1, new_l_val)
+            new_l: Node = Node(cur.l, idx - 1, new_l_val)
             cur.prev.next = new_l
             new_l.prev = cur.prev
 
@@ -175,7 +176,7 @@ class SegmentList(Generic[T]):
         cur.l = idx
         cur.r = idx
 
-    def dump(self) -> list[tuple[int, int, T]]:
+    def dump(self) -> list[tuple[int, int, Decimal]]:
         results = []
         cur = self.head
         while cur:

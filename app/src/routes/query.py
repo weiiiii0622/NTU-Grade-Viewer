@@ -1,19 +1,19 @@
 from typing import Annotated, Literal
 
 from auth import auth_required
-from db import do_query_grades
+from db import get_session
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.exceptions import RequestValidationError
 from models import (
     QUERY_FIELDS,
     QUERY_FILTERS,
+    Course,
     GradeElement,
     Id1,
     Id2,
-    QueryCourse,
-    QueryFilter,
-    Semester,
+    SemesterStr,
 )
+from sqlmodel import Session, select
+from utils.grade import get_grade_element
 
 router = APIRouter()
 
@@ -32,7 +32,7 @@ async def get_query_dict(
     title: Annotated[str, Query(description="'課程名稱'")] = "",
     class_id: Annotated[str, Query(description="'班次'")] = "",
     semester: Annotated[
-        Literal[""] | Semester, Query(description="Semester between 90-1 ~ 130-2")
+        Literal[""] | SemesterStr, Query(description="Semester between 90-1 ~ 130-2")
     ] = "",
 ):
     d = locals()
@@ -42,7 +42,9 @@ async def get_query_dict(
 
 @router.get("/query")
 @auth_required
-def query_grades(query: dict = Depends(get_query_dict)) -> list[GradeElement]:
+def query_grades(
+    *, session: Session = Depends(get_session), query: dict = Depends(get_query_dict)
+) -> list[GradeElement]:
     """
     Each query should provide at least one of `id1`, `id2` or `title`. The `class_id` and `semester` parameters are for further filtering results.
 
@@ -56,4 +58,21 @@ def query_grades(query: dict = Depends(get_query_dict)) -> list[GradeElement]:
     if not fields:
         raise HTTPException(status_code=400, detail="At least one field has to be specified!")
 
-    return do_query_grades(fields, filters)
+    for key in ["id1", "id2", "title"]:
+        if key in fields and (value := fields[key]):
+            match key:
+                case "id1":
+                    course = session.exec(select(Course).where(Course.id1 == value)).one_or_none()
+                case "id2":
+                    course = session.exec(select(Course).where(Course.id2 == value)).one_or_none()
+                case "title":
+                    # TODO: change to edit distance
+                    course = session.exec(select(Course).where(Course.title == value)).one_or_none()
+                case _:
+                    # TODO: modify exception
+                    raise Exception()
+
+            if not course:
+                return []
+
+    return [get_grade_element(grade) for grade in course.grades]
