@@ -183,7 +183,7 @@ const parseGrade = (res: string) => {
       score.class_id = obj.class_id;
       score.lecturer = obj.lecturer;
       for(let i = 0; i < obj.segments.length; i++) {
-         score.datas.push({value: obj.segments[i].value, label: getLabel(obj.segments[i])});
+         score.datas.push({id: i, value: obj.segments[i].value, label: getLabel(obj.segments[i])});
       }
       score.datas.reverse();
       ret.push(score);

@@ -56,6 +56,7 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 			setTitle(grades[value].title);
 		setLecturer(grades[value].lecturer);
 		setDatas(grades[value].datas);
+		console.log(grades[value].datas);
 		setSemester(grades[value].semester);
 		setClass_id(grades[value].class_id);
 	}, [value])
@@ -83,6 +84,7 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 								highlightScope: { faded: 'global', highlighted: 'item' },
 								arcLabel: getArcLabel,
 								arcLabelMinAngle: 25,
+								valueFormatter: (params) => {return `${params.value}%`}
 							},
 						]}
 						sx={{
@@ -104,7 +106,7 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 								itemMarkWidth: 7,
 								itemMarkHeight: 7,
 								markGap: 5,
-						itemGap: 10,
+								itemGap: 10,
 							},
 						}}
 						width={width}

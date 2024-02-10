@@ -49,7 +49,7 @@ export const GradeChartToolTip: React.FC<IGradeChartTooltipProps> = ({grades, de
 			disableFocusListener
 			onClose={()=>{}}
 			sx={{
-				zIndex: 2003,
+				zIndex: 1101,
 			}}
 		>
 			<BarChartIcon sx={{color:"#01579b"}}/>
