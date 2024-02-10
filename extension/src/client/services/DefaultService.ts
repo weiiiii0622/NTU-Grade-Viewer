@@ -12,14 +12,31 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class DefaultService {
     /**
+     * Get Root
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static getRootGet(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
      * Get Semester
      * @returns string Successful Response
      * @throws ApiError
      */
-    public static getSemesterGet(): CancelablePromise<string> {
+    public static getSemesterSemesterGet(): CancelablePromise<string> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/',
+            url: '/semester',
             errors: {
                 400: `Bad Request`,
                 401: `Unauthorized`,

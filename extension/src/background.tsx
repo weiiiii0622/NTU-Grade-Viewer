@@ -11,13 +11,25 @@ OpenAPI['BASE'] = APP_URL
 
 
 addMessageListener('user', async (msg, sender) => {
-   // const [] = sendRuntimeMessage('')
    const token = await getStorage('token');
    if (!token)
       return null;
    const user = await DefaultService.getUserUserTokenGet({ token })
    return user
-})
+});
+
+
+(
+   async () => {
+
+      const user = await sendRuntimeMessage('user', undefined);
+      if (user) {
+         const { last_semester, id } = user;
+      }
+
+      const [semester, _] = await sendRuntimeMessage('service', { funcName: 'getSemesterGet', args: {} })
+   }
+)()
 
 
 
