@@ -11,10 +11,11 @@ const { V2 } = env;
 
 module.exports = {
    entry: {
-      popup: path.join(srcDir, V2 ? "popup.tsx" : "popup_v2.tsx"),
+      popup: path.join(srcDir, "popup.tsx"),
       options: path.join(srcDir, "options.tsx"),
-      background: path.join(srcDir, V2 ? "background_v2.tsx" : "background.tsx"),
-      content_script: path.join(srcDir, V2 ? "content_script_v2.tsx" : "content_script.tsx"),
+      background: path.join(srcDir, "background.tsx"),
+      content_script: path.join(srcDir, "content_script.tsx"),
+      content_script_popup: path.join(srcDir, "content_script_popup.tsx"),
    },
    output: {
       path: path.join(__dirname, "../dist/js"),

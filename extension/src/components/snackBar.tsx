@@ -1,5 +1,5 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 
@@ -28,10 +28,9 @@ export const SnackBar: React.FC<ISnackBarProps> = ( {msg, severity, action} ) =>
         setOpen(true);
     }, [action])
     
-
 	return (
 		<>
-            <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+            <Snackbar open={open} autoHideDuration={6000} onClose={handleClose} sx={{ zIndex: '999999' }}>
                 <Alert
                 onClose={handleClose}
                 severity={severity}

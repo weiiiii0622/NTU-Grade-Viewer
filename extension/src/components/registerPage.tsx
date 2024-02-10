@@ -1,14 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Box } from '@mui/material';
+import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { grey, red, green } from '@mui/material/colors';
-
 import LoadingButton from '@mui/lab/LoadingButton';
 import SendIcon from '@mui/icons-material/Send';
 
-import { sendTabMessage, getStorage, removeStorage } from "../api_v2";
+import { sendTabMessage, getStorage } from "../api";
 import { ISnackBarProps } from "./snackBar";
+
+import MainIcon from 'react-svg-loader!../assets/image/icon.svg'
 
 interface IRegisterPageProps {
    reset: boolean
@@ -39,23 +41,20 @@ export const RegisterPage: React.FC<IRegisterPageProps>  = ( {reset} ) => {
          async function (tabs: chrome.tabs.Tab[]) {
             const tab: chrome.tabs.Tab = tabs[0];
             
-            console.log(tab.url);
             if(!tab.url?.startsWith("https://if190.aca.ntu.edu.tw/graderanking") || tab.url?.startsWith("https://if190.aca.ntu.edu.tw/graderanking/Error")){
-               console.log(tab.url)
-               console.log("Wrong Page SubmitGrade")
                sendSnackBarMessage({msg:"請確認您的頁面位於「成績與名次查詢及探索學分申請系統」！", severity: "error", action: true});
             }
             else if (tab.id) {
                try {
-                  const { message } = await sendTabMessage(tab.id, 'submitPage', {})
-                  console.log("msg:", message);
+                  const r = await sendTabMessage(tab.id, 'submitPage', {})
+                  console.log("Submit Page result:", r);
                   setIsAuth(true);
                   sendSnackBarMessage({msg:"註冊成功！歡迎使用 NTU 選課小幫手！", severity: "success", action: true});
-                  
                } catch (error) {
-                  console.log("error:", error);
+
+                  // Happened when content script is not inserted to the page (should not happen though...)
+                  console.log("Submit Page error:", error);
                   alert("發生錯誤！請重新整理頁面再試一次！");
-                  sendSnackBarMessage({msg:"發生錯誤！請重新整理頁面再試一次！", severity: "error", action: true});
                }
             }
             setIsLoading(false);
@@ -82,9 +81,9 @@ export const RegisterPage: React.FC<IRegisterPageProps>  = ( {reset} ) => {
 	return (
 		<>
 			<Box sx={{width: "100%", height: "70%"}}>
-
+               <MainIcon />
 			</Box>
-			<Box sx={{width: "100%", height: "30%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
+			<Box sx={{width: "100%", height: "30%", mt:"10px", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
 				<Box sx={{width: "50%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
 					<Typography variant="body1" color={{ color: grey[700] }}  fontWeight="bold">
 						目前狀態：

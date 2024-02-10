@@ -1,20 +1,9 @@
-import { useEffect, useState } from 'react';
-
 import { styled } from '@mui/material/styles';
 import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
 import Zoom from '@mui/material/Zoom';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import { grey } from '@mui/material/colors';
-
 import BarChartIcon from '@mui/icons-material/BarChart';
-import IconButton from '@mui/material/IconButton';
-import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
-import { GradeChart } from './gradeChart';
-import { GradeElement } from '../client';
-import { IChartData } from './gradeChart';
+import { GradeChart, IChartData } from './gradeChart';
 
 
 export interface IGradeChartTooltipProps {
@@ -24,7 +13,10 @@ export interface IGradeChartTooltipProps {
 
 export interface IGradeChartTooltipData {
 	title: string,	    		// From back-end
+	course_id1: string,
+	course_id2: string,
 	semester: string,
+	class_id: string,
 	lecturer: (string|null),
 	datas: IChartData[]
 }
@@ -57,9 +49,9 @@ export const GradeChartToolTip: React.FC<IGradeChartTooltipProps> = ({grades, de
 			TransitionComponent={Zoom}
 			leaveDelay={200}
 			disableFocusListener
-			onClose={()=>{console.log("CLOSE")}}
+			onClose={()=>{}}
 			sx={{
-				zIndex: 20,
+				zIndex: 1101,
 			}}
 		>
 			<BarChartIcon sx={{color:"#01579b"}}/>
