@@ -229,7 +229,7 @@ interface ICourseCache {
    cache_time : number
 }
 
-// Set the cache time here
+// Set the cache TTL here
 const cache_hours = 0;
 const cache_minutes = 0;
 const cache_seconds = 15;
