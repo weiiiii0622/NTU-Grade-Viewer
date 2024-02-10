@@ -13,6 +13,8 @@ export interface IGradeChartTooltipProps {
 
 export interface IGradeChartTooltipData {
 	title: string,	    		// From back-end
+	course_id1: string,
+	course_id2: string,
 	semester: string,
 	class_id: string,
 	lecturer: (string|null),

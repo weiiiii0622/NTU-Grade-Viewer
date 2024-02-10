@@ -56,7 +56,6 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 			setTitle(grades[value].title);
 		setLecturer(grades[value].lecturer);
 		setDatas(grades[value].datas);
-		console.log(grades[value].datas);
 		setSemester(grades[value].semester);
 		setClass_id(grades[value].class_id);
 	}, [value])

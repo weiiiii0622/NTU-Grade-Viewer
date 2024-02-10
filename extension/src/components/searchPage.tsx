@@ -66,7 +66,7 @@ export const SearchPage: React.FC<ISearchPageProps> = ( {reset} ) => {
 		else {
 			if(statusCode === 200){
 				setHasGrade(true);
-				setGrades(parseGrade(res));
+				setGrades(res.data!);
 				sendSnackBarMessage({msg:"成功！", severity:"success", action:true});
 			}
 			else {

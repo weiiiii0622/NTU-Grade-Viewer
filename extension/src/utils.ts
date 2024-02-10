@@ -2,10 +2,11 @@ import { sendRuntimeMessage } from "./api";
 import { Page } from "./models";
 
 import { IGradeChartTooltipData } from "./components/gradeChartToolTip";
-import { GradeChart } from "./components/gradeChart";
 
 
-/* ---------------------------- Utility Function ---------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                              Utility Function                              */
+/* -------------------------------------------------------------------------- */
 
 // This function takes an object as a parameter and returns the size of data in bytes
 const sizeof = (obj: any) => {
@@ -80,7 +81,9 @@ const toURLQueryString = <T extends Record<string, string | number>>(data: T) =>
 
 export { sizeof, getHashCode, waitUntil, toURLQueryString };
 
-/* ------------------------------- Submit Page ------------------------------ */
+/* -------------------------------------------------------------------------- */
+/*                                 Submit Page                                */
+/* -------------------------------------------------------------------------- */
 
 const submitPage = async () => {
    if (!window.location.href.startsWith("https://if190.aca.ntu.edu.tw/graderanking/"))
@@ -104,11 +107,28 @@ const submitPage = async () => {
 export { submitPage };
 
 
-/* ------------------------------ Grade Related ----------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                                Grade Related                               */
+/* -------------------------------------------------------------------------- */
 
-const fetchGrade = async (course_id1:string, course_id2:string, title:string, class_id:string): Promise<[number, string]> => {
+const GRADES = ['F', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+']
+
+interface IFetchGradeResponse {
+   data?: IGradeChartTooltipData[],
+   error?: string
+}
+
+const fetchGrade = async (course_id1:string, course_id2:string, title:string, class_id:string): Promise<[number, IFetchGradeResponse]> => {
    
-   console.log("fetchGrade params: ", course_id1, course_id2, title, class_id);
+   //console.log("fetchGrade params: ", course_id1, course_id2, title, class_id);
+
+   // Check Cache
+   const key = `${course_id1}_${course_id2}_${class_id}`;
+   const cache_res = await getCourseLocalCache(key);
+   if (cache_res.length != 0) {
+      //console.log("From Cache: ", cache_res);
+      return [200, {data: cache_res}];
+   }
 
    const [res, err] = await sendRuntimeMessage('service', {
       funcName: 'queryGradesQueryGet',
@@ -132,53 +152,54 @@ const fetchGrade = async (course_id1:string, course_id2:string, title:string, cl
       console.log("fetchGrade Error: ", err);
       switch (err.status) {
          case 400:
-            return [400, ("Bad Request 400")];
+            return [400, {error:("Bad Request 400")}];
          case 401:
-            return [401, ("Unauthorized 401")];
+            return [401, {error:("Unauthorized 401")}];
          case 422:
-            return [422, ("Validation Error 422")];
+            return [422, {error:("Validation Error 422")}];
          case 500:
-            return [500, ("Internal Error 500")];
+            return [500, {error:("Internal Error 500")}];
               
          default:
-            return [503, ("Unknown Error 503")]
+            return [503, {error:("Unknown Error 503")}]
       }
    }
 
-   // Filter class_id (class_id="" || class_id=class_id will be selected)
-
+   // Filter class_id
    const filtered_res = res.filter((grades) => {
       return grades.class_id=="" || grades.class_id==class_id;
    });
 
-   console.log("fetchGrade result: ", filtered_res)
+   //console.log("fetchGrade result: ", filtered_res)
 
    // Concatenate all res
    let resString = "";
    filtered_res.forEach((cur, idx)=>{resString += (JSON.stringify(cur) + ";");});
    if (resString == "")
-      return [404, resString]
-   return [200, resString]
- }
+      return [404, {data: []}];
 
+   
+   return [200, {data: await parseGrade(resString, key)}];
+}
 
-const GRADES = ['F', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+']
 
 const getLabel = (seg: {l:number, r:number, value: number}) => {
    return seg.l===seg.r ? GRADES[seg.l] : (GRADES[seg.r]+"~"+GRADES[seg.l]);
 }
 
 // Convert Back-end Data to Front-End format
-const parseGrade = (res: string) => {
+const parseGrade = async (res: string, key: string) => {
    let rawDatas = res.split(";");
    rawDatas.pop();
    let ret: IGradeChartTooltipData[] = [];
 
    rawDatas.forEach((rawData, idx) => {
-      let score:IGradeChartTooltipData = {title:"", semester:"", lecturer:"", class_id:"", datas:[]};
+      let score:IGradeChartTooltipData = {title:"", course_id1:"", course_id2: "", semester:"", lecturer:"", class_id:"", datas:[]};
       const obj = JSON.parse(rawData);
-      console.log("size: ", sizeof(obj), obj);
+      // console.log("size: ", sizeof(obj), obj);
       score.title = obj.course.title;
+      score.course_id1 = obj.course.id1;
+      score.course_id2 = obj.course.id2;
       score.semester = obj.semester;
       score.class_id = obj.class_id;
       score.lecturer = obj.lecturer;
@@ -189,7 +210,56 @@ const parseGrade = (res: string) => {
       ret.push(score);
    });
 
+
+   // Store to cache
+   await setCourseLocalCache(ret, key);
+
    return ret;
 }
 
 export { fetchGrade, parseGrade }
+
+
+/* -------------------------------------------------------------------------- */
+/*                                 Score Cache                                */
+/* -------------------------------------------------------------------------- */
+
+interface ICourseCache {
+   scores: IGradeChartTooltipData,
+   cache_time : number
+}
+
+// Set the cache time here
+const cache_hours = 0;
+const cache_minutes = 0;
+const cache_seconds = 15;
+
+const setCourseLocalCache = async (scores: IGradeChartTooltipData[], key: string) => {
+   
+   // If storage usage > 8MB, clear all cache
+   await chrome.storage.local.getBytesInUse(null).then(async (res) => {
+      //console.log("getBytesInUse: ", res);
+      if (res >= 8 * 1000000) {
+         await chrome.storage.local.clear();
+         // console.log("Cache Cleared!");
+      }
+   })
+   
+   chrome.storage.local.set({ [key]: {scores: scores, cache_time: Date.now()} }).then(() => {
+      //console.log("Score Stored", { [key]: {scores: scores, cacheTime: Date.now()} });
+   });
+}
+
+const getCourseLocalCache = async (course: string) => {
+   const res = await chrome.storage.local.get(course);
+   if (res[course]) {
+      if (res[course].cache_time > Date.now() - (cache_hours*3600 + cache_minutes*60 + cache_seconds) * 1000) {
+         return res[course].scores;
+      }
+      //console.log("Score Outdated:", res[course]);
+      chrome.storage.local.remove(course);
+   }
+   return [];
+}
+
+export { setCourseLocalCache, getCourseLocalCache }

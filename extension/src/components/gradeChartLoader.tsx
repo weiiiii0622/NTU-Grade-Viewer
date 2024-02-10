@@ -40,7 +40,7 @@ export const GradeChartLoader: React.FC<IGradeChartLoaderProps> = ({ auth, title
     else {
       if(statusCode === 200){
         setHasGrade(true);
-        setGrades(parseGrade(res));
+        setGrades(res.data!);
       }
       else {
         setHasGrade(false);
