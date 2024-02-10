@@ -45,6 +45,7 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 	const [title, setTitle] = useState<string|null>(grades[0].title);
 	const [lecturer, setLecturer] = useState<string|null>(grades[0].lecturer);
 	const [semester, setSemester] = useState<string|null>(grades[0].semester);
+	const [class_id, setClass_id] = useState<string|null>(grades[0].class_id);
 	const [value, setValue] = useState<number>(0);
 
 
@@ -56,6 +57,7 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 		setLecturer(grades[value].lecturer);
 		setDatas(grades[value].datas);
 		setSemester(grades[value].semester);
+		setClass_id(grades[value].class_id);
 	}, [value])
 
 
@@ -67,7 +69,7 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 						{title}
 					</Typography>
 					<Typography variant="subtitle2" color={{ color: grey[700] } } fontWeight="bold">
-						{semester} {lecturer==""?"查無授課教授":lecturer}
+						{semester}{class_id!=""?` ${class_id}班`:""} {lecturer==""?"查無授課教授":lecturer}
 					</Typography>
 				</Box>
 				<Box sx={{ display: "flex", bgcolor: "#F8F8F8" }}>
@@ -113,7 +115,7 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 						<NavigateNextIcon />
 					</IconButton>
 				</Box>
-			</Box>	
+			</Box>
 		</>
 
 	)

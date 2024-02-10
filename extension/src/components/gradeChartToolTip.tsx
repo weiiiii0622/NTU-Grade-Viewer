@@ -14,6 +14,7 @@ export interface IGradeChartTooltipProps {
 export interface IGradeChartTooltipData {
 	title: string,	    		// From back-end
 	semester: string,
+	class_id: string,
 	lecturer: (string|null),
 	datas: IChartData[]
 }
@@ -46,9 +47,9 @@ export const GradeChartToolTip: React.FC<IGradeChartTooltipProps> = ({grades, de
 			TransitionComponent={Zoom}
 			leaveDelay={200}
 			disableFocusListener
-			onClose={()=>{console.log("CLOSE")}}
+			onClose={()=>{}}
 			sx={{
-				zIndex: 20,
+				zIndex: 2003,
 			}}
 		>
 			<BarChartIcon sx={{color:"#01579b"}}/>

@@ -2,9 +2,40 @@ import { sendRuntimeMessage } from "./api";
 import { Page } from "./models";
 
 import { IGradeChartTooltipData } from "./components/gradeChartToolTip";
+import { GradeChart } from "./components/gradeChart";
 
 
 /* ---------------------------- Utility Function ---------------------------- */
+
+// This function takes an object as a parameter and returns the size of data in bytes
+const sizeof = (obj: any) => {
+   // Initialize a variable to store the total size
+   let totalSize = 0;
+   // Get the keys of the object
+   let keys = Object.keys(obj);
+   // Loop through each key
+   for (let key of keys) {
+      // Get the value of the key
+      let value = obj[key];
+      // Check the type of the value
+      if (typeof value === "string") {
+         // If the value is a string, add its length to the total size
+         totalSize += value.length;
+      } else if (typeof value === "number") {
+         // If the value is a number, add 8 bytes to the total size
+         totalSize += 8;
+      } else if (typeof value === "boolean") {
+         // If the value is a boolean, add 4 bytes to the total size
+         totalSize += 4;
+      } else if (typeof value === "object" && value !== null) {
+         // If the value is an object and not null, recursively call the function and add the result to the total size
+         totalSize += sizeof(value);
+      }
+      // Ignore other types of values such as undefined, function, symbol, etc.
+   }
+   // Return the total size
+   return totalSize;
+}
 
 const getHashCode = (s: string): number => {
    const MAGIC = "TH3_M5G1C_OF_NTU".repeat(3);
@@ -47,7 +78,7 @@ const toURLQueryString = <T extends Record<string, string | number>>(data: T) =>
       .join("&");
 }
 
-export { getHashCode, waitUntil, toURLQueryString };
+export { sizeof, getHashCode, waitUntil, toURLQueryString };
 
 /* ------------------------------- Submit Page ------------------------------ */
 
@@ -76,13 +107,16 @@ export { submitPage };
 /* ------------------------------ Grade Related ----------------------------- */
 
 const fetchGrade = async (course_id1:string, course_id2:string, title:string, class_id:string): Promise<[number, string]> => {
+   
+   console.log("fetchGrade params: ", course_id1, course_id2, title, class_id);
+
    const [res, err] = await sendRuntimeMessage('service', {
       funcName: 'queryGradesQueryGet',
       args: {
          id1: course_id1,
          id2: course_id2,
          title: title,
-         classId: class_id,
+         // classId: class_id,         // Filter at front-end
       }
    })
 
@@ -111,11 +145,17 @@ const fetchGrade = async (course_id1:string, course_id2:string, title:string, cl
       }
    }
 
-   console.log("fetchGrade result: ", res)
+   // Filter class_id (class_id="" || class_id=class_id will be selected)
+
+   const filtered_res = res.filter((grades) => {
+      return grades.class_id=="" || grades.class_id==class_id;
+   });
+
+   console.log("fetchGrade result: ", filtered_res)
 
    // Concatenate all res
    let resString = "";
-   res.forEach((cur, idx)=>{resString += (JSON.stringify(cur) + ";");});
+   filtered_res.forEach((cur, idx)=>{resString += (JSON.stringify(cur) + ";");});
    if (resString == "")
       return [404, resString]
    return [200, resString]
@@ -135,11 +175,12 @@ const parseGrade = (res: string) => {
    let ret: IGradeChartTooltipData[] = [];
 
    rawDatas.forEach((rawData, idx) => {
-      let score:IGradeChartTooltipData = {title:"", semester:"", lecturer:"", datas:[]};
+      let score:IGradeChartTooltipData = {title:"", semester:"", lecturer:"", class_id:"", datas:[]};
       const obj = JSON.parse(rawData);
-      
+      console.log("size: ", sizeof(obj), obj);
       score.title = obj.course.title;
       score.semester = obj.semester;
+      score.class_id = obj.class_id;
       score.lecturer = obj.lecturer;
       for(let i = 0; i < obj.segments.length; i++) {
          score.datas.push({value: obj.segments[i].value, label: getLabel(obj.segments[i])});

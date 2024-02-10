@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 
 import { Box } from '@mui/material';
-import Typography from '@mui/material/Typography';
 import Skeleton from '@mui/material/Skeleton';
 import { grey, red, green } from '@mui/material/colors';
 import TextField from '@mui/material/TextField';
+import Tooltip, { tooltipClasses } from "@mui/material/Tooltip";
+import Typography from '@mui/material/Typography';
 
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
@@ -23,7 +24,8 @@ interface ISearchPageProps {
 export const SearchPage: React.FC<ISearchPageProps> = ( {reset} ) => {
 
 	const [isAuth, setIsAuth] = useState<boolean>(false);
-   const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+	const [isPageReady, setIsPageReady] = useState<boolean>(false);
 	const [status, setStatus] = useState<number>(0);
 	const [hasGrade, setHasGrade] = useState<boolean>(false);
 	const [grades, setGrades] = useState<IGradeChartTooltipData[]>([]);
@@ -33,18 +35,18 @@ export const SearchPage: React.FC<ISearchPageProps> = ( {reset} ) => {
 	const [title, setTitle] = useState<string>("");
 	const [class_id, setClass_id] = useState<string>("02");
 
-   const sendSnackBarMessage = (msg: ISnackBarProps) => {
-      chrome.tabs.query(
-         { active: true, currentWindow: true },
-         async function (tabs: chrome.tabs.Tab[]) {
-            const tab: chrome.tabs.Tab = tabs[0];
+	const sendSnackBarMessage = (msg: ISnackBarProps) => {
+		chrome.tabs.query(
+			{ active: true, currentWindow: true },
+			async function (tabs: chrome.tabs.Tab[]) {
+				const tab: chrome.tabs.Tab = tabs[0];
 
-            if (tab.id) {
-               sendTabMessage(tab.id, 'snackBar', msg);
-            }
-         }
-      );      
-   }
+				if (tab.id) {
+				sendTabMessage(tab.id, 'snackBar', msg);
+				}
+			}
+		);      
+	}
 
   
 	const handleFetchGrade = async () => {
@@ -76,26 +78,30 @@ export const SearchPage: React.FC<ISearchPageProps> = ( {reset} ) => {
 		return datas
 	}
 
-   const checkToken = async () => {
-      let token = await getStorage('token');
+	const checkToken = async () => {
+		let token = await getStorage('token');
 		if (token) {
 			setIsAuth(true);
 		}
 		else {
 			setIsAuth(false);
 		}
-   }
+		setIsPageReady(true)
+	}
 
-   useEffect(() => {
-      if(isAuth == false || reset)
-         checkToken();
-   }, [isAuth, reset])
+	useEffect(() => {
+		if(isAuth == false || reset)
+			checkToken();
+	}, [isAuth, reset])
 
 	return (
 		<>
 			<Box sx={{width: "100%", height: "20%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
 				{
-					isAuth ?
+					
+					! isPageReady ?
+						<></>
+					: isAuth ?
 						(
 							<Box
 								component="form"
@@ -134,19 +140,44 @@ export const SearchPage: React.FC<ISearchPageProps> = ( {reset} ) => {
 									onChange={e=>setCourse_id2(e.target.value)}
 									onKeyDown={e=>course_id2.length!=0 && e.key === 'Enter' && e.preventDefault()}
 								/>
-								<TextField
-									color="primary"
-									id="class_id-input"
-									label="班次"
-									size="small"
-									InputLabelProps={{
-										shrink: true,
+								<Tooltip 
+									title="若無班次則留空" 
+									arrow
+									slotProps={{
+										popper: {
+											sx: {
+												[`& .${tooltipClasses.arrow}`]: {
+													color: (theme) => theme.palette.primary.main
+												},
+												[`& .${tooltipClasses.tooltip}`]: {
+												  	backgroundColor: (theme) => theme.palette.primary.main
+												}
+											},
+											modifiers: [
+												{
+												name: 'offset',
+												options: {
+													offset: [0, -7],
+												},
+												},
+											],
+										},
 									}}
-									sx={{width: '10ch'}}
-									defaultValue="02"
-									onChange={e=>setClass_id(e.target.value)}
-									onKeyDown={e=>class_id.length!=0 && e.key === 'Enter' && e.preventDefault()}
-								/>
+								>
+									<TextField
+										color="primary"
+										id="class_id-input"
+										label="班次"
+										size="small"
+										InputLabelProps={{
+											shrink: true,
+										}}
+										sx={{width: '10ch'}}
+										defaultValue="02"
+										onChange={e=>setClass_id(e.target.value)}
+										onKeyDown={e=>class_id.length!=0 && e.key === 'Enter' && e.preventDefault()}
+									/>
+								</Tooltip>
 								<IconButton aria-label="search" onClick={handleFetchGrade}>
 									<SearchIcon />
 								</IconButton>

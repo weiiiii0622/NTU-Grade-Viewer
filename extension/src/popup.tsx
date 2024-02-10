@@ -1,19 +1,22 @@
 import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 
-import { Box } from '@mui/material';
-import { grey, red, green } from '@mui/material/colors';
-import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
-import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link';
+import ListItemIcon from '@mui/material/ListItemIcon';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
+import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 
-import MenuIcon from '@mui/icons-material/Menu';
+import { Box } from '@mui/material';
+import { grey, red, green } from '@mui/material/colors';
+
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import LoginIcon from '@mui/icons-material/Login';
+import MenuIcon from '@mui/icons-material/Menu';
 import ReplayIcon from '@mui/icons-material/Replay';
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -88,18 +91,22 @@ const Popup = () => {
                <Typography variant="h5" color={{ color: grey[700] }} fontWeight="bold">
                   NTU 選課小幫手
                </Typography>
+               <Tooltip title="首次使用請點擊下方「使用教學」！" placement="bottom" arrow >
+                  <HelpOutlineIcon color="action" sx={{"pb":"4px", "ml":"2px"}}/>
+               </Tooltip>
             </Box>
             <Box sx={{width: "20%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
-					<IconButton
-                  size="medium"
-                  color="inherit"
-                  aria-label="reset"
-                  id="reset-button"
-                  onClick={()=>{removeStorage('token'); setReset(true);}}
-               >
-                  <ReplayIcon />
-               </IconButton>
-					
+               <Tooltip title="發生未知錯誤時按我重整" arrow>
+                  <IconButton
+                     size="medium"
+                     color="inherit"
+                     aria-label="reset"
+                     id="reset-button"
+                     onClick={()=>{removeStorage('token'); setReset(true);}}
+                  >
+                     <ReplayIcon />
+                  </IconButton>
+               </Tooltip>
             </Box>
          </Box>
 			
@@ -120,8 +127,54 @@ const Popup = () => {
             <Typography variant="caption" display="block" color={{ color: grey[600] }} fontWeight="bold">
                Made By
             </Typography>
-            <Avatar sx={{ width: 25, height: 25, font: "menu", ml: "8px", mr: "2px" }}>Wei</Avatar>
-            <Avatar sx={{ width: 25, height: 25, font: "menu", ml: "2px", mr: "2px" }}>KC</Avatar>
+            <Tooltip title="您好！" placement="top" arrow 
+               slotProps={{
+                  popper: {
+                     sx: {
+                        [`& .${tooltipClasses.arrow}`]: {
+                           color: (theme) => theme.palette.warning.light
+                        },
+                        [`& .${tooltipClasses.tooltip}`]: {
+                           backgroundColor: (theme) => theme.palette.warning.light
+                        }
+                     },
+                     modifiers: [
+                        {
+                           name: 'offset',
+                           options: {
+                              offset: [0, -7],
+                           },
+                        },
+                     ],
+                  },
+               }}
+            >
+               <Avatar sx={{ width: 25, height: 25, font: "menu", ml: "8px", mr: "2px" }}>Wei</Avatar>
+            </Tooltip>
+            <Tooltip title="歡迎使用！" placement="top" arrow 
+               slotProps={{
+                  popper: {
+                     sx: {
+                        [`& .${tooltipClasses.arrow}`]: {
+                           color: (theme) => theme.palette.secondary.main
+                        },
+                        [`& .${tooltipClasses.tooltip}`]: {
+                           backgroundColor: (theme) => theme.palette.secondary.main
+                        }
+                     },
+                     modifiers: [
+                        {
+                           name: 'offset',
+                           options: {
+                              offset: [0, -7],
+                           },
+                        },
+                     ],
+                  },
+               }}
+            >
+               <Avatar sx={{ width: 25, height: 25, font: "menu", ml: "2px", mr: "2px" }}>KC</Avatar>
+            </Tooltip>
             <Divider orientation="vertical" flexItem />
             <Link href="https://weiiiii0622.github.io/NTU-Grade-Viewer/Tutorial/" target="_blank" underline="hover" variant="caption" fontWeight="bold">
                {'使用教學'}

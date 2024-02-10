@@ -9,7 +9,7 @@ import { addMessageListener, getStorage } from "./api";
 
 /* ------------------------------ Context Menu ------------------------------ */
 
-window.addEventListener('click', () => console.log('click'))
+//window.addEventListener('click', () => console.log('click'))
 
 let contextPos: [number, number] = [0, 0];
 window.addEventListener("contextmenu", (e) => {
@@ -49,7 +49,7 @@ function checkCookie(cookieName: string) {
 
 function initSearchItem(node: HTMLElement, isAuth: boolean) {
    if (node.getAttribute("inited") === "true") {
-      console.log(node, "is inited");
+      //console.log(node, "is inited");
       return;
    }
 
@@ -121,7 +121,7 @@ async function searchPageFeature() {
       mutations.forEach((m) => {
          m.addedNodes.forEach((node) => {
             if (node.nodeName !== "LI") {
-               console.log(`Got ${node.nodeName}, ignored`);
+               //console.log(`Got ${node.nodeName}, ignored`);
                return;
             }
             initSearchItem(node as HTMLElement, isAuth);
