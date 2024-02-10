@@ -2,18 +2,12 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-/**
- * The distribution in the range [l, r].
- */
-export type Segment = {
+export type UpdateBase = {
     /**
      * An integer between [0, 9], representing a grade. Example: 0 -> F, 9 -> A+.
      */
-    'l': number;
-    /**
-     * An integer between [0, 9], representing a grade. Example: 0 -> F, 9 -> A+.
-     */
-    'r': number;
-    value: string;
+    pos: number;
+    lower: (number | string);
+    higher: (number | string);
 };
 

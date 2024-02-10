@@ -58,11 +58,11 @@ SemesterStr = Annotated[
 ]
 
 Lecturer = Annotated[
-    str, Field(default="", description="The lecturer.", schema_extra={"examples": "林軒田"})
+    str, Field(default="", description="The lecturer.", schema_extra={"examples": [ "林軒田" ]})
 ]
 
 
-ClassId = Annotated[str, Field(description="'班次'", schema_extra={"examples": "01"}, default="")]
+ClassId = Annotated[str, Field(description="'班次'", schema_extra={"examples": [ "01" ]}, default="")]
 
 
 # A+: 9, A: 8, ..., F: 0

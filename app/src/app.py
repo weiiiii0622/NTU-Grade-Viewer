@@ -18,7 +18,7 @@ from fastapi import Depends, FastAPI, HTTPException, Path, Request, Response, st
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from models import StudentId, User
+from models import SemesterStr, StudentId, User
 from sqlalchemy import text
 from sqlmodel import Session, select
 from utils.general import test_only
@@ -51,6 +51,9 @@ app.add_middleware(
 def get_root():
     return "HELLO ROOT"
 
+@app.get('/')
+def get_semester()->SemesterStr:
+    return os.getenv("APP_SEMESTER", "112-1")
 
 for router in routes.ROUTERS:
     app.include_router(router)

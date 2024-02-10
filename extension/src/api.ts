@@ -43,7 +43,7 @@ type TabMessageMap = {
    };
    submitPage: {
       msg: {};
-      response: GetFuncMessage<'submitPageSubmitPagePost'>['response'];
+      response: GetFuncMessage<"submitPageSubmitPagePost">["response"];
    };
    snackBar: {
       msg: {};
@@ -71,7 +71,7 @@ export type ServiceError =
    | { status: 422; response: ValidationErrorResponse }
    | { status: 500; response: InternalErrorResponse };
 
-type OneOf<T, P> = readonly[T, null] |readonly [null, P];
+type OneOf<T, P> = readonly [T, null] | readonly [null, P];
 
 type GetFuncMessage<F extends ServiceFuncName> = {
    msg: {
@@ -85,7 +85,12 @@ type RuntimeMessageServiceMap<F extends ServiceFuncName = ServiceFuncName> = F e
    ? { service: GetFuncMessage<F> }
    : "never";
 
-type RuntimeMessageMap = RuntimeMessageServiceMap & {};
+type RuntimeMessageMap = RuntimeMessageServiceMap & {
+   user: {
+      msg: undefined;
+      response: null | Awaited<ReturnType<typeof DefaultService.getUserUserTokenGet>>;
+   };
+};
 type RuntimeAction = keyof RuntimeMessageMap;
 
 export type { RuntimeMessageMap, RuntimeMessageServiceMap };
@@ -146,14 +151,14 @@ async function test() {
       funcName: "submitPageSubmitPagePost",
       args: { requestBody: 0 as any as Page },
    });
-   if(!x3)return;
+   if (!x3) return;
    type A3 = typeof x3;
 
-   const [x4,e4]= await sendRuntimeMessage("service", {
+   const [x4, e4] = await sendRuntimeMessage("service", {
       funcName: "queryGradesQueryGet",
       args: { id1: "CSIE8888" },
    });
-   if(!x4)return;
+   if (!x4) return;
    type A4 = typeof x4;
 
    type cases = [

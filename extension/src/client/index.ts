@@ -8,14 +8,17 @@ export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { BadRequestResponse } from './models/BadRequestResponse';
-export type { Course } from './models/Course';
+export type { CourseBase } from './models/CourseBase';
 export type { GradeElement } from './models/GradeElement';
+export type { GradeWithUpdate } from './models/GradeWithUpdate';
 export type { InternalErrorResponse } from './models/InternalErrorResponse';
 export type { Page } from './models/Page';
 export type { PageResponse } from './models/PageResponse';
 export type { Segment } from './models/Segment';
 export type { UnauthorizedErrorDetail } from './models/UnauthorizedErrorDetail';
 export type { UnauthorizedErrorResponse } from './models/UnauthorizedErrorResponse';
+export type { UpdateBase } from './models/UpdateBase';
+export type { User } from './models/User';
 export type { ValidationErrorDetail } from './models/ValidationErrorDetail';
 export type { ValidationErrorResponse } from './models/ValidationErrorResponse';
 

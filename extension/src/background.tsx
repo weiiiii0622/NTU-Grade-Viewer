@@ -1,4 +1,4 @@
-import { ServiceError, ServiceFuncName, addMessageListener, getStorage, removeStorage, sendRuntimeMessage, sendTabMessage, setStorage } from "./api";
+import { ServiceError, addMessageListener, getStorage, sendRuntimeMessage, sendTabMessage, setStorage } from "./api";
 import { ApiError, DefaultService, OpenAPI } from "./client";
 
 OpenAPI['BASE'] = APP_URL
@@ -7,7 +7,18 @@ OpenAPI['BASE'] = APP_URL
 
 // todo: notification, omnibox, commands
 
-/* ---------------------------------- Token --------------------------------- */
+/* ---------------------------------- User ---------------------------------- */
+
+
+addMessageListener('user', async (msg, sender) => {
+   // const [] = sendRuntimeMessage('')
+   const token = await getStorage('token');
+   if (!token)
+      return null;
+   const user = await DefaultService.getUserUserTokenGet({ token })
+   return user
+})
+
 
 
 /* ----------------------------- Service Handler ---------------------------- */

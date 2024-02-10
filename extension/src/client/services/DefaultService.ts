@@ -3,18 +3,20 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { GradeElement } from '../models/GradeElement';
+import type { GradeWithUpdate } from '../models/GradeWithUpdate';
 import type { Page } from '../models/Page';
 import type { PageResponse } from '../models/PageResponse';
+import type { User } from '../models/User';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class DefaultService {
     /**
-     * Get Root
-     * @returns any Successful Response
+     * Get Semester
+     * @returns string Successful Response
      * @throws ApiError
      */
-    public static getRootGet(): CancelablePromise<any> {
+    public static getSemesterGet(): CancelablePromise<string> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/',
@@ -51,13 +53,19 @@ export class DefaultService {
     }
     /**
      * Submit Grade
-     * @returns any Successful Response
+     * @returns GradeElement Successful Response
      * @throws ApiError
      */
-    public static submitGradeSubmitGradePost(): CancelablePromise<any> {
+    public static submitGradeSubmitGradePost({
+        requestBody,
+    }: {
+        requestBody: GradeWithUpdate,
+    }): CancelablePromise<GradeElement> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/submit/grade',
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 400: `Bad Request`,
                 401: `Unauthorized`,
@@ -68,13 +76,19 @@ export class DefaultService {
     }
     /**
      * Submit Grades
-     * @returns any Successful Response
+     * @returns GradeElement Successful Response
      * @throws ApiError
      */
-    public static submitGradesSubmitGradesPost(): CancelablePromise<any> {
+    public static submitGradesSubmitGradesPost({
+        requestBody,
+    }: {
+        requestBody: Array<GradeWithUpdate>,
+    }): CancelablePromise<Array<GradeElement>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/submit/grades',
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 400: `Bad Request`,
                 401: `Unauthorized`,
@@ -277,6 +291,30 @@ export class DefaultService {
             url: '/test/422',
             query: {
                 'a': a,
+            },
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Get User
+     * @returns User Successful Response
+     * @throws ApiError
+     */
+    public static getUserUserTokenGet({
+        token,
+    }: {
+        token: string,
+    }): CancelablePromise<User> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/user/{token}',
+            path: {
+                'token': token,
             },
             errors: {
                 400: `Bad Request`,

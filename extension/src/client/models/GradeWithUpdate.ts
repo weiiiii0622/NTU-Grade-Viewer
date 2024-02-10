@@ -3,11 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CourseBase } from './CourseBase';
-import type { Segment } from './Segment';
-/**
- * Grade element stored in db and consumed by client. The values are between 0~100.
- */
-export type GradeElement = {
+import type { UpdateBase } from './UpdateBase';
+export type GradeWithUpdate = {
     /**
      *
      * This id is hashed from course, semester and class_id.
@@ -36,9 +33,7 @@ export type GradeElement = {
      */
     lecturer?: string;
     course: CourseBase;
-    /**
-     * A list of segments. The segments are expected to be disjoint, and taking up the whole [0, 9] range. The sum is expected to be (nearly) 100.
-     */
-    segments: Array<Segment>;
+    update: UpdateBase;
+    solid?: boolean;
 };
 
