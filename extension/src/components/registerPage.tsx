@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { Box } from '@mui/material';
+import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { grey, red, green } from '@mui/material/colors';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -8,6 +9,8 @@ import SendIcon from '@mui/icons-material/Send';
 
 import { sendTabMessage, getStorage } from "../api";
 import { ISnackBarProps } from "./snackBar";
+
+import MainIcon from 'react-svg-loader!../assets/image/icon.svg'
 
 interface IRegisterPageProps {
    reset: boolean
@@ -78,9 +81,9 @@ export const RegisterPage: React.FC<IRegisterPageProps>  = ( {reset} ) => {
 	return (
 		<>
 			<Box sx={{width: "100%", height: "70%"}}>
-
+               <MainIcon />
 			</Box>
-			<Box sx={{width: "100%", height: "30%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
+			<Box sx={{width: "100%", height: "30%", mt:"10px", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
 				<Box sx={{width: "50%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
 					<Typography variant="body1" color={{ color: grey[700] }}  fontWeight="bold">
 						目前狀態：
