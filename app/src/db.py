@@ -29,7 +29,9 @@ def db_init():
     try:
         sql_url = os.getenv("DB_URL", "")
         print(sql_url)
+
         engine = create_engine(sql_url, echo=False, pool_size=20, max_overflow=100)
+        # SQLModel.metadata.drop_all(engine)  # ! dangerous
         SQLModel.metadata.create_all(engine)
     except Exception as e:
         engine = None

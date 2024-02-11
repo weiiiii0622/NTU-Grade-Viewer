@@ -31,6 +31,7 @@ addMessageListener('service', async (msg, sender) => {
    //console.log('service')
 
    const { funcName, args } = msg;
+
    const func = DefaultService[funcName];
    let token = await getStorage('token');
    if (token)

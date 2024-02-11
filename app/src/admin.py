@@ -1,4 +1,6 @@
 import os
+from decimal import Decimal
+from typing import Optional
 
 import requests
 from fastapi_amis_admin.admin import admin
@@ -6,7 +8,7 @@ from fastapi_amis_admin.admin.settings import Settings
 from fastapi_amis_admin.admin.site import AdminSite
 from fastapi_amis_admin.amis import PageSchema
 from models import Course, Grade, Update, User
-from sqlmodel import SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
 try:
     db_url = os.getenv("DB_URL", "")
@@ -44,6 +46,11 @@ try:
     class GradeAdmin(admin.ModelAdmin):
         page_schema = PageSchema(label="Grade", icon="fa-solid fa-list")  # type: ignore
         model = Grade
+
+    @site.register_admin
+    class UpdateAdmin(admin.ModelAdmin):
+        page_schema = PageSchema(label="Update", icon="fa-solid fa-file-arrow-up")  # type: ignore
+        model = Update
 
     @site.register_admin
     class BackupAdmin(admin.LinkAdmin):

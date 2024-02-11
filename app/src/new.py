@@ -6,13 +6,14 @@ from pathlib import Path
 from time import time
 
 import requests
-from models import Course, GradeWithUpdate, Update, UpdateBase
-from models import Page
-from pydantic import BaseModel
-from sqlmodel import Field, SQLModel
+from auth import get_token
+from models import Course, GradeWithUpdate, Page, Update, UpdateBase
+from pydantic import BaseModel, Field
+
+
 
 # * Submit page
-content = open(str(Path(__file__).parent / "../examples/error.html")).read()
+content = open(str(Path(__file__).parent / "../examples/kc.html")).read()
 print("send")
 t = time()
 r = requests.post(

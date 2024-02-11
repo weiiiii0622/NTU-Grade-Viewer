@@ -1,7 +1,7 @@
 import hashlib
 import math
 import re
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Annotated, Optional, Self, TypeAlias
 
 from fastapi.exceptions import RequestValidationError
@@ -86,9 +86,12 @@ def validate_grade_str(s: str):
 
 GradeStr: TypeAlias = Annotated[str, AfterValidator(validate_grade_str)]
 
+
 Percent = Annotated[
     Decimal,
-    Field(max_digits=5, ge=0, le=100, decimal_places=2),
+    # Field(max_digits=5, ge=0, le=100, decimal_places=2),
+    Field(ge=0, le=100),
+    AfterValidator(lambda x: x.quantize(Decimal(".00"), ROUND_HALF_UP)),
 ]
 
 
@@ -227,16 +230,16 @@ class GradeWithUpdate(GradeBase):
     course: "CourseBase"
     update: "UpdateBase"
 
-    # ? used for pre-collected since their source are not 100% correct.
-    # ? if new updates comes, just drop those with `solid` false.
-    solid: bool = Field(default=True)
-
 
 class Update(UpdateBase, table=True):
     id: Optional[int] = Field(primary_key=True, default=None)
 
     grade_id: int = Field(foreign_key="grade.id")
     grade: Grade = Relationship(back_populates="updates")
+
+    # ? used for pre-collected since their source are not 100% correct.
+    # ? if new updates comes, just drop those with `solid` false.
+    solid: bool = Field(default=True)
 
 
 class User(SQLModel, table=True):
