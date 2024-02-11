@@ -12,57 +12,6 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class DefaultService {
     /**
-     * Get Root
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static getRootGet(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/',
-            errors: {
-                400: `Bad Request`,
-                401: `Unauthorized`,
-                422: `Unprocessable Entity`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-    /**
-     * Get Semester
-     * @returns string Successful Response
-     * @throws ApiError
-     */
-    public static getSemesterSemesterGet(): CancelablePromise<string> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/semester',
-            errors: {
-                400: `Bad Request`,
-                401: `Unauthorized`,
-                422: `Unprocessable Entity`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-    /**
-     * Get Ttl
-     * @returns string Successful Response
-     * @throws ApiError
-     */
-    public static getTtlTimeToLiveGet(): CancelablePromise<string> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/time-to-live',
-            errors: {
-                400: `Bad Request`,
-                401: `Unauthorized`,
-                422: `Unprocessable Entity`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-    /**
      * Submit Page
      * @returns PageResponse Successful Response
      * @throws ApiError
@@ -359,6 +308,58 @@ export class DefaultService {
         });
     }
     /**
+     * Get Semester
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static getSemesterSemesterGet(): CancelablePromise<string> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/semester',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Get Ttl
+     * Time-to-live in seconds.
+     * @returns number Successful Response
+     * @throws ApiError
+     */
+    public static getTtlTimeToLiveGet(): CancelablePromise<number> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/time-to-live',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Get Root
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static getRootGet(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
      * Db Test
      * @returns any Successful Response
      * @throws ApiError
@@ -399,6 +400,30 @@ export class DefaultService {
             url: '/add-auth/{student_id}',
             path: {
                 'student_id': studentId,
+            },
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Get Analytics
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static getAnalyticsAnalyticsGet({
+        admin,
+    }: {
+        admin: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/analytics',
+            cookies: {
+                'admin': admin,
             },
             errors: {
                 400: `Bad Request`,
