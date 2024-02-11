@@ -74,5 +74,8 @@ def query_grades(
 
             if not course:
                 return []
+            grades =  [get_grade_element(grade) for grade in course.grades]
+            if grades:
+                return grades
 
-    return [get_grade_element(grade) for grade in course.grades]
+    return []

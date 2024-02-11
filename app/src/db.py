@@ -8,7 +8,7 @@ from sqlmodel import Session, SQLModel, create_engine
 engine: Engine | None = None
 
 
-COOLDOWN = 30
+COOLDOWN = 5
 last_try: time = None  # type: ignore
 
 
@@ -29,19 +29,11 @@ def db_init():
     try:
         sql_url = os.getenv("DB_URL", "")
         print(sql_url)
-        # global engine
-        engine = create_engine(sql_url, echo=False)
-        create_tables()
+        engine = create_engine(sql_url, echo=False, pool_size=20, max_overflow=100)
+        SQLModel.metadata.create_all(engine)
     except Exception as e:
-        print(e)
-        # global engine
         engine = None
         raise DatabaseConnectionError()
-
-
-def create_tables():
-    assert engine
-    SQLModel.metadata.create_all(engine)
 
 
 def get_session():
@@ -52,10 +44,11 @@ def get_session():
         yield session
 
 
-def get_engine():
+def get_engine() -> Engine:
     global engine
     if not engine:
         db_init()
+    assert engine
     return engine
 
 

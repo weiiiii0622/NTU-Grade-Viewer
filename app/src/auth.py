@@ -69,7 +69,7 @@ def auth_required(f: Callable):
     def _f(cookie_token: str, x_token: str, *args, **kwargs):
         print("tokens:")
         print(cookie_token, ";", x_token)
-        token = cookie_token or x_token
+        token = x_token or cookie_token 
         token = unquote(token)
         if not validate_token(token):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token")

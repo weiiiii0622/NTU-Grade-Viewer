@@ -8,7 +8,7 @@ import routes
 import uvicorn
 from api_analytics.fastapi import Analytics
 from auth import get_token
-from db import get_engine, get_session
+from db import db_init, get_engine, get_session
 from dotenv import load_dotenv
 from errors import (
     BadRequestResponse,
@@ -32,8 +32,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from models import SemesterStr, StudentId, User
 from pydantic import BaseModel
-from sqlalchemy import text
-from sqlmodel import Session
+from sqlalchemy import create_engine, text
+from sqlmodel import Session, select
 from utils.general import test_only
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "../../.env"), override=True)
@@ -177,6 +177,8 @@ from admin import site
 
 if site:
     site.mount_app(app)
+else:
+    print("no site QQ")
 
 
 @app.middleware("http")
@@ -193,7 +195,7 @@ async def admin_auth(request: Request, call_next):
 
 # ----------------------------------- Main ----------------------------------- #
 
-PORT = int(os.getenv("PORT_DEV", 5000))
+PORT = int(os.getenv("PORT_DEV", 4000))
 # HOST = str(os.getenv("HOST_DEV"))
 if __name__ == "__main__":
     uvicorn.run("app:app", port=PORT, host="0.0.0.0", reload=True)

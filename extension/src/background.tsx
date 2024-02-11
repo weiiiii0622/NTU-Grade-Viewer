@@ -19,18 +19,6 @@ addMessageListener('user', async (msg, sender) => {
 });
 
 
-(
-   async () => {
-
-      const user = await sendRuntimeMessage('user', undefined);
-      if (user) {
-         const { last_semester, id } = user;
-      }
-
-      const [semester, _] = await sendRuntimeMessage('service', { funcName: 'getSemesterGet', args: {} })
-   }
-)()
-
 
 
 /* ----------------------------- Service Handler ---------------------------- */
