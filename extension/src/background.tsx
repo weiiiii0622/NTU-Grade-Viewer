@@ -14,8 +14,12 @@ addMessageListener('user', async (msg, sender) => {
    const token = await getStorage('token');
    if (!token)
       return null;
-   const user = await DefaultService.getUserUserTokenGet({ token })
-   return user
+   try {
+      const user = await DefaultService.getUserUserTokenGet({ token })
+      return user
+   } catch {
+      return null
+   }
 });
 
 
@@ -41,7 +45,7 @@ addMessageListener('service', async (msg, sender) => {
    try {
       const response = await func({ ...args, xToken: token } as any);
 
-      if ('token' in response) {
+      if (typeof response === 'object' && 'token' in response) {
          const { token } = response;
          await setStorage({ token })
       }

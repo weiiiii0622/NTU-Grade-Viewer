@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { GradeChartLoader } from "./components/gradeChartLoader";
 import { FixedBox } from "./components/fixedBox";
 
-import { addMessageListener, getStorage } from "./api";
+import { addMessageListener, getStorage, sendRuntimeMessage } from "./api";
 
 
 /* ------------------------------ Context Menu ------------------------------ */
@@ -44,7 +44,15 @@ function checkCookie(cookieName: string) {
    return false;
 }
 
+(async () => {
+   console.log('hi')
 
+   const user = await sendRuntimeMessage('user', undefined);
+   const [semester, _] = await sendRuntimeMessage('service', { funcName: 'getSemesterSemesterGet', args: {} })
+
+   console.log(user)
+   console.log(semester)
+})()
 /* ------------------------------ Search Items ------------------------------ */
 
 function initSearchItem(node: HTMLElement, isAuth: boolean) {
