@@ -4,16 +4,17 @@ import typing
 from decimal import Decimal
 from pathlib import Path
 from time import time
+from urllib.parse import quote
 
 import requests
-from auth import get_token
+from auth import get_student_id, get_token
 from models import Course, GradeWithUpdate, Page, Update, UpdateBase
 from pydantic import BaseModel, Field
 
 
 
 # * Submit page
-content = open(str(Path(__file__).parent / "../examples/kc.html")).read()
+content = open(str(Path(__file__).parent / "../examples/wei.html")).read()
 print("send")
 t = time()
 r = requests.post(

@@ -88,7 +88,7 @@ type RuntimeMessageServiceMap<F extends ServiceFuncName = ServiceFuncName> = F e
 type RuntimeMessageMap = RuntimeMessageServiceMap & {
    user: {
       msg: undefined;
-      response: null | Awaited<ReturnType<typeof DefaultService.getUserUserTokenGet>>;
+      response: null | Awaited<ReturnType<typeof DefaultService.getUserUserGet>>;
    };
 };
 type RuntimeAction = keyof RuntimeMessageMap;

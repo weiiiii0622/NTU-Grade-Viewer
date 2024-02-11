@@ -15,7 +15,7 @@ addMessageListener('user', async (msg, sender) => {
    if (!token)
       return null;
    try {
-      const user = await DefaultService.getUserUserTokenGet({ token })
+      const user = await DefaultService.getUserUserGet({ token })
       return user
    } catch {
       return null

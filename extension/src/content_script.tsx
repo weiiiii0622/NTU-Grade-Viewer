@@ -45,7 +45,7 @@ function checkCookie(cookieName: string) {
 }
 
 (async () => {
-   console.log('hi')
+   console.log('fetching user...')
 
    const user = await sendRuntimeMessage('user', undefined);
    const [semester, _] = await sendRuntimeMessage('service', { funcName: 'getSemesterSemesterGet', args: {} })

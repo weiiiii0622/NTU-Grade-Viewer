@@ -34,6 +34,5 @@ export type GradeWithUpdate = {
     lecturer?: string;
     course: CourseBase;
     update: UpdateBase;
-    solid?: boolean;
 };
 

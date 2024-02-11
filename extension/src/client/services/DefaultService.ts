@@ -288,15 +288,15 @@ export class DefaultService {
      * @returns User Successful Response
      * @throws ApiError
      */
-    public static getUserUserTokenGet({
+    public static getUserUserGet({
         token,
     }: {
         token: string,
     }): CancelablePromise<User> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/user/{token}',
-            path: {
+            url: '/user',
+            query: {
                 'token': token,
             },
             errors: {
