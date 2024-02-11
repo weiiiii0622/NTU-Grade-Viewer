@@ -78,7 +78,7 @@ for router in routes.ROUTERS:
 
 @app.get("/semester")
 def get_semester() -> SemesterStr:
-    return os.getenv("APP_SEMESTER", "112-1")
+    return os.getenv("CONFIG_SEMESTER", "111-2")
 
 
 @app.get("/time-to-live")
@@ -86,7 +86,7 @@ def get_TTL() -> int:
     """
     Time-to-live in seconds.
     """
-    ttl = int(os.getenv("TTL", 1800))
+    ttl = int(os.getenv("CONFIG_TTL", 1800))
     return ttl
 
 
@@ -123,10 +123,10 @@ def _add_auth(
     response.set_cookie("cookie_token", quote(token))
     return token
 
-
 @app.exception_handler(500)
 async def internal_error_handler(request: Request, exc: Exception):
     exc.__class__.__name__
+    # todo: hide error message in production
     resp = InternalErrorResponse(detail=f"{exc.__class__.__name__}: {exc.args}")
     # todo: why is args of validation error empty
     return JSONResponse(resp.model_dump(), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
