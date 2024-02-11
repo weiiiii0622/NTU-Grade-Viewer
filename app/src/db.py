@@ -27,7 +27,7 @@ def db_init():
     last_try = time()
 
     try:
-        sql_url = os.getenv("DB_URL", "mysql+pymysql://root:root@db:3306/db")
+        sql_url = os.getenv("DB_URL", "")
         # print(sql_url)
         engine = create_engine(sql_url, echo=False)
         create_tables()

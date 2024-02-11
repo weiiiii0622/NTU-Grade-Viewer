@@ -1,19 +1,12 @@
 import os
-from decimal import Decimal
-from typing import Any
 
 import requests
-from fastapi import Request
 from fastapi_amis_admin.admin import admin
 from fastapi_amis_admin.admin.settings import Settings
 from fastapi_amis_admin.admin.site import AdminSite
 from fastapi_amis_admin.amis import PageSchema
-from fastapi_amis_admin.amis.components import Form
-from fastapi_amis_admin.crud.schema import BaseApiOut
 from models import Course, Grade, Update, User
-from pydantic import BaseModel
-from sqlalchemy import table
-from sqlmodel import Field, SQLModel
+from sqlmodel import SQLModel
 
 try:
     db_url = os.getenv("DB_URL", "")

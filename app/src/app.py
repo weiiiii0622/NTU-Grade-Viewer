@@ -38,6 +38,10 @@ from utils.general import test_only
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "../../.env"), override=True)
 
+if os.getenv("MODE") == "DEV":
+    os.environ["DB_URL"] = "mysql+pymysql://root:root@db:3306/db"
+    os.environ['APP_URL']= 'http://localhost:5000'
+
 
 # @asynccontextmanager
 # async def lifespan(app: FastAPI):
