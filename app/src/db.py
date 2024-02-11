@@ -9,7 +9,7 @@ engine: Engine | None = None
 
 
 COOLDOWN = 30
-last_try = time()
+last_try: time = None  # type: ignore
 
 
 class DatabaseConnectionError(Exception):
@@ -22,16 +22,19 @@ def db_init():
         return
 
     global last_try
-    if time() - last_try <= COOLDOWN:
+    if last_try and time() - last_try <= COOLDOWN:
         raise DatabaseConnectionError()
     last_try = time()
 
     try:
         sql_url = os.getenv("DB_URL", "")
-        # print(sql_url)
+        print(sql_url)
+        # global engine
         engine = create_engine(sql_url, echo=False)
         create_tables()
-    except:
+    except Exception as e:
+        print(e)
+        # global engine
         engine = None
         raise DatabaseConnectionError()
 
