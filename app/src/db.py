@@ -1,25 +1,59 @@
-from typing import Literal
+import os
+from time import time
 
 from models import *
-from sqlmodel import Session, SQLModel, create_engine, select
+from sqlalchemy import Engine
+from sqlmodel import Session, SQLModel, create_engine
 
-sql_url = "mysql+pymysql://root:root@db:3306/db"
-engine = create_engine(sql_url, echo=False)
+engine: Engine | None = None
+
+
+COOLDOWN = 30
+last_try = time()
+
+
+class DatabaseConnectionError(Exception):
+    pass
+
+
+def db_init():
+    global engine
+    if engine:
+        return
+
+    global last_try
+    if time() - last_try <= COOLDOWN:
+        raise DatabaseConnectionError()
+    last_try = time()
+
+    try:
+        sql_url = os.getenv("DB_URL", "mysql+pymysql://root:root@db:3306/db")
+        # print(sql_url)
+        engine = create_engine(sql_url, echo=False)
+        create_tables()
+    except:
+        engine = None
+        raise DatabaseConnectionError()
 
 
 def create_tables():
+    assert engine
     SQLModel.metadata.create_all(engine)
 
 
 def get_session():
+    global engine
+    if not engine:
+        db_init()
     with Session(engine) as session:
         yield session
 
 
 def get_engine():
+    global engine
+    if not engine:
+        db_init()
     return engine
-
-
 
 
 def update_grade(session: Session, grade_update: GradeWithUpdate):
@@ -35,4 +69,3 @@ def update_grade(session: Session, grade_update: GradeWithUpdate):
     session.add(course)
     session.add(grade)
     session.add(db_update)
-

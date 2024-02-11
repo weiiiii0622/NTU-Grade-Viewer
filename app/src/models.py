@@ -1,11 +1,9 @@
 import hashlib
 import math
 import re
-from datetime import datetime
 from decimal import Decimal
-from typing import Annotated, Iterable, Optional, Self, TypeAlias
+from typing import Annotated, Optional, Self, TypeAlias
 
-from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from pydantic import (
     AfterValidator,
@@ -15,7 +13,7 @@ from pydantic import (
     model_validator,
 )
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, UniqueConstraint
-from sqlmodel import Field, Relationship, Session, SQLModel, create_engine, select
+from sqlmodel import Field, Relationship, SQLModel
 
 # ------------------------------- Primary Types ------------------------------ #
 
@@ -58,11 +56,11 @@ SemesterStr = Annotated[
 ]
 
 Lecturer = Annotated[
-    str, Field(default="", description="The lecturer.", schema_extra={"examples": [ "林軒田" ]})
+    str, Field(default="", description="The lecturer.", schema_extra={"examples": ["林軒田"]})
 ]
 
 
-ClassId = Annotated[str, Field(description="'班次'", schema_extra={"examples": [ "01" ]}, default="")]
+ClassId = Annotated[str, Field(description="'班次'", schema_extra={"examples": ["01"]}, default="")]
 
 
 # A+: 9, A: 8, ..., F: 0
@@ -88,9 +86,10 @@ def validate_grade_str(s: str):
 
 GradeStr: TypeAlias = Annotated[str, AfterValidator(validate_grade_str)]
 
-Percent = Annotated[Decimal, Field(ge=0, le=100, decimal_places=2, max_digits=5)]
-
-
+Percent = Annotated[
+    Decimal,
+    Field(max_digits=5, ge=0, le=100, decimal_places=2),
+]
 
 
 class Segment(BaseModel):
@@ -132,16 +131,6 @@ StudentId = Annotated[
 
 
 # ------------------------------- Table Schema ------------------------------- #
-
-
-class HeroBase(SQLModel):
-    name: str = Field(index=True)
-    secret_name: str
-    age: Optional[int] = Field(default=None, index=True)
-
-
-class Hero(HeroBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
 
 
 class CourseBase(SQLModel):
@@ -232,7 +221,6 @@ class UpdateBase(SQLModel):
     pos: GradeInt
     lower: Percent
     higher: Percent
-
 
 
 class GradeWithUpdate(GradeBase):

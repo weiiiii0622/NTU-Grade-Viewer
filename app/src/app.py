@@ -1,11 +1,14 @@
 import os
+from datetime import datetime, time
 from typing import Annotated
 from urllib.parse import quote
 
+import requests
 import routes
 import uvicorn
+from api_analytics.fastapi import Analytics
 from auth import get_token
-from db import create_tables, get_engine, get_session
+from db import get_engine, get_session
 from dotenv import load_dotenv
 from errors import (
     BadRequestResponse,
@@ -14,29 +17,42 @@ from errors import (
     UnauthorizedErrorResponse,
     ValidationErrorResponse,
 )
-from fastapi import Depends, FastAPI, HTTPException, Path, Request, Response, status
+from fastapi import (
+    Cookie,
+    Depends,
+    FastAPI,
+    HTTPException,
+    Path,
+    Request,
+    Response,
+    status,
+)
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from models import SemesterStr, StudentId, User
+from pydantic import BaseModel
 from sqlalchemy import text
-from sqlmodel import Session, select
+from sqlmodel import Session
 from utils.general import test_only
 
-load_dotenv(os.path.join(os.path.dirname(__file__), "../.env"))
+load_dotenv(os.path.join(os.path.dirname(__file__), "../../.env"), override=True)
 
 
-# todo: what if db is down?
-create_tables()
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     db_init()
+#     yield
 
 
 app = FastAPI(
+    # lifespan=lifespan,
     responses={
         400: {"model": BadRequestResponse},
         401: {"model": UnauthorizedErrorResponse},
         422: {"model": ValidationErrorResponse},
         500: {"model": InternalErrorResponse},
-    }
+    },
 )
 app.add_middleware(
     CORSMiddleware,
@@ -46,17 +62,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+if api_key := os.getenv("APP_ANALYTICS_KEY"):
+    app.add_middleware(Analytics, api_key=api_key)
 
-@app.get("/")
-def get_root():
-    return "HELLO ROOT"
-
-@app.get('/')
-def get_semester()->SemesterStr:
-    return os.getenv("APP_SEMESTER", "112-1")
 
 for router in routes.ROUTERS:
     app.include_router(router)
+
+# ---------------------------------- Config ---------------------------------- #
+
+
+@app.get("/semester")
+def get_semester() -> SemesterStr:
+    return os.getenv("APP_SEMESTER", "112-1")
+
+
+@app.get("/time-to-live")
+def get_TTL() -> int:
+    """
+    Time-to-live in seconds.
+    """
+    ttl = int(os.getenv("TTL", 1800))
+    return ttl
+
+
+# ----------------------------------- Test ----------------------------------- #
+@app.get("/")
+def get_root():
+    return "HELLO ROOT"
 
 
 @app.get("/db")
@@ -119,8 +152,44 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return JSONResponse(resp.model_dump(), status_code=exc.status_code)
 
 
+# ---------------------------------- Utility --------------------------------- #
+
+
+@app.get("/analytics")
+def get_analytics(admin: Annotated[str, Cookie()]):
+    if not (admin_token := os.getenv("APP_ADMIN")) or admin != admin_token:
+        raise HTTPException(401, "Fxxk off 🤬")
+
+    if api_key := os.getenv("APP_ANALYTICS_KEY"):
+        user_id = requests.get(f"https://www.apianalytics-server.com/api/user-id/{api_key}").text
+        user_id = user_id[1:-1].replace("-", "")  # get rid of quote
+        url = f"https://www.apianalytics.dev/dashboard/{user_id}"
+        return RedirectResponse(url)
+
+    return HTTPException(404, "Oops")
+
+
+from admin import site
+
+if site:
+    site.mount_app(app)
+
+
+@app.middleware("http")
+async def admin_auth(request: Request, call_next):
+    if request.url.path.startswith("/admin"):
+        if (
+            not (admin_token := os.getenv("APP_ADMIN"))
+            or request.cookies.get("admin") != admin_token
+        ):
+            return JSONResponse("You don't belong here 👻", status_code=401)
+    response = await call_next(request)
+    return response
+
+
+# ----------------------------------- Main ----------------------------------- #
+
 PORT = int(os.getenv("PORT_DEV", 5000))
 # HOST = str(os.getenv("HOST_DEV"))
-
 if __name__ == "__main__":
-    uvicorn.run("app:app", port=PORT, host="0.0.0.0", reload=os.getenv("MODE") == "DEV")
+    uvicorn.run("app:app", port=PORT, host="0.0.0.0", reload=True)

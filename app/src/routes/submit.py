@@ -3,9 +3,10 @@ import math
 import re
 
 import bs4
+from sqlmodel import Session, select
 from auth import get_token
 from bs4 import Tag
-from db import engine, get_session
+from db import get_engine, get_session
 from fastapi import APIRouter, BackgroundTasks, Depends, Response
 from fastapi.exceptions import RequestValidationError
 
@@ -28,7 +29,7 @@ router = APIRouter(prefix="/submit")
 
 
 async def insert_grades(*, grades: list[GradeWithUpdate]):
-    session = Session(engine)
+    session = Session(get_engine())
 
     async with global_session():
         await asyncio.gather(*[set_lecturer(grade) for grade in grades])

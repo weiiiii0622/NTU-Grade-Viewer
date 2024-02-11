@@ -24,6 +24,10 @@ redis = ">=4.2.0rc1"
 tortoise = "*"
 sqlmodel = "*"
 sqlalchemy = "*"
+fastapi-analytics = "*"
+psycopg2-binary = "*"
+fastapi-amis-admin = {extras = ["sqlmodel"], version = "*"}
+pydantic-settings = "*"
 
 [dev-packages]
 

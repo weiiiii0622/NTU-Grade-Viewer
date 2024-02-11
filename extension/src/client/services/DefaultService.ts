@@ -46,6 +46,23 @@ export class DefaultService {
         });
     }
     /**
+     * Get Ttl
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static getTtlTimeToLiveGet(): CancelablePromise<string> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/time-to-live',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
      * Submit Page
      * @returns PageResponse Successful Response
      * @throws ApiError
