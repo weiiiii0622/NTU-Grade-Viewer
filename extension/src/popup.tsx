@@ -43,6 +43,12 @@ const Popup = () => {
 		setPage(page);
       setAnchorEl(null);
    };
+
+   (
+      async () => {
+         console.log("Hi");
+      }
+   )()
    
    return (
    <>

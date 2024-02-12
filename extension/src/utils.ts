@@ -96,9 +96,12 @@ const submitPage = async () => {
 
    const page: Page = { content, hashCode };
 
+   const cookie = await sendRuntimeMessage('session_id', undefined);
+   // console.log('cookie: ', cookie);
+
    let r = await sendRuntimeMessage("service", {
       funcName: "submitPageSubmitPagePost",
-      args: { requestBody: page },
+      args: { requestBody: page, cookie: cookie },
    });
 
    return r;

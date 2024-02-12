@@ -17,13 +17,18 @@ export class DefaultService {
      * @throws ApiError
      */
     public static submitPageSubmitPagePost({
+        cookie,
         requestBody,
     }: {
+        cookie: string,
         requestBody: Page,
     }): CancelablePromise<PageResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/submit/page',
+            query: {
+                'cookie': cookie,
+            },
             body: requestBody,
             mediaType: 'application/json',
             errors: {

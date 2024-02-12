@@ -48,10 +48,15 @@ function checkCookie(cookieName: string) {
    console.log('fetching user...')
 
    const user = await sendRuntimeMessage('user', undefined);
-   const [semester, _] = await sendRuntimeMessage('service', { funcName: 'getSemesterSemesterGet', args: {} })
+   const [semester, _1] = await sendRuntimeMessage('service', { funcName: 'getSemesterSemesterGet', args: {} })
+   const [ttl, _2] = await sendRuntimeMessage('service', {funcName: 'getTtlTimeToLiveGet', args: {}});
+
 
    console.log(user)
    console.log(semester)
+   console.log(ttl);
+   // if (ttl)
+   //    setStorage( {ttl} );
 })()
 /* ------------------------------ Search Items ------------------------------ */
 

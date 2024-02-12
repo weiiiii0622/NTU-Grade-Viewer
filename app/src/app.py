@@ -134,13 +134,13 @@ async def internal_error_handler(request: Request, exc: Exception):
 
 @app.exception_handler(RequestValidationError)
 async def request_validation_error(request: Request, exc: RequestValidationError):
-    print(await request.body())
+    # print(await request.body())
     raise HTTPException(422, detail=exc.args[0])
 
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
-    print(exc.args)
+    print(f'HTTPException: {exc.args}')
     match exc.status_code:
         case 401:
             try:

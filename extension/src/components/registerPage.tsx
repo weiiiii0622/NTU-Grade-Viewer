@@ -7,10 +7,11 @@ import { grey, red, green } from '@mui/material/colors';
 import LoadingButton from '@mui/lab/LoadingButton';
 import SendIcon from '@mui/icons-material/Send';
 
-import { sendTabMessage, getStorage } from "../api";
+import { sendTabMessage, getStorage, removeStorage } from "../api";
 import { ISnackBarProps } from "./snackBar";
 
 import MainIcon from 'react-svg-loader!../assets/image/icon.svg'
+import { ApiError } from "../client";
 
 interface IRegisterPageProps {
    reset: boolean
@@ -46,14 +47,22 @@ export const RegisterPage: React.FC<IRegisterPageProps>  = ( {reset} ) => {
             }
             else if (tab.id) {
                try {
-                  const r = await sendTabMessage(tab.id, 'submitPage', {})
-                  console.log("Submit Page result:", r);
-                  setIsAuth(true);
-                  sendSnackBarMessage({msg:"註冊成功！歡迎使用 NTU 選課小幫手！", severity: "success", action: true});
+                  const [res, err] = await sendTabMessage(tab.id, 'submitPage', {})
+                  console.log("Submit Page result:", res, err);
+                  if (err) {
+                     sendSnackBarMessage({msg:"發生錯誤！請重新整理頁面後再試！", severity: "error", action: true});
+                     setIsAuth(false);
+                     removeStorage('token');
+                  }
+                  else {
+                     setIsAuth(true);
+                     sendSnackBarMessage({msg:"註冊成功！歡迎使用 NTU 選課小幫手！", severity: "success", action: true});
+                  }
                } catch (error) {
 
                   // Happened when content script is not inserted to the page (should not happen though...)
                   console.log("Submit Page error:", error);
+                  removeStorage('token');
                   alert("發生錯誤！請重新整理頁面再試一次！");
                }
             }

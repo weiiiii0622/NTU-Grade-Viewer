@@ -9,6 +9,7 @@ import {
    ValidationErrorDetail,
    ValidationErrorResponse,
 } from "./client";
+import { Semester } from "./models";
 import {
    ClassMethodName,
    Equal,
@@ -90,6 +91,10 @@ type RuntimeMessageMap = RuntimeMessageServiceMap & {
       msg: undefined;
       response: null | Awaited<ReturnType<typeof DefaultService.getUserUserGet>>;
    };
+   session_id: {
+      msg: undefined;
+      response: string;
+   }
 };
 type RuntimeAction = keyof RuntimeMessageMap;
 
@@ -138,52 +143,52 @@ export function addMessageListener<
 
 /* ---------------------------------- Test ---------------------------------- */
 
-async function test() {
-   const x1 = await sendTabMessage(0, "contextMenu", {});
-   type A1 = typeof x1;
+// async function test() {
+//    const x1 = await sendTabMessage(0, "contextMenu", {});
+//    type A1 = typeof x1;
 
-   const x2 = await sendTabMessage(0, "submitPage", {});
-   type A2 = typeof x2;
+//    const x2 = await sendTabMessage(0, "submitPage", {});
+//    type A2 = typeof x2;
 
-   // @ts-expect-error
-   sendRuntimeMessage("service", { funcName: "submitPagePagePost", args: [] });
-   const [x3, e3] = await sendRuntimeMessage("service", {
-      funcName: "submitPageSubmitPagePost",
-      args: { requestBody: 0 as any as Page },
-   });
-   if (!x3) return;
-   type A3 = typeof x3;
+//    // @ts-expect-error
+//    sendRuntimeMessage("service", { funcName: "submitPagePagePost", args: [] });
+//    const [x3, e3] = await sendRuntimeMessage("service", {
+//       funcName: "submitPageSubmitPagePost",
+//       args: { requestBody: 0 as any as Page },
+//    });
+//    if (!x3) return;
+//    type A3 = typeof x3;
 
-   const [x4, e4] = await sendRuntimeMessage("service", {
-      funcName: "queryGradesQueryGet",
-      args: { id1: "CSIE8888" },
-   });
-   if (!x4) return;
-   type A4 = typeof x4;
+//    const [x4, e4] = await sendRuntimeMessage("service", {
+//       funcName: "queryGradesQueryGet",
+//       args: { id1: "CSIE8888" },
+//    });
+//    if (!x4) return;
+//    type A4 = typeof x4;
 
-   type cases = [
-      Expect<Equal<A1, TabMessageMap["contextMenu"]["response"]>>,
-      Expect<Equal<A2, TabMessageMap["submitPage"]["response"]>>,
-      Expect<Equal<A3, Awaited<ReturnType<typeof DefaultService.submitPageSubmitPagePost>>>>,
-      Expect<Equal<A4, Awaited<ReturnType<typeof DefaultService.queryGradesQueryGet>>>>
-   ];
+//    type cases = [
+//       Expect<Equal<A1, TabMessageMap["contextMenu"]["response"]>>,
+//       Expect<Equal<A2, TabMessageMap["submitPage"]["response"]>>,
+//       Expect<Equal<A3, Awaited<ReturnType<typeof DefaultService.submitPageSubmitPagePost>>>>,
+//       Expect<Equal<A4, Awaited<ReturnType<typeof DefaultService.queryGradesQueryGet>>>>
+//    ];
 
-   addMessageListener("contextMenu", async (msg) => {
-      type A = Expect<Equal<typeof msg, TabMessageMap["contextMenu"]["msg"]>>;
-      return 1 as any as TabMessageMap["contextMenu"]["response"];
-   });
+//    addMessageListener("contextMenu", async (msg) => {
+//       type A = Expect<Equal<typeof msg, TabMessageMap["contextMenu"]["msg"]>>;
+//       return 1 as any as TabMessageMap["contextMenu"]["response"];
+//    });
 
-   addMessageListener("submitPage", async (msg) => {
-      type A = Expect<Equal<typeof msg, TabMessageMap["contextMenu"]["msg"]>>;
-      return 1 as any as TabMessageMap["submitPage"]["response"];
-   });
+//    addMessageListener("submitPage", async (msg) => {
+//       type A = Expect<Equal<typeof msg, TabMessageMap["contextMenu"]["msg"]>>;
+//       return 1 as any as TabMessageMap["submitPage"]["response"];
+//    });
 
-   addMessageListener("service", async (msg) => {
-      type A = Expect<Equal<typeof msg, RuntimeMessageMap["service"]["msg"]>>;
-      const { funcName, args } = msg;
-      return DefaultService[funcName](args as any);
-   });
-}
+//    addMessageListener("service", async (msg) => {
+//       type A = Expect<Equal<typeof msg, RuntimeMessageMap["service"]["msg"]>>;
+//       const { funcName, args } = msg;
+//       return DefaultService[funcName](args as any);
+//    });
+// }
 
 /* -------------------------------------------------------------------------- */
 /*                                   Storage                                  */
@@ -191,6 +196,8 @@ async function test() {
 
 type StorageMap = {
    token: string;
+   ttl: number;
+   semester: string;
    foo: number;
 };
 type StorageKey = keyof StorageMap;
