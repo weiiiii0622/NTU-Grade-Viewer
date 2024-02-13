@@ -9,8 +9,6 @@ import { addMessageListener, getStorage, sendRuntimeMessage } from "./api";
 
 /* ------------------------------ Context Menu ------------------------------ */
 
-//window.addEventListener('click', () => console.log('click'))
-
 let contextPos: [number, number] = [0, 0];
 window.addEventListener("contextmenu", (e) => {
    const { clientX, clientY } = e;
@@ -45,16 +43,16 @@ function checkCookie(cookieName: string) {
 }
 
 (async () => {
-   console.log('fetching user...')
+   // console.log('fetching user...')
 
-   const user = await sendRuntimeMessage('user', undefined);
-   const [semester, _1] = await sendRuntimeMessage('service', { funcName: 'getSemesterSemesterGet', args: {} })
-   const [ttl, _2] = await sendRuntimeMessage('service', {funcName: 'getTtlTimeToLiveGet', args: {}});
+   // const user = await sendRuntimeMessage('user', undefined);
+   // const [semester, _1] = await sendRuntimeMessage('service', { funcName: 'getSemesterSemesterGet', args: {} })
+   // const [ttl, _2] = await sendRuntimeMessage('service', {funcName: 'getTtlTimeToLiveGet', args: {}});
 
 
-   console.log(user)
-   console.log(semester)
-   console.log(ttl);
+   // console.log(user)
+   // console.log(semester)
+   // console.log(ttl);
    // if (ttl)
    //    setStorage( {ttl} );
 })()

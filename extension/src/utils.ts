@@ -1,4 +1,4 @@
-import { sendRuntimeMessage } from "./api";
+import { getStorage, setStorage, sendRuntimeMessage } from "./api";
 import { Page } from "./models";
 
 import { IGradeChartTooltipData } from "./components/gradeChartToolTip";
@@ -234,17 +234,15 @@ interface ICourseCache {
 
 // Set the cache TTL here
 const cache_hours = 0;
-const cache_minutes = 0;
-const cache_seconds = 15;
+const cache_minutes = 10;
+const cache_seconds = 0;
 
 const setCourseLocalCache = async (scores: IGradeChartTooltipData[], key: string) => {
    
-   // If storage usage > 8MB, clear all cache
+   // If storage usage > 9MB, clear all cache
    await chrome.storage.local.getBytesInUse(null).then(async (res) => {
-      //console.log("getBytesInUse: ", res);
-      if (res >= 8 * 1000000) {
+      if (res >= 9 * 1000000) {
          await chrome.storage.local.clear();
-         // console.log("Cache Cleared!");
       }
    })
    
@@ -255,11 +253,28 @@ const setCourseLocalCache = async (scores: IGradeChartTooltipData[], key: string
 
 const getCourseLocalCache = async (course: string) => {
    const res = await chrome.storage.local.get(course);
+   let TTL = await getStorage("ttl");
+
+
+   if (TTL && TTL.cache_time < Date.now() - (TTL.value) || !TTL) {
+      const [ttl, _2] = await sendRuntimeMessage('service', {funcName: 'getTtlTimeToLiveGet', args: {}});
+      await setStorage({ ttl:{value: ttl?ttl*1000:cache_minutes*60*1000, cache_time: Date.now()} });
+      TTL = await getStorage("ttl");
+   }
+
+   // In case any error
+   if (!TTL) {
+      await setStorage({ ttl:{value: cache_minutes*60*1000, cache_time: Date.now()} });
+      TTL = await getStorage("ttl");
+   }
+
+   // console.log("Final ttl: ", TTL);
+
    if (res[course]) {
-      if (res[course].cache_time > Date.now() - (cache_hours*3600 + cache_minutes*60 + cache_seconds) * 1000) {
+      if (res[course].cache_time > Date.now() - TTL!.value) {
          return res[course].scores;
       }
-      //console.log("Score Outdated:", res[course]);
+      // console.log("Score Outdated:", res[course]);
       chrome.storage.local.remove(course);
    }
    return [];

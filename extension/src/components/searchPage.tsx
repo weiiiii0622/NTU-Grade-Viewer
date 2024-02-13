@@ -42,7 +42,7 @@ export const SearchPage: React.FC<ISearchPageProps> = ( {reset} ) => {
 				const tab: chrome.tabs.Tab = tabs[0];
 
 				if (tab.id) {
-				sendTabMessage(tab.id, 'snackBar', msg);
+					sendTabMessage(tab.id, 'snackBar', msg);
 				}
 			}
 		);      

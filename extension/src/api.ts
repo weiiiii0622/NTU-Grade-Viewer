@@ -196,7 +196,7 @@ export function addMessageListener<
 
 type StorageMap = {
    token: string;
-   ttl: number;
+   ttl: {value: number, cache_time: number}; // in second
    semester: string;
    foo: number;
 };
