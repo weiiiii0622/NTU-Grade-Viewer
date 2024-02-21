@@ -46,7 +46,8 @@
     "contextMenus",
     "scripting",
     "tabs",
-    "activeTab"
+    "activeTab",
+    "cookies"
   ],
   "web_accessible_resources": [
     {

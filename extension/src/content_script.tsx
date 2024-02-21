@@ -144,10 +144,10 @@ let ready = false;
 window.addEventListener('message', (e: MessageEvent<{ action: DialogAction, position: [number, number], active: boolean }>) => {
 
    function assertUnreachable(x: never): never {
-    throw new Error("Didn't expect to get here");
-}
-   
-      console.log("receive message (content): ", e.data);
+      throw new Error("Didn't expect to get here");
+   }
+
+   console.log("receive message (content): ", e.data);
    if (typeof e.data === 'object' && 'action' in e.data) {
       switch (e.data['action']) {
          case DialogAction.Ready:
@@ -166,7 +166,7 @@ window.addEventListener('message', (e: MessageEvent<{ action: DialogAction, posi
             frame.style.pointerEvents = 'none';
             break;
          case DialogAction.Active:
-            const {active}    = e.data;
+            const { active } = e.data;
             dialogActive = active;
             break;
          default:
@@ -207,16 +207,6 @@ function checkCookie(cookieName: string) {
    }
    return false;
 }
-
-// (async () => {
-//    console.log('fetching user...')
-
-//    const user = await sendRuntimeMessage('user', undefined);
-//    const [semester, _] = await sendRuntimeMessage('service', { funcName: 'getSemesterSemesterGet', args: {} })
-
-//    console.log(user)
-//    console.log(semester)
-// })()
 
 /* ------------------------------ Search Items ------------------------------ */
 

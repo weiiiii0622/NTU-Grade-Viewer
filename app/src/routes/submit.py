@@ -1,6 +1,7 @@
 import asyncio
 import math
 import re
+import requests
 
 import bs4
 from sqlmodel import Session, select
@@ -35,7 +36,7 @@ async def insert_grades(*, grades: list[GradeWithUpdate]):
         await asyncio.gather(*[set_lecturer(grade) for grade in grades])
     grades = [grade for grade in grades if grade.lecturer]
 
-    print("inserting grades...")
+    # print("inserting grades...")
     for grade in grades:
         try:
             assert grade.id
@@ -49,8 +50,8 @@ async def insert_grades(*, grades: list[GradeWithUpdate]):
                 **{k: v for k, v in grade.model_dump().items() if k != "course"}
             )
             db_update = Update(grade_id=grade.id, **update.model_dump())
-            print("update: ", update)
-            print("db_update: ", db_update)
+            # print("update: ", update)
+            # print("db_update: ", db_update)
 
             # objs += [db_course, db_grade, db_update]
             session.add(db_course)  # todo: (optimize) no need to add if exists
@@ -91,11 +92,31 @@ async def submit_page(
     *,
     session: Session = Depends(get_session),
     page: Page,
+    cookie: str,
     response: Response,
     background: BackgroundTasks,
 ) -> PageResponse:
 
-    student_id, results = parse_page(page.content)
+
+    # ---------------------- Request GradePage from back-end --------------------- #
+
+    url = 'https://if190.aca.ntu.edu.tw/graderanking/Stu?lang=zh'
+    headers = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'zh-TW,zh;q=0.9',
+        'Cache-Control': 'max-age=0',
+        'Connection': 'keep-alive',
+        'Cookie': cookie,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    }
+    
+    res = requests.get(url, headers=headers)
+
+    student_id, results = parse_page(res.text)
+    # student_id, results = parse_page(page.content)    # Uncomment this to parse the page from front-end
+
+    # ---------------------------------------------------------------------------- #
 
     semesters: list[str] = [grade.semester for grade in results]
     last_semester = sorted(semesters, key=lambda s: tuple(map(int, s.split("-"))))[-1]

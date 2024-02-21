@@ -54,6 +54,12 @@ const Popup = () => {
       setAnchorEl(null);
    };
 
+   (
+      async () => {
+         console.log("Hi");
+      }
+   )()
+
    return (
       <>
          <Box sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: 'center', alignContent: 'center', alignItems: 'center', bgcolor: "#F8F8F8" }}>

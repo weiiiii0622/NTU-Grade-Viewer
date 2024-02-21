@@ -22,6 +22,29 @@ addMessageListener('user', async (msg, sender) => {
    }
 });
 
+addMessageListener('session_id', async (msg, sender) => {
+
+   const _ga = await chrome.cookies.getAll({ domain: '.ntu.edu.tw', name: '_ga' });
+   const ASP_NET_SessionId = await chrome.cookies.getAll({ domain: 'if190.aca.ntu.edu.tw', name: 'ASP.NET_SessionId' });
+   const TS01c67bb5 = await chrome.cookies.getAll({ domain: '.if190.aca.ntu.edu.tw', name: 'TS01c67bb5' });
+   const _ga_X3821T0R42 = await chrome.cookies.getAll({ domain: '.ntu.edu.tw', name: '_ga_X3821T0R42' });
+
+   // console.log(_ga);
+   // console.log(ASP_NET_SessionId);
+   // console.log(TS01c67bb5);
+   // console.log(_ga_X3821T0R42);
+
+   let cookie = '';
+   cookie += `_ga=${_ga.length ? _ga[0].value : ""}; `
+   cookie += `ASP.NET_SessionId=${ASP_NET_SessionId.length ? ASP_NET_SessionId[0].value : ""}; `
+   cookie += `TS01c67bb5=${TS01c67bb5.length ? TS01c67bb5[0].value : ""}; `
+   cookie += `_ga_X3821T0R42=${_ga_X3821T0R42.length ? _ga_X3821T0R42[0].value : ""}; `
+   return cookie
+});
+
+
+
+
 /* ----------------------------- Service Handler ---------------------------- */
 
 addMessageListener('service', async (msg, sender) => {
