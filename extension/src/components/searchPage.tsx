@@ -21,10 +21,10 @@ interface ISearchPageProps {
 	reset: boolean
 }
 
-export const SearchPage: React.FC<ISearchPageProps> = ( {reset} ) => {
+export const SearchPage: React.FC<ISearchPageProps> = ({ reset }) => {
 
 	const [isAuth, setIsAuth] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [isPageReady, setIsPageReady] = useState<boolean>(false);
 	const [status, setStatus] = useState<number>(0);
 	const [hasGrade, setHasGrade] = useState<boolean>(false);
@@ -42,17 +42,17 @@ export const SearchPage: React.FC<ISearchPageProps> = ( {reset} ) => {
 				const tab: chrome.tabs.Tab = tabs[0];
 
 				if (tab.id) {
-				sendTabMessage(tab.id, 'snackBar', msg);
+					sendTabMessage(tab.id, 'snackBar', msg);
 				}
 			}
-		);      
+		);
 	}
 
-  
+
 	const handleFetchGrade = async () => {
 		setIsLoading(true);
-		if(course_id1.length == 0 || course_id2.length == 0){
-			sendSnackBarMessage({msg:"請填寫「課號」與「識別碼」！", severity:"error", action:true});
+		if (course_id1.length == 0 || course_id2.length == 0) {
+			sendSnackBarMessage({ msg: "請填寫「課號」與「識別碼」！", severity: "error", action: true });
 			return
 		}
 
@@ -61,16 +61,17 @@ export const SearchPage: React.FC<ISearchPageProps> = ( {reset} ) => {
 
 		setStatus(statusCode);
 
-		if(statusCode == 401) 
+		if (statusCode == 401)
 			setIsAuth(false);
 		else {
-			if(statusCode === 200){
+			if (statusCode === 200) {
 				setHasGrade(true);
 				setGrades(res.data!);
-				sendSnackBarMessage({msg:"成功！", severity:"success", action:true});
+				sendSnackBarMessage({ msg: "成功！", severity: "success", action: true });
 			}
 			else {
-				sendSnackBarMessage({msg:"目前沒有此項課程的成績！", severity:"warning", action:true});
+				// todo: should identify no results or other error
+				sendSnackBarMessage({ msg: "目前沒有此項課程的成績！", severity: "warning", action: true });
 				setHasGrade(false);
 			}
 			setIsLoading(false);
@@ -90,112 +91,112 @@ export const SearchPage: React.FC<ISearchPageProps> = ( {reset} ) => {
 	}
 
 	useEffect(() => {
-		if(isAuth == false || reset)
+		if (isAuth == false || reset)
 			checkToken();
 	}, [isAuth, reset])
 
 	return (
 		<>
-			<Box sx={{width: "100%", height: "20%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
+			<Box sx={{ width: "100%", height: "20%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center' }}>
 				{
-					
-					! isPageReady ?
+
+					!isPageReady ?
 						<></>
-					: isAuth ?
-						(
-							<Box
-								component="form"
-								sx={{
-								'& .MuiTextField-root': { m: 1 }, width: "100%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'
-								}}
-								autoComplete="off"
-							>
-								<TextField
-									required
-									color="primary"
-									id="course_id1-input"
-									label="課號"
-									size="small"
-									InputLabelProps={{
-										shrink: true,
+						: isAuth ?
+							(
+								<Box
+									component="form"
+									sx={{
+										'& .MuiTextField-root': { m: 1 }, width: "100%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center'
 									}}
-									error={course_id1.length==0}
-									sx={{width: '17ch'}}
-									defaultValue="CSIE1212"
-									onChange={e=>setCourse_id1(e.target.value)}
-									onKeyDown={e=>course_id1.length!=0 && e.key === 'Enter' && e.preventDefault()}
-								/>
-								<TextField
-									required
-									color="primary"
-									id="course_id2-input"
-									label="識別碼"
-									size="small"
-									error={course_id2.length==0}
-									InputLabelProps={{
-										shrink: true,
-									}}
-									sx={{width: '17ch'}}
-									defaultValue="902 10750"
-									onChange={e=>setCourse_id2(e.target.value)}
-									onKeyDown={e=>course_id2.length!=0 && e.key === 'Enter' && e.preventDefault()}
-								/>
-								<Tooltip 
-									title="若無班次則留空" 
-									arrow
-									slotProps={{
-										popper: {
-											sx: {
-												[`& .${tooltipClasses.arrow}`]: {
-													color: (theme) => theme.palette.primary.main
-												},
-												[`& .${tooltipClasses.tooltip}`]: {
-												  	backgroundColor: (theme) => theme.palette.primary.main
-												}
-											},
-											modifiers: [
-												{
-												name: 'offset',
-												options: {
-													offset: [0, -7],
-												},
-												},
-											],
-										},
-									}}
+									autoComplete="off"
 								>
 									<TextField
+										required
 										color="primary"
-										id="class_id-input"
-										label="班次"
+										id="course_id1-input"
+										label="課號"
 										size="small"
 										InputLabelProps={{
 											shrink: true,
 										}}
-										sx={{width: '10ch'}}
-										defaultValue="02"
-										onChange={e=>setClass_id(e.target.value)}
-										onKeyDown={e=>class_id.length!=0 && e.key === 'Enter' && e.preventDefault()}
+										error={course_id1.length == 0}
+										sx={{ width: '17ch' }}
+										defaultValue="CSIE1212"
+										onChange={e => setCourse_id1(e.target.value)}
+										onKeyDown={e => course_id1.length != 0 && e.key === 'Enter' && e.preventDefault()}
 									/>
-								</Tooltip>
-								<IconButton aria-label="search" onClick={handleFetchGrade}>
-									<SearchIcon />
-								</IconButton>
-							</Box>
-						)
-					:
-						<Typography variant="body1" color={{ color: red[500] }} fontWeight="bold">
-							請先點選左上角選單，前往註冊頁面上傳成績！
-						</Typography>
+									<TextField
+										required
+										color="primary"
+										id="course_id2-input"
+										label="識別碼"
+										size="small"
+										error={course_id2.length == 0}
+										InputLabelProps={{
+											shrink: true,
+										}}
+										sx={{ width: '17ch' }}
+										defaultValue="902 10750"
+										onChange={e => setCourse_id2(e.target.value)}
+										onKeyDown={e => course_id2.length != 0 && e.key === 'Enter' && e.preventDefault()}
+									/>
+									<Tooltip
+										title="若無班次則留空"
+										arrow
+										slotProps={{
+											popper: {
+												sx: {
+													[`& .${tooltipClasses.arrow}`]: {
+														color: (theme) => theme.palette.primary.main
+													},
+													[`& .${tooltipClasses.tooltip}`]: {
+														backgroundColor: (theme) => theme.palette.primary.main
+													}
+												},
+												modifiers: [
+													{
+														name: 'offset',
+														options: {
+															offset: [0, -7],
+														},
+													},
+												],
+											},
+										}}
+									>
+										<TextField
+											color="primary"
+											id="class_id-input"
+											label="班次"
+											size="small"
+											InputLabelProps={{
+												shrink: true,
+											}}
+											sx={{ width: '10ch' }}
+											defaultValue="02"
+											onChange={e => setClass_id(e.target.value)}
+											onKeyDown={e => class_id.length != 0 && e.key === 'Enter' && e.preventDefault()}
+										/>
+									</Tooltip>
+									<IconButton aria-label="search" onClick={handleFetchGrade}>
+										<SearchIcon />
+									</IconButton>
+								</Box>
+							)
+							:
+							<Typography variant="body1" color={{ color: red[500] }} fontWeight="bold">
+								請先點選左上角選單，前往註冊頁面上傳成績！
+							</Typography>
 				}
 			</Box>
-			<Box sx={{width: "100%", height: "85%", display: "flex", flexDirection: "column", justifyContent: 'center', alignContent: 'center', alignItems: 'center'}}>
+			<Box sx={{ width: "100%", height: "85%", display: "flex", flexDirection: "column", justifyContent: 'center', alignContent: 'center', alignItems: 'center' }}>
 				{
 					!isAuth || isLoading || !hasGrade ?
 						<Skeleton variant="rounded" animation="wave" height="80%" width="75%" />
-					:
-						<GradeChart grades={grades} defaultTitle={title==""?"暫無課名":title} width={270} height={170}/>
-				}	
+						:
+						<GradeChart grades={grades} defaultTitle={title == "" ? "暫無課名" : title} width={270} height={170} />
+				}
 			</Box>
 		</>
 	);

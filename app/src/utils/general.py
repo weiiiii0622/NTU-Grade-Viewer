@@ -81,7 +81,8 @@ def edit_distance(s1: str, s2: str) -> int:
 
 @add_decorator_doc
 def test_only(f):
-    # TODO: use some special header
+    # TODO: use some special header or ban in PROD mode
+    # todo: not generate openapi
     @wraps(f)
     def _f(*args, **kwargs):
         return f(*args, **kwargs)

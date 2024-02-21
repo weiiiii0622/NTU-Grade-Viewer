@@ -9,6 +9,9 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { BadRequestResponse } from './models/BadRequestResponse';
 export type { CourseBase } from './models/CourseBase';
+export type { CourseRead } from './models/CourseRead';
+export type { CourseSuggestion } from './models/CourseSuggestion';
+export type { GradeBase } from './models/GradeBase';
 export type { GradeElement } from './models/GradeElement';
 export type { GradeWithUpdate } from './models/GradeWithUpdate';
 export type { InternalErrorResponse } from './models/InternalErrorResponse';

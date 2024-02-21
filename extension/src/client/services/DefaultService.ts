@@ -2,6 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { CourseRead } from '../models/CourseRead';
+import type { CourseSuggestion } from '../models/CourseSuggestion';
 import type { GradeElement } from '../models/GradeElement';
 import type { GradeWithUpdate } from '../models/GradeWithUpdate';
 import type { Page } from '../models/Page';
@@ -138,6 +140,30 @@ export class DefaultService {
                 'title': title,
                 'class_id': classId,
                 'semester': semester,
+            },
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Get Suggestion
+     * @returns CourseSuggestion Successful Response
+     * @throws ApiError
+     */
+    public static getSuggestionQuerySuggestionGet({
+        keyword,
+    }: {
+        keyword: string,
+    }): CancelablePromise<Array<CourseSuggestion>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/query/suggestion',
+            query: {
+                'keyword': keyword,
             },
             errors: {
                 400: `Bad Request`,
@@ -298,6 +324,30 @@ export class DefaultService {
             url: '/user',
             query: {
                 'token': token,
+            },
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Get Course
+     * @returns CourseRead Successful Response
+     * @throws ApiError
+     */
+    public static getCourseCourseId1Get({
+        id1,
+    }: {
+        id1: string,
+    }): CancelablePromise<CourseRead> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/course/{id1}',
+            path: {
+                'id1': id1,
             },
             errors: {
                 400: `Bad Request`,

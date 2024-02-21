@@ -1,29 +1,179 @@
 import React from "react";
-import { waitUntil, submitPage } from "./utils";
+import { waitUntil, submitPage, clamp } from "./utils";
 import { createRoot } from "react-dom/client";
 import { GradeChartLoader } from "./components/gradeChartLoader";
-import { FixedBox } from "./components/fixedBox";
+import { Dialog } from "./dialog/dialog";
+import { TabAction, TabListenerState, TabMessageMap, addMessageListener, getStorage, sendRuntimeMessage } from "./api";
+import { SnackBar, ISnackBarProps } from "./components/snackBar";
 
-import { addMessageListener, getStorage, sendRuntimeMessage } from "./api";
+// import './style.css';
+// todo: move dialog to iframe
+
+/* --------------------------- Initialze indicator -------------------------- */
+
+function init() {
+   const key = "NTU_GRADE_VIEWER__APP_INDICATOR";
+
+   const node = document.createElement('div');
+   node.id = key;
+   node.style.visibility = 'hidden';
+   document.body.insertBefore(node, null);
+
+   const listenerStates: { [K in TabAction]: TabListenerState } = {
+      'dialog': 'pending',
+      'snackBar': 'pending',
+      'submitPage': 'pending',
+   };
+   Object.entries(listenerStates).forEach(([k, v]) => {
+      window[key].setAttribute(k, v);
+   })
+}
+init();
 
 
-/* ------------------------------ Context Menu ------------------------------ */
+/* -------------------------- Dialog (Context Menu) ------------------------- */
 
-//window.addEventListener('click', () => console.log('click'))
+import styled from 'styled-components';
+import { DIALOG_HEIGHT, DIALOG_WIDTH, DIALOG_GAP, DialogAction } from "./config";
 
-let contextPos: [number, number] = [0, 0];
-window.addEventListener("contextmenu", (e) => {
-   const { clientX, clientY } = e;
-   contextPos = [clientX, clientY]
+let dialogActive: boolean = false;
+let dialogPos: [number, number] = [0, 0];
+
+let mousePos: [number, number] = [0, 0];
+window.addEventListener('mousemove', (event) => {
+   const { clientX: x, clientY: y } = event;
+   mousePos = [x, y] as const;
 });
 
-const rootEle = document.createElement("div");
-const root = createRoot(rootEle);
-document.body.insertBefore(rootEle, document.body.firstChild);
 
-addMessageListener('contextMenu', (msg) => {
-   root.render(<FixedBox position={contextPos} />);
-   // TODO: unmount
+function getDefaultPosition(): [number, number] {
+   return [window.innerWidth / 2 - DIALOG_WIDTH / 2, window.innerHeight / 2 - DIALOG_HEIGHT / 2];
+}
+
+function getDialogPosition(): [number, number] {
+
+   const getMousePosition = () => mousePos;
+
+   const selection = window.getSelection();
+   // if (!selection) return getMousePosition()
+   if (!selection) return getDefaultPosition()
+
+
+   const { isCollapsed } = selection;
+   // todo: fix textarea/input
+   // if (isCollapsed) return getMousePosition();
+   if (isCollapsed) return getDefaultPosition();
+   // console.log(isCollapsed)
+
+   const range = selection.getRangeAt(0);
+   let { x, y, height } = range.getBoundingClientRect();
+
+   console.log(x, y, height)
+
+   if (y < window.innerHeight / 2)
+      // pop from upside
+      y += height + DIALOG_GAP;
+   else
+      // pop from downside
+      y -= DIALOG_HEIGHT - DIALOG_GAP;
+
+   x = Math.min(x, window.innerWidth - DIALOG_WIDTH);
+   y = clamp(y, DIALOG_GAP, window.innerHeight - DIALOG_HEIGHT - DIALOG_GAP);
+
+   console.log('x, y: ', x, y)
+   return [x, y];
+}
+
+
+const frame = document.createElement('iframe');
+frame.src = chrome.runtime.getURL('dialog.html');
+document.body.insertBefore(frame, null);
+const a = styled.div`
+      z-index: 9999;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background-color: rgba(0,0,0,0);
+   `;
+frame.setAttribute('style', `
+   z-index: 9999;
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background-color: transparent;
+   border: none;
+`);
+
+function isInFrame(x: number, y: number) {
+   // const l = parseFloat(frame.style.left), r = l + DIALOG_WIDTH, t = parseFloat(frame.style.top), b = t + DIALOG_HEIGHT;
+   console.log(dialogPos);
+   const [x0, y0] = dialogPos;
+   const l = x0, r = l + DIALOG_WIDTH, t = y0, b = t + DIALOG_HEIGHT;
+   const inFrame = l <= x && x <= r && t <= y && y <= b;
+
+   console.log(inFrame, "(content)");
+   console.log(l, r, t, b)
+   console.log(x, y);
+   return inFrame;
+}
+
+window.addEventListener('mousemove', (e => {
+   const x = e.clientX, y = e.clientY;
+   const inFrame = isInFrame(x, y);
+   frame.style.pointerEvents = dialogActive && inFrame ? 'auto' : 'none';
+}));
+
+// frame.addEventListener('mousemove', e => {
+//    const x = e.clientX, y = e.clientY;
+//    const inFrame = isInFrame(x, y);
+//    frame.style.pointerEvents = inFrame ? 'auto' : 'none';
+// })
+
+const handler = (msg: TabMessageMap['dialog']['msg']) => {
+   const position = getDialogPosition();
+   console.log('dialog')
+   frame.contentWindow?.postMessage({ ...msg, position }, chrome.runtime.getURL("dialog.html"));
+}
+let ready = false;
+// type MessageAction = typeof DIALOG_POSITION | typeof DIALOG_READY;
+window.addEventListener('message', (e: MessageEvent<{ action: DialogAction, position: [number, number], active: boolean }>) => {
+
+   function assertUnreachable(x: never): never {
+    throw new Error("Didn't expect to get here");
+}
+   
+      console.log("receive message (content): ", e.data);
+   if (typeof e.data === 'object' && 'action' in e.data) {
+      switch (e.data['action']) {
+         case DialogAction.Ready:
+            if (!ready) {
+               ready = true;
+               addMessageListener('dialog', handler)
+            }
+            break;
+         case DialogAction.Position:
+            const { position } = e.data;
+            dialogPos = position;
+            // frame.style.left = `${left}px`;
+            // frame.style.top = `${top}px`;
+            break;
+         case DialogAction.DisablePointer:
+            frame.style.pointerEvents = 'none';
+            break;
+         case DialogAction.Active:
+            const {active}    = e.data;
+            dialogActive = active;
+            break;
+         default:
+            assertUnreachable(e.data['action']);
+
+      }
+   }
 })
 
 /* --------------------------------- Submit --------------------------------- */
@@ -32,7 +182,21 @@ addMessageListener('submitPage', async (msg, sender) => {
    return await submitPage();
 })
 
+/* ------------------------------ Popup Message ----------------------------- */
+
+addMessageListener('snackBar', (msg: ISnackBarProps) => {
+   console.log('add snackBar')
+   const root = document.createElement("div");
+   createRoot(root).render(
+      <React.StrictMode>
+         <SnackBar msg={msg.msg} severity={msg.severity} action={msg.action} />
+      </React.StrictMode>
+   );
+   document.body.append(root);
+});
+
 /* -------------------------------- Cookies --------------------------------- */
+
 function checkCookie(cookieName: string) {
    let cookies = document.cookie.split(';');
 
@@ -44,15 +208,16 @@ function checkCookie(cookieName: string) {
    return false;
 }
 
-(async () => {
-   console.log('fetching user...')
+// (async () => {
+//    console.log('fetching user...')
 
-   const user = await sendRuntimeMessage('user', undefined);
-   const [semester, _] = await sendRuntimeMessage('service', { funcName: 'getSemesterSemesterGet', args: {} })
+//    const user = await sendRuntimeMessage('user', undefined);
+//    const [semester, _] = await sendRuntimeMessage('service', { funcName: 'getSemesterSemesterGet', args: {} })
 
-   console.log(user)
-   console.log(semester)
-})()
+//    console.log(user)
+//    console.log(semester)
+// })()
+
 /* ------------------------------ Search Items ------------------------------ */
 
 function initSearchItem(node: HTMLElement, isAuth: boolean) {

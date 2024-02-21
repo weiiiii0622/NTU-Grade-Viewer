@@ -1,4 +1,4 @@
-const webpack = require("webpack");
+const { webpack, DefinePlugin } = require("webpack");
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 const srcDir = path.join(__dirname, "..", "src");
@@ -7,7 +7,8 @@ const dotenv = require("dotenv");
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const env = process.env;
-const { V2 } = env;
+let { APP_TITLE } = env;
+APP_TITLE = JSON.stringify(APP_TITLE ?? "APP_TITLE_PLACEHOLDER");
 
 module.exports = {
    entry: {
@@ -15,7 +16,8 @@ module.exports = {
       options: path.join(srcDir, "options.tsx"),
       background: path.join(srcDir, "background.tsx"),
       content_script: path.join(srcDir, "content_script.tsx"),
-      content_script_popup: path.join(srcDir, "content_script_popup.tsx"),
+      dialog: path.join(srcDir, "dialog/dialog.tsx"),
+      // content_script_popup: path.join(srcDir, "content_script_popup.tsx"),
    },
    output: {
       path: path.join(__dirname, "../dist/js"),
@@ -36,6 +38,12 @@ module.exports = {
             use: "ts-loader",
             exclude: /node_modules/,
          },
+         {
+            test: /\.css$/i,
+            // include: path.resolve(__dirname, "src"),
+            use: ["style-loader", "css-loader", "postcss-loader"],
+            exclude: /node_modules/,
+         },
       ],
    },
    resolve: {
@@ -50,6 +58,9 @@ module.exports = {
                context: "public",
             },
          ],
+      }),
+      new DefinePlugin({
+         APP_TITLE,
       }),
    ],
    watchOptions: {

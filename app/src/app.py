@@ -30,7 +30,7 @@ from fastapi import (
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
-from models import SemesterStr, StudentId, User
+from models import Course, CourseRead, Id1, SemesterStr, StudentId, User
 from pydantic import BaseModel
 from sqlalchemy import create_engine, text
 from sqlmodel import Session, select
@@ -39,8 +39,8 @@ from utils.general import test_only
 load_dotenv(os.path.join(os.path.dirname(__file__), "../../.env"), override=True)
 
 if os.getenv("MODE") == "DEV":
-    os.environ["DB_URL"] = "mysql+pymysql://root:root@db:3306/db"
-    os.environ['APP_URL']= 'http://localhost:5000'
+    # os.environ["DB_URL"] = "mysql+pymysql://root:root@db:3306/db"
+    os.environ["APP_URL"] = "http://localhost:5000"
 
 
 # @asynccontextmanager
@@ -72,6 +72,15 @@ if api_key := os.getenv("APP_ANALYTICS_KEY"):
 
 for router in routes.ROUTERS:
     app.include_router(router)
+
+
+@app.get("/course/{id1}")
+def get_course(*, session: Session = Depends(get_session), id1: Id1) -> CourseRead:
+    course = session.exec(select(Course).where(Course.id1 == id1)).one_or_none()
+    if not course:
+        raise HTTPException(404)
+    return CourseRead.model_validate(course)
+
 
 # ---------------------------------- Config ---------------------------------- #
 
@@ -122,6 +131,7 @@ def _add_auth(
     token = get_token(student_id)
     response.set_cookie("cookie_token", quote(token))
     return token
+
 
 @app.exception_handler(500)
 async def internal_error_handler(request: Request, exc: Exception):
@@ -198,4 +208,4 @@ async def admin_auth(request: Request, call_next):
 PORT = int(os.getenv("PORT_DEV", 4000))
 # HOST = str(os.getenv("HOST_DEV"))
 if __name__ == "__main__":
-    uvicorn.run("app:app", port=PORT, host="0.0.0.0", reload=True)
+    uvicorn.run("app:app", port=PORT, host="0.0.0.0", reload=False)

@@ -242,6 +242,10 @@ class Update(UpdateBase, table=True):
     solid: bool = Field(default=True)
 
 
+class CourseRead(CourseBase):
+    grades: list["GradeBase"]
+
+
 class User(SQLModel, table=True):
     id: StudentId = Field(unique=True)
     # token: str

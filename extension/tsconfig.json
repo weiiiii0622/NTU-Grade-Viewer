@@ -6,7 +6,7 @@
         "module": "ES6",
         "esModuleInterop": true,
         "sourceMap": false,
-        "rootDir": "src",
+        // "rootDir": "src",
         "outDir": "dist/js",
         "noEmitOnError": true,
         "jsx": "react-jsx",
@@ -17,5 +17,11 @@
             "ES2023",
             "DOM"
         ],
+        "paths": {
+            "@/*": [
+                "./@/*"
+            ]
+        },
+        "baseUrl": "."
     },
 }

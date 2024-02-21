@@ -1,12 +1,45 @@
 import { sendRuntimeMessage } from "./api";
-import { Page } from "./models";
+import { Page } from "./client";
 
 import { IGradeChartTooltipData } from "./components/gradeChartToolTip";
 
+/**
+ * @param tabId
+ * @param files Pass in the file name without extension and directory, ex. `content_scirpt`.
+ */
+export async function injectContentScriptIfNotRunning(tabId: number) {
+   // ? DOM clobbering
+   const key = "NTU_GRADE_VIEWER__APP_INDICATOR";
+
+   const target = { tabId };
+   const [{ result: running }] = await chrome.scripting.executeScript({
+      target,
+      func: (key) => {
+         // @ts-ignore
+         return !!window[key];
+      },
+      args: [key],
+   });
+
+   if (!running) {
+      const files = ["js/vendor.js", "js/content_script.js"];
+
+      await Promise.all([
+         chrome.scripting.executeScript({
+            target,
+            files,
+         }),
+      ]);
+   }
+}
 
 /* -------------------------------------------------------------------------- */
 /*                              Utility Function                              */
 /* -------------------------------------------------------------------------- */
+
+export function clamp(val: number, minVal: number, maxVal: number) {
+   return Math.min(maxVal, Math.max(minVal, val));
+}
 
 // This function takes an object as a parameter and returns the size of data in bytes
 const sizeof = (obj: any) => {
@@ -36,7 +69,7 @@ const sizeof = (obj: any) => {
    }
    // Return the total size
    return totalSize;
-}
+};
 
 const getHashCode = (s: string): number => {
    const MAGIC = "TH3_M5G1C_OF_NTU".repeat(3);
@@ -57,27 +90,55 @@ const getHashCode = (s: string): number => {
       h &= 1 << (63 - 1);
    }
    return h;
-}
+};
 
 const waitUntil = async (pred: () => boolean, timeout = 60) => {
+   let next: (fn: () => void) => void;
+   try {
+      next = window.requestIdleCallback;
+   } catch {
+      next = setTimeout;
+   }
+
    return new Promise<void>((res, rej) => {
       const st = Date.now();
       const f = () => {
          if (Date.now() - st < timeout * 1000)
             if (pred()) res();
-            else requestIdleCallback(f);
+            else next(f);
          else rej();
       };
-      requestIdleCallback(f);
+      next(f);
    });
-}
+};
 
+export const waitUntilAsync = async (pred: () => Promise<boolean>, timeout = 60) => {
+   let next: (fn: () => void) => void;
+   try {
+      next = window.requestIdleCallback;
+   } catch {
+      next = setTimeout;
+   }
+
+   return new Promise<void>((res, rej) => {
+      const st = Date.now();
+      const f = () => {
+         pred().then((result) => {
+            if (Date.now() - st < timeout * 1000)
+               if (result) res();
+               else next(f);
+            else rej();
+         });
+      };
+      next(f);
+   });
+};
 
 const toURLQueryString = <T extends Record<string, string | number>>(data: T) => {
    return Object.entries(data)
       .map(([k, v]) => `${k}=${v}`)
       .join("&");
-}
+};
 
 export { sizeof, getHashCode, waitUntil, toURLQueryString };
 
@@ -102,43 +163,48 @@ const submitPage = async () => {
    });
 
    return r;
-}
+};
 
 export { submitPage };
-
 
 /* -------------------------------------------------------------------------- */
 /*                                Grade Related                               */
 /* -------------------------------------------------------------------------- */
 
-const GRADES = ['F', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+']
+const GRADES = ["F", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+"];
 
 interface IFetchGradeResponse {
-   data?: IGradeChartTooltipData[],
-   error?: string
+   data?: IGradeChartTooltipData[];
+   error?: string;
 }
 
-const fetchGrade = async (course_id1:string, course_id2:string, title:string, class_id:string): Promise<[number, IFetchGradeResponse]> => {
-   
-   //console.log("fetchGrade params: ", course_id1, course_id2, title, class_id);
+const fetchGrade = async (
+   course_id1: string,
+   course_id2: string,
+   title: string,
+   class_id: string
+): Promise<[number, IFetchGradeResponse]> => {
+   console.log("fetchGrade params: ", course_id1, course_id2, title, class_id);
 
    // Check Cache
    const key = `${course_id1}_${course_id2}_${class_id}`;
    const cache_res = await getCourseLocalCache(key);
    if (cache_res.length != 0) {
       //console.log("From Cache: ", cache_res);
-      return [200, {data: cache_res}];
+      return [200, { data: cache_res }];
    }
 
-   const [res, err] = await sendRuntimeMessage('service', {
-      funcName: 'queryGradesQueryGet',
+   const [res, err] = await sendRuntimeMessage("service", {
+      funcName: "queryGradesQueryGet",
       args: {
          id1: course_id1,
          id2: course_id2,
          title: title,
          // classId: class_id,         // Filter at front-end
-      }
-   })
+      },
+   });
+
+   console.log(res, err);
 
    // const [res, err] = await sendRuntimeMessage('service', {
    //    funcName: 'getAllGradesGradeAllGet',
@@ -152,40 +218,39 @@ const fetchGrade = async (course_id1:string, course_id2:string, title:string, cl
       console.log("fetchGrade Error: ", err);
       switch (err.status) {
          case 400:
-            return [400, {error:("Bad Request 400")}];
+            return [400, { error: "Bad Request 400" }];
          case 401:
-            return [401, {error:("Unauthorized 401")}];
+            return [401, { error: "Unauthorized 401" }];
          case 422:
-            return [422, {error:("Validation Error 422")}];
+            return [422, { error: "Validation Error 422" }];
          case 500:
-            return [500, {error:("Internal Error 500")}];
-              
+            return [500, { error: "Internal Error 500" }];
+
          default:
-            return [503, {error:("Unknown Error 503")}]
+            return [503, { error: "Unknown Error 503" }];
       }
    }
 
    // Filter class_id
    const filtered_res = res.filter((grades) => {
-      return grades.class_id=="" || grades.class_id==class_id;
+      return grades.class_id == "" || grades.class_id == class_id;
    });
 
    //console.log("fetchGrade result: ", filtered_res)
 
    // Concatenate all res
    let resString = "";
-   filtered_res.forEach((cur, idx)=>{resString += (JSON.stringify(cur) + ";");});
-   if (resString == "")
-      return [404, {data: []}];
+   filtered_res.forEach((cur, idx) => {
+      resString += JSON.stringify(cur) + ";";
+   });
+   if (resString == "") return [404, { data: [] }];
 
-   
-   return [200, {data: await parseGrade(resString, key)}];
-}
+   return [200, { data: await parseGrade(resString, key) }];
+};
 
-
-const getLabel = (seg: {l:number, r:number, value: number}) => {
-   return seg.l===seg.r ? GRADES[seg.l] : (GRADES[seg.r]+"~"+GRADES[seg.l]);
-}
+const getLabel = (seg: { l: number; r: number; value: number }) => {
+   return seg.l === seg.r ? GRADES[seg.l] : GRADES[seg.r] + "~" + GRADES[seg.l];
+};
 
 // Convert Back-end Data to Front-End format
 const parseGrade = async (res: string, key: string) => {
@@ -194,7 +259,15 @@ const parseGrade = async (res: string, key: string) => {
    let ret: IGradeChartTooltipData[] = [];
 
    rawDatas.forEach((rawData, idx) => {
-      let score:IGradeChartTooltipData = {title:"", course_id1:"", course_id2: "", semester:"", lecturer:"", class_id:"", datas:[]};
+      let score: IGradeChartTooltipData = {
+         title: "",
+         course_id1: "",
+         course_id2: "",
+         semester: "",
+         lecturer: "",
+         class_id: "",
+         datas: [],
+      };
       const obj = JSON.parse(rawData);
       // console.log("size: ", sizeof(obj), obj);
       score.title = obj.course.title;
@@ -203,30 +276,32 @@ const parseGrade = async (res: string, key: string) => {
       score.semester = obj.semester;
       score.class_id = obj.class_id;
       score.lecturer = obj.lecturer;
-      for(let i = 0; i < obj.segments.length; i++) {
-         score.datas.push({id: i, value: obj.segments[i].value, label: getLabel(obj.segments[i])});
+      for (let i = 0; i < obj.segments.length; i++) {
+         score.datas.push({
+            id: i,
+            value: obj.segments[i].value,
+            label: getLabel(obj.segments[i]),
+         });
       }
       score.datas.reverse();
       ret.push(score);
    });
 
-
    // Store to cache
    await setCourseLocalCache(ret, key);
 
    return ret;
-}
+};
 
-export { fetchGrade, parseGrade }
-
+export { fetchGrade, parseGrade };
 
 /* -------------------------------------------------------------------------- */
 /*                                 Score Cache                                */
 /* -------------------------------------------------------------------------- */
 
 interface ICourseCache {
-   scores: IGradeChartTooltipData,
-   cache_time : number
+   scores: IGradeChartTooltipData;
+   cache_time: number;
 }
 
 // Set the cache TTL here
@@ -235,7 +310,6 @@ const cache_minutes = 0;
 const cache_seconds = 15;
 
 const setCourseLocalCache = async (scores: IGradeChartTooltipData[], key: string) => {
-   
    // If storage usage > 8MB, clear all cache
    await chrome.storage.local.getBytesInUse(null).then(async (res) => {
       //console.log("getBytesInUse: ", res);
@@ -243,23 +317,26 @@ const setCourseLocalCache = async (scores: IGradeChartTooltipData[], key: string
          await chrome.storage.local.clear();
          // console.log("Cache Cleared!");
       }
-   })
-   
-   chrome.storage.local.set({ [key]: {scores: scores, cache_time: Date.now()} }).then(() => {
+   });
+
+   chrome.storage.local.set({ [key]: { scores: scores, cache_time: Date.now() } }).then(() => {
       //console.log("Score Stored", { [key]: {scores: scores, cacheTime: Date.now()} });
    });
-}
+};
 
 const getCourseLocalCache = async (course: string) => {
    const res = await chrome.storage.local.get(course);
    if (res[course]) {
-      if (res[course].cache_time > Date.now() - (cache_hours*3600 + cache_minutes*60 + cache_seconds) * 1000) {
+      if (
+         res[course].cache_time >
+         Date.now() - (cache_hours * 3600 + cache_minutes * 60 + cache_seconds) * 1000
+      ) {
          return res[course].scores;
       }
       //console.log("Score Outdated:", res[course]);
       chrome.storage.local.remove(course);
    }
    return [];
-}
+};
 
-export { setCourseLocalCache, getCourseLocalCache }
+export { setCourseLocalCache, getCourseLocalCache };

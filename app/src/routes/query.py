@@ -7,12 +7,13 @@ from models import (
     QUERY_FIELDS,
     QUERY_FILTERS,
     Course,
+    CourseBase,
     GradeElement,
     Id1,
     Id2,
     SemesterStr,
 )
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 from utils.grade import get_grade_element
 
 router = APIRouter()
@@ -40,18 +41,7 @@ async def get_query_dict(
     return {k: v for k in keys if (v := d[k])}
 
 
-@router.get("/query")
-@auth_required
-def query_grades(
-    *, session: Session = Depends(get_session), query: dict = Depends(get_query_dict)
-) -> list[GradeElement]:
-    """
-    Each query should provide at least one of `id1`, `id2` or `title`. The `class_id` and `semester` parameters are for further filtering results.
-
-    Returns:
-        A list of `GradeElement` satisfing given filters.
-    """
-
+def _query_grades( session: Session, query: dict):
     fields = {k: v for k, v in query.items() if k in QUERY_FIELDS}
     filters = {k: v for k, v in query.items() if k in QUERY_FILTERS}
 
@@ -74,8 +64,43 @@ def query_grades(
 
             if not course:
                 return []
-            grades =  [get_grade_element(grade) for grade in course.grades]
+            grades = [get_grade_element(grade) for grade in course.grades]
             if grades:
                 return grades
 
     return []
+
+
+@router.get("/query")
+@auth_required
+def query_grades(
+    *, session: Session = Depends(get_session), query: dict = Depends(get_query_dict)
+) -> list[GradeElement]:
+    """
+    Each query should provide at least one of `id1`, `id2` or `title`. The `class_id` and `semester` parameters are for further filtering results.
+
+    Returns:
+        A list of `GradeElement` satisfing given filters.
+    """
+    return _query_grades(session=session, query=query)
+
+
+@router.post("/query/batch")
+@auth_required
+def query_grades_batch(
+    *, session: Session = Depends(get_session), queries: list[dict]
+) -> list[list[GradeElement]]:
+    return [_query_grades(session, query) for query in queries]
+
+
+class CourseSuggestion(CourseBase):
+    count: int
+
+
+@router.get("/query/suggestion")
+def get_suggestion(
+    *, session: Session = Depends(get_session), keyword: str
+) -> list[CourseSuggestion]:
+
+    courses = session.exec(select(Course).where(col(Course.title).contains(keyword))).all()
+    return [CourseSuggestion(**c.model_dump(), count=len(c.grades)) for c in courses]

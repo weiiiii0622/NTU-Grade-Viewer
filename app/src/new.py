@@ -11,7 +11,11 @@ from auth import get_student_id, get_token
 from models import Course, GradeWithUpdate, Page, Update, UpdateBase
 from pydantic import BaseModel, Field
 
+headers = {"X-AUTH-TOKEN": "cb373542-a8b8-4cd5-a35a-e9f00726d0bb"}
 
+response = requests.get("https://apianalytics-server.com/api/data", headers=headers)
+print(response.json()[0])
+exit(0)
 
 # * Submit page
 content = open(str(Path(__file__).parent / "../examples/wei.html")).read()
