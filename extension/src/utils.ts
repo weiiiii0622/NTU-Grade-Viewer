@@ -8,17 +8,14 @@ import { IGradeChartTooltipData } from "./components/gradeChartToolTip";
  * @param files Pass in the file name without extension and directory, ex. `content_scirpt`.
  */
 export async function injectContentScriptIfNotRunning(tabId: number) {
-   // ? DOM clobbering
-   const key = "NTU_GRADE_VIEWER__APP_INDICATOR";
 
    const target = { tabId };
    const [{ result: running }] = await chrome.scripting.executeScript({
       target,
-      func: (key) => {
-         // @ts-ignore
-         return !!window[key];
+      func: () => {
+         // ? DOM clobbering
+         return !!window.NTU_GRADE_VIEWER__APP_INDICATOR;
       },
-      args: [key],
    });
 
    if (!running) {

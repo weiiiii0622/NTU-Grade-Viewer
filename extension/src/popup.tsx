@@ -27,6 +27,7 @@ import { SearchPage } from "./components/searchPage";
 import { removeStorage } from "./api";
 import { OpenAPI } from "./client";
 import { injectContentScriptIfNotRunning } from "./utils";
+import { AdminAvatarWithToolTip } from "./components/adminAvatar";
 
 OpenAPI['BASE'] = APP_URL
 
@@ -143,7 +144,7 @@ const Popup = () => {
                <Typography variant="caption" display="block" color={{ color: grey[600] }} fontWeight="bold">
                   Made By
                </Typography>
-               <Tooltip title="您好！" placement="top" arrow
+               {/* <Tooltip title="您好！" placement="top" arrow
                   slotProps={{
                      popper: {
                         sx: {
@@ -166,8 +167,8 @@ const Popup = () => {
                   }}
                >
                   <Avatar sx={{ width: 25, height: 25, font: "menu", ml: "8px", mr: "2px" }}>Wei</Avatar>
-               </Tooltip>
-               <Tooltip title="歡迎使用！" placement="top" arrow
+               </Tooltip> */}
+               {/* <Tooltip title="歡迎使用！" placement="top" arrow
                   slotProps={{
                      popper: {
                         sx: {
@@ -190,7 +191,18 @@ const Popup = () => {
                   }}
                >
                   <Avatar sx={{ width: 25, height: 25, font: "menu", ml: "2px", mr: "2px" }}>KC</Avatar>
-               </Tooltip>
+               </Tooltip> */}
+               {Math.random() > 0.5  // we are a fair team 😤
+                  ?
+                  <>
+                     <AdminAvatarWithToolTip enableLink name="Wei" githubId="weiiiii0622" toolTipProps={{ title: 'Wei, NTU B10 CSIE' }} presetIdx={0} />
+                     <AdminAvatarWithToolTip enableLink name="KC" githubId="kc0506" toolTipProps={{ title: 'KC, NTU B10 MED' }} presetIdx={1} />
+                  </>
+                  : <>
+                     <AdminAvatarWithToolTip enableLink name="KC" githubId="kc0506" toolTipProps={{ title: 'KC, NTU B10 MED' }} presetIdx={1} />
+                     <AdminAvatarWithToolTip enableLink name="Wei" githubId="weiiiii0622" toolTipProps={{ title: 'Wei, NTU B10 CSIE' }} presetIdx={0} />
+                  </>
+               }
                <Divider orientation="vertical" flexItem />
                <Link href="https://weiiiii0622.github.io/NTU-Grade-Viewer/Tutorial/" target="_blank" underline="hover" variant="caption" fontWeight="bold">
                   {'使用教學'}
