@@ -84,6 +84,7 @@ function getDialogPosition(): [number, number] {
    return [x, y];
 }
 
+// todo: refactor
 
 const frame = document.createElement('iframe');
 frame.src = chrome.runtime.getURL('dialog.html');
@@ -147,7 +148,7 @@ window.addEventListener('message', (e: MessageEvent<{ action: DialogAction, posi
       throw new Error("Didn't expect to get here");
    }
 
-   console.log("receive message (content): ", e.data);
+   // console.log("receive message (content): ", e.data);
    if (typeof e.data === 'object' && 'action' in e.data) {
       switch (e.data['action']) {
          case DialogAction.Ready:

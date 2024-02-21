@@ -29,10 +29,10 @@ addMessageListener('session_id', async (msg, sender) => {
    const TS01c67bb5 = await chrome.cookies.getAll({ domain: '.if190.aca.ntu.edu.tw', name: 'TS01c67bb5' });
    const _ga_X3821T0R42 = await chrome.cookies.getAll({ domain: '.ntu.edu.tw', name: '_ga_X3821T0R42' });
 
-   // console.log(_ga);
-   // console.log(ASP_NET_SessionId);
-   // console.log(TS01c67bb5);
-   // console.log(_ga_X3821T0R42);
+   console.log(_ga);
+   console.log(ASP_NET_SessionId);
+   console.log(TS01c67bb5);
+   console.log(_ga_X3821T0R42);
 
    let cookie = '';
    cookie += `_ga=${_ga.length ? _ga[0].value : ""}; `

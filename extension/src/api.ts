@@ -10,8 +10,6 @@ import {
 import { ClassMethodName, Equal, Expect, IndexFromUnion, ObjectToEntriesTuple } from "./utilTypes";
 import { waitUntil, waitUntilAsync } from "./utils";
 
-// console.log("api-v2");
-
 /* -------------------------------------------------------------------------- */
 /*                               Message Passing                              */
 /* -------------------------------------------------------------------------- */

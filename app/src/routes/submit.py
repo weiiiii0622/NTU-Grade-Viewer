@@ -1,10 +1,9 @@
 import asyncio
 import math
 import re
-import requests
 
 import bs4
-from sqlmodel import Session, select
+import requests
 from auth import get_token
 from bs4 import Tag
 from db import get_engine, get_session
@@ -22,6 +21,7 @@ from fastapi.exceptions import RequestValidationError
 # )
 from models import *
 from pydantic import BaseModel
+from sqlmodel import Session, select
 from utils.general import extract_dict, test_only
 from utils.grade import get_grade_element
 from utils.search import global_session, search_course
@@ -97,20 +97,21 @@ async def submit_page(
     background: BackgroundTasks,
 ) -> PageResponse:
 
-
     # ---------------------- Request GradePage from back-end --------------------- #
 
-    url = 'https://if190.aca.ntu.edu.tw/graderanking/Stu?lang=zh'
+    url = "https://if190.aca.ntu.edu.tw/graderanking/Stu?lang=zh"
     headers = {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'zh-TW,zh;q=0.9',
-        'Cache-Control': 'max-age=0',
-        'Connection': 'keep-alive',
-        'Cookie': cookie,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "zh-TW,zh;q=0.9",
+        "Cache-Control": "max-age=0",
+        "Connection": "keep-alive",
+        "Cookie": cookie,
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     }
-    
+
+    print(cookie)
+
     res = requests.get(url, headers=headers)
 
     student_id, results = parse_page(res.text)
@@ -183,6 +184,7 @@ def parse_page(text: str) -> tuple[str, list[GradeWithUpdate]]:
     extract_cls = ["table-column-uid"]
     uids = [get_infos(row, extract_cls)[0] for row in rank_rows]
     if not uids or any(uid != uids[0] for uid in uids):
+        open("page.html", "+w").write(text)
         raise RequestValidationError(["Cannot find student id"])
     student_id = uids[0]
 

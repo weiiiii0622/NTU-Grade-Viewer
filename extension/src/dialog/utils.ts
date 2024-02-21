@@ -12,7 +12,8 @@ export function addDialogMessageHandler(handler: (msg: DialogMessage) => void): 
    window.addEventListener("message", f);
 
    console.log("send message from ", window.location.href);
-   window.parent.postMessage({ action: DialogAction.Ready }, document.referrer);
+   // console.log("to ", document.referrer || "*");
+   window.parent.postMessage({ action: DialogAction.Ready }, "*");
 
    return () => window.removeEventListener("message", f);
 }

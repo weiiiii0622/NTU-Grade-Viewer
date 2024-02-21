@@ -150,7 +150,8 @@ async def request_validation_error(request: Request, exc: RequestValidationError
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
-    print(f'HTTPException: {exc.args}')
+    print(f"HTTPException: {exc.args}")
+    print(exc.detail)
     match exc.status_code:
         case 401:
             try:
@@ -208,4 +209,4 @@ async def admin_auth(request: Request, call_next):
 PORT = int(os.getenv("PORT_DEV", 4000))
 # HOST = str(os.getenv("HOST_DEV"))
 if __name__ == "__main__":
-    uvicorn.run("app:app", port=PORT, host="0.0.0.0", reload=False)
+    uvicorn.run("app:app", port=PORT, host="0.0.0.0", reload=True)

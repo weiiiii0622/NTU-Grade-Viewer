@@ -155,6 +155,46 @@ export class DefaultService {
         });
     }
     /**
+     * Query Grades Batch
+     * @auth_required
+     * @returns GradeElement Successful Response
+     * @throws ApiError
+     */
+    public static queryGradesBatchQueryBatchPost({
+        requestBody,
+        xToken = '',
+        cookieToken = '',
+    }: {
+        requestBody: Array<Record<string, any>>,
+        /**
+         * Token represented student_id via X-Token header, automatically sent by background.js. Same as `cookie_token`.
+         */
+        xToken?: string,
+        /**
+         * Token represented student_id via cookie. Same as `x_token`. This parameter is for testing purpose. You should generally rely on `x_token`.
+         */
+        cookieToken?: string,
+    }): CancelablePromise<Array<Array<GradeElement>>> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/query/batch',
+            cookies: {
+                'cookie_token': cookieToken,
+            },
+            headers: {
+                'x-token': xToken,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
      * Get Suggestion
      * @returns CourseSuggestion Successful Response
      * @throws ApiError

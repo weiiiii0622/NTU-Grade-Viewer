@@ -59,7 +59,11 @@
       ]
     }
   ],
-  "host_permissions": [],
+  "host_permissions": [
+    "https://ntu.edu.tw/*",
+    "https://if190.aca.ntu.edu.tw/*",
+    "<all_urls>"
+  ],
   "optional_permissions": [],
   "optional_host_permissions": []
 }

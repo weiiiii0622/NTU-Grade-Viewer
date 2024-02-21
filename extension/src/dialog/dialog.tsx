@@ -16,6 +16,9 @@ import { createRoot } from "react-dom/client";
 import { DialogMessage, addDialogMessageHandler } from "./utils";
 import { animated, config, useSpring } from "@react-spring/web";
 
+const REFERRER = document.referrer || '*';
+console.log("Referrer: ", REFERRER)
+
 /* --------------------------------- Config --------------------------------- */
 
 // const WIDTH = 452;
@@ -187,14 +190,14 @@ export function Dialog({ }: DialogProps) {
       }
 
    }, [active, dir]);
-   
-   useEffect(()=>{
-      window.parent.postMessage({ action: DialogAction.Active, active}, document.referrer);
+
+   useEffect(() => {
+      window.parent.postMessage({ action: DialogAction.Active, active }, REFERRER);
    }, [active]);
 
    console.log('position: ', realPos);
    useEffect(() => {
-      window.parent.postMessage({ action: DialogAction.Position, position: realPos }, document.referrer);
+      window.parent.postMessage({ action: DialogAction.Position, position: realPos }, REFERRER);
    }, [realPos]);
 
    useEffect(() => {
@@ -214,11 +217,11 @@ export function Dialog({ }: DialogProps) {
 
       const f = (e: MouseEvent) => {
          const x = e.clientX, y = e.clientY;
-         if (!active || !isInFrame(x, y)){
+         if (!active || !isInFrame(x, y)) {
             // console.log('postMessage to ', window.parent.location.href);
             // console.log('which is ', document.referrer);
 
-            window.parent.postMessage({ action: DialogAction.DisablePointer }, document.referrer);
+            window.parent.postMessage({ action: DialogAction.DisablePointer }, REFERRER);
             // window.parent.postMessage({ action: DialogAction.DisablePointer }, document.referrer);
          }
       }
@@ -382,7 +385,7 @@ function SearchInput(props: SearchInputProps) {
    const { keyword, setKeyword, className, ...restProps } = props;
 
    // todo: outline when focused
-   
+
    return <div
       className={className + " px-1 border-[#d9d9d9] border-solid border rounded-md flex flex-row items-center"}
    >
