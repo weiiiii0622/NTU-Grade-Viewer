@@ -97,14 +97,14 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 						value={graphType}
 						exclusive
 						//size="small"
-						color="primary"
+						//color="primary"
 						onChange={handleGradeChartType}
 						aria-label="text alignment"
 						sx={{
 							height: "25px",
 							width: "26px",
 							ml: "20px",
-							mr: "10px"
+							mr: "20px"
 						}}
 					>
 					<ToggleButton value={GradeChartType.Pie} aria-label="left aligned" sx={{padding:"6px"}}>
