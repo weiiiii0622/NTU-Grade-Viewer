@@ -68,7 +68,7 @@ function getDialogPosition(): [number, number] {
    const range = selection.getRangeAt(0);
    let { x, y, height } = range.getBoundingClientRect();
 
-   console.log(x, y, height)
+   //console.log(x, y, height)
 
    if (y < window.innerHeight / 2)
       // pop from upside
@@ -80,7 +80,7 @@ function getDialogPosition(): [number, number] {
    x = Math.min(x, window.innerWidth - DIALOG_WIDTH);
    y = clamp(y, DIALOG_GAP, window.innerHeight - DIALOG_HEIGHT - DIALOG_GAP);
 
-   console.log('x, y: ', x, y)
+   //console.log('x, y: ', x, y)
    return [x, y];
 }
 
@@ -112,14 +112,14 @@ frame.setAttribute('style', `
 
 function isInFrame(x: number, y: number) {
    // const l = parseFloat(frame.style.left), r = l + DIALOG_WIDTH, t = parseFloat(frame.style.top), b = t + DIALOG_HEIGHT;
-   console.log(dialogPos);
+   //console.log(dialogPos);
    const [x0, y0] = dialogPos;
    const l = x0, r = l + DIALOG_WIDTH, t = y0, b = t + DIALOG_HEIGHT;
    const inFrame = l <= x && x <= r && t <= y && y <= b;
 
-   console.log(inFrame, "(content)");
-   console.log(l, r, t, b)
-   console.log(x, y);
+   // console.log(inFrame, "(content)");
+   // console.log(l, r, t, b)
+   // console.log(x, y);
    return inFrame;
 }
 
@@ -137,7 +137,7 @@ window.addEventListener('mousemove', (e => {
 
 const handler = (msg: TabMessageMap['dialog']['msg']) => {
    const position = getDialogPosition();
-   console.log('dialog')
+   //console.log('dialog')
    frame.contentWindow?.postMessage({ ...msg, position }, chrome.runtime.getURL("dialog.html"));
 }
 let ready = false;

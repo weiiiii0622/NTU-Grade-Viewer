@@ -279,14 +279,13 @@ const parseGrade = async (res: string, key: string) => {
       for (let i = 0; i < obj.segments.length; i++) {
          score.datas.push({
             id: i,
-            value: obj.segments[i].value,
+            value: Number(obj.segments[i].value),
             label: getLabel(obj.segments[i]),
          });
       }
       score.datas.reverse();
       ret.push(score);
    });
-
    // Store to cache
    await setCourseLocalCache(ret, key);
 
