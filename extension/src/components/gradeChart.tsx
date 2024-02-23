@@ -4,6 +4,8 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { grey } from '@mui/material/colors';
 
+import PieChartIcon from '@mui/icons-material/PieChart';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import IconButton from '@mui/material/IconButton';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -12,6 +14,9 @@ import { DefaultizedPieValueType } from '@mui/x-charts';
 import { PieChart as MuiPieChart, pieArcLabelClasses  } from '@mui/x-charts/PieChart';
 import { BarChart as MuiBarChart } from '@mui/x-charts/BarChart';
 import { axisClasses, AxisConfig } from '@mui/x-charts';
+
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { IGradeChartTooltipData } from './gradeChartToolTip';
 
@@ -23,7 +28,6 @@ enum GradeChartType {
 export interface IScoreChartProps {
 	grades: IGradeChartTooltipData[],
 	defaultTitle: string,		// From 課程網 (only used when back-end has no title)
-	type?: GradeChartType,
 	width: number,
 	height: number
 }
@@ -50,7 +54,9 @@ const getArcLabel = (params: DefaultizedPieValueType): string => {
 
 const valueFormatter = (params: number) => {return `${params}%`};
 
-export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, type, width, height} ) => {
+export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, width, height} ) => {
+	
+	const [graphType, setGraphType] = React.useState<GradeChartType>(GradeChartType.Pie);
 	const [datas, setDatas] = useState<IChartData[]>(grades[0].datas);
 	const [title, setTitle] = useState<string|null>(grades[0].title);
 	const [lecturer, setLecturer] = useState<string|null>(grades[0].lecturer);
@@ -58,6 +64,13 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, t
 	const [class_id, setClass_id] = useState<string|null>(grades[0].class_id);
 	const [value, setValue] = useState<number>(0);
 
+
+	const handleGradeChartType = (
+		event: React.MouseEvent<HTMLElement>,
+		newType: GradeChartType,
+	) => {
+		if (newType !== null) setGraphType(newType);
+	}
 
 	useEffect(() => {
 		if(grades[value].title == "")
@@ -80,6 +93,27 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, t
 					<Typography variant="subtitle2" color={{ color: grey[700] } } fontWeight="bold">
 						{semester}{class_id!=""?` ${class_id}班`:""} {lecturer==""?"查無授課教授":lecturer}
 					</Typography>
+					<ToggleButtonGroup
+						value={graphType}
+						exclusive
+						//size="small"
+						color="primary"
+						onChange={handleGradeChartType}
+						aria-label="text alignment"
+						sx={{
+							height: "25px",
+							width: "26px",
+							ml: "20px",
+							mr: "10px"
+						}}
+					>
+					<ToggleButton value={GradeChartType.Pie} aria-label="left aligned" sx={{padding:"6px"}}>
+						<PieChartIcon />
+					</ToggleButton>
+					<ToggleButton value={GradeChartType.Bar} aria-label="right aligned" sx={{padding:"6px"}}>
+						<BarChartIcon />
+					</ToggleButton>
+					</ToggleButtonGroup>
 				</Box>
 				<Box sx={{ display: "flex", bgcolor: "#F8F8F8" }}>
 					<IconButton aria-label="before" disabled={value==0} onClick={() => {setValue((value>0?value-1:0));}}>
@@ -87,7 +121,7 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, t
 					</IconButton>
 
 					{
-						type == GradeChartType.Pie ?
+						graphType == GradeChartType.Pie ?
 							<PieChart
 								{...{ datas, width, height }}
 							/>
@@ -105,6 +139,7 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, t
 
 	)
 }
+
 
 export function PieChart({
 	datas, width, height
