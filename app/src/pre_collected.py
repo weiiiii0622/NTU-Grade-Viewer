@@ -1,15 +1,22 @@
 import asyncio
+from decimal import ROUND_HALF_UP, Decimal, getcontext
+from functools import reduce
 import math
+import os
+import pickle
 import re
 from enum import Enum
 from pathlib import Path
+from typing import Union
 
 from aiohttp import ClientSession
-from models import GRADES, Course, GradeElement, Segment
+from models import GRADES, Course, GradeElement, GradeWithUpdate, Segment, UpdateBase
 from openpyxl import load_workbook
 from openpyxl.cell.cell import Cell
 from tqdm.asyncio import tqdm_asyncio
+from routes.submit import insert_grades
 from utils.general import extract_dict
+from utils.grade import get_segments
 from utils.search import Key, search_course
 from utils.segment_list import SegmentList
 
@@ -18,14 +25,14 @@ from utils.segment_list import SegmentList
 MAX = len(GRADES) - 1
 MIN = 0
 
-TOTAL = 100
+TOTAL = Decimal(100)
 
 WIDTH = 8
 GRADES_HEADER = "".join(f"{x.ljust(WIDTH)}" for x in reversed(GRADES))
 
 
 def extend_segments(segments: list[Segment]) -> list[Segment]:
-    seglist: SegmentList[float] = SegmentList(MAX + 1, TOTAL, None, strict=False)
+    seglist: SegmentList = SegmentList(MAX + 1, TOTAL, None, strict=False)
     for seg in segments:
         seglist.remove(*seg.unpack())
 
@@ -132,7 +139,7 @@ stop = False
 
 
 # * Row parser
-async def parse_row(row: tuple[Cell, ...], session: ClientSession) -> GradeElement | None:
+async def parse_row(row: tuple[Cell, ...], session: ClientSession) -> Union[GradeElement, None]:
 
     title, lecturer, semester = [str(c.value).strip() for c in row[:3]]
     title = title.replace("(", "（")
@@ -144,11 +151,12 @@ async def parse_row(row: tuple[Cell, ...], session: ClientSession) -> GradeEleme
 
     st = -1
     end = -1
-    blue_val: float = -1
+    blue_val: Decimal = Decimal(-1)
 
     # * Note the row is reversed
     for i, c in enumerate(reversed(row[3:13])):
         if c.value:
+            val = Decimal(str(c.value))
             assert (
                 type(c.value) == float or type(c.value) == int
             ), f"{c}, {c.value}: {type(c.value)}"
@@ -159,25 +167,26 @@ async def parse_row(row: tuple[Cell, ...], session: ClientSession) -> GradeEleme
                         segments.append(Segment(l=st, r=end, value=blue_val))
                         st = -1
                         end = -1
-                        blue_val = -1
-                    segments.append(Segment(l=i, r=i, value=c.value))
+                        blue_val = Decimal(-1)
+                    segments.append(Segment(l=i, r=i, value=val))
                 case Color.BLUE:
                     if st == -1:
                         st = i
                     end = i
-                    blue_val = c.value
+                    print(c.value, val)
+                    blue_val = val
                 case Color.ORANGE:
                     assert end == -1
                     if segments:
                         # this should be "higher than"
-                        segments.append(Segment(l=i, r=MAX, value=c.value))
+                        segments.append(Segment(l=i, r=MAX, value=val))
                     else:
                         # "lower than"
-                        segments.append(Segment(l=MIN, r=i, value=c.value))
+                        segments.append(Segment(l=MIN, r=i, value=val))
     assert st == -1 and end == -1, f"{st}, {end}, {segments}"
 
     total = sum(seg.value for seg in segments)
-    if math.isclose(total, 1, abs_tol=0.01):
+    if math.isclose(total, 1, abs_tol=Decimal("0.02")) or any(seg.value <= Decimal('0.1') for seg in segments):
         for seg in segments:
             seg.value *= 100
 
@@ -228,6 +237,8 @@ async def parse_row(row: tuple[Cell, ...], session: ClientSession) -> GradeEleme
     course = Course(**extract_dict(["id1", "id2", "title"], res))
     grade = GradeElement(
         course=course,
+        course_id1=course.id1,
+        course_id2=course.id2,
         segments=segments,
         **extract_dict(["lecturer", "class_id", "semester"], res),
     )
@@ -237,7 +248,8 @@ async def parse_row(row: tuple[Cell, ...], session: ClientSession) -> GradeEleme
 # ----------------------------------- Test ----------------------------------- #
 
 
-async def main():
+async def get_grades() -> list[GradeElement]:
+
     data_dir = Path(__file__).parent / "../../data/pre-collected/"
 
     wb = load_workbook(str(data_dir / "raw/106-110學年NTU課程成績比例.xlsx"))
@@ -258,6 +270,61 @@ async def main():
     print(f"drop {len(grades)-len(valid_grades)} / {len(grades)}")
     # TODO: insert into db
     # TODO: add `confirmed` field in db
+    return valid_grades
+
+
+async def main():
+    if os.path.exists("grades.tmp"):
+        with open("grades.tmp", "rb") as f:
+            grades = pickle.load(f)
+    else:
+        grades = await get_grades()
+        with open("grades.tmp", "wb+") as f:
+            pickle.dump(grades, f)
+    print(f"{len(grades)} grades!")
+
+    def convert_to_udpates(g: GradeElement) -> list[GradeWithUpdate]:
+        results: list[GradeWithUpdate] = []
+        prev_sum = Decimal(0)
+        try:
+            for seg in g.segments:
+                if seg.l == seg.r:
+                    update = UpdateBase(
+                        pos=seg.l, lower=prev_sum, higher=TOTAL - seg.value - prev_sum, solid=False
+                    )
+                    results.append(GradeWithUpdate(**g.model_dump(), update=update))
+                prev_sum += seg.value
+        except Exception as e:
+            print(e)
+            print(g)
+            print(results)
+            print(prev_sum)
+        # try:
+        #     assert g.segments == get_segments([_g.update for _g in results])
+        # except:
+        #     print(g)
+        #     print(results)
+        #     print()
+        #     exit(0)
+        return results
+
+    # grade_updates = [convert_to_udpates(g) for g in grades]
+    grades_updates = reduce(
+        lambda prev, next: prev + next, [convert_to_udpates(g) for g in grades], []
+    )
+
+    await insert_grades(grades=grades_updates)
 
 
 asyncio.run(main())
+
+data_dir = Path(__file__).parent / "../../data/pre-collected/"
+
+wb = load_workbook(str(data_dir / "raw/106-110學年NTU課程成績比例.xlsx"))
+ws = wb.worksheets[0]
+rows = list(ws.rows)
+
+
+f = lambda x: x.quantize(Decimal(".00"), ROUND_HALF_UP)
+# class A:
+#     a: Decimal

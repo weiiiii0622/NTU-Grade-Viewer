@@ -2,11 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { GradeBase } from './GradeBase';
-export type CourseRead = {
+import type { GradeWithSegments } from './GradeWithSegments';
+export type CourseReadWithGrade = {
     id1: string;
     id2: string;
     title: string;
-    grades: Array<GradeBase>;
+    grades: Array<GradeWithSegments>;
 };
 

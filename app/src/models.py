@@ -55,12 +55,11 @@ SemesterStr = Annotated[
     AfterValidator(validate_semester),
 ]
 
-Lecturer = Annotated[
-    str, Field(default="", description="The lecturer.", schema_extra={"examples": ["林軒田"]})
-]
+# ? remove `default` because it cause client model has optional property
+Lecturer = Annotated[str, Field(description="The lecturer.", schema_extra={"examples": ["林軒田"]})]
 
-
-ClassId = Annotated[str, Field(description="'班次'", schema_extra={"examples": ["01"]}, default="")]
+# ? remove `default` because it cause client model has optional property
+ClassId = Annotated[str, Field(description="'班次'", schema_extra={"examples": ["01"]})]
 
 
 # A+: 9, A: 8, ..., F: 0
@@ -90,8 +89,9 @@ GradeStr: TypeAlias = Annotated[str, AfterValidator(validate_grade_str)]
 Percent = Annotated[
     Decimal,
     # Field(max_digits=5, ge=0, le=100, decimal_places=2),
-    Field(ge=0, le=100),
+    Field(ge=-1, le=101),
     AfterValidator(lambda x: x.quantize(Decimal(".00"), ROUND_HALF_UP)),
+    AfterValidator(lambda x: max(Decimal(0), min(x, Decimal(100)))),
 ]
 
 
@@ -225,6 +225,10 @@ class UpdateBase(SQLModel):
     lower: Percent
     higher: Percent
 
+    # ? used for pre-collected since their source are not 100% correct.
+    # ? if new updates comes, just drop those with `solid` false.
+    solid: bool = Field(default=True)
+
 
 class GradeWithUpdate(GradeBase):
     course: "CourseBase"
@@ -237,13 +241,24 @@ class Update(UpdateBase, table=True):
     grade_id: int = Field(foreign_key="grade.id")
     grade: Grade = Relationship(back_populates="updates")
 
-    # ? used for pre-collected since their source are not 100% correct.
-    # ? if new updates comes, just drop those with `solid` false.
-    solid: bool = Field(default=True)
 
 
-class CourseRead(CourseBase):
-    grades: list["GradeBase"]
+class GradeWithSegments(GradeBase):
+    segments: list[Segment] = Field(
+        description="A list of segments. The segments are expected to be disjoint, and taking up the whole [0, 9] range. The sum is expected to be (nearly) 100."
+    )
+
+    @field_validator("segments")
+    def valiadte_grade_eles(cls, v: list[Segment]):
+        if not math.isclose(sum(grade.value for grade in v), 100, abs_tol=1):
+            raise Exception(f"sum = {sum(grade.value for grade in v)}")
+        for i in range(len(v) - 1):
+            assert v[i].r + 1 == v[i + 1].l, v
+        return v
+
+
+class CourseReadWithGrade(CourseBase):
+    grades: list[GradeWithSegments]
 
 
 class User(SQLModel, table=True):

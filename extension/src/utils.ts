@@ -5,9 +5,9 @@ import { IGradeChartTooltipData } from "./components/gradeChartToolTip";
 
 /**
  * @param tabId
- * @param files Pass in the file name without extension and directory, ex. `content_scirpt`.
  */
 export async function injectContentScriptIfNotRunning(tabId: number) {
+   if ((await chrome.tabs.get(tabId)).url?.includes("chrome://")) return;
 
    const target = { tabId };
    const [{ result: running }] = await chrome.scripting.executeScript({
@@ -171,7 +171,7 @@ export { submitPage };
 /*                                Grade Related                               */
 /* -------------------------------------------------------------------------- */
 
-const GRADES = ["F", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+"];
+export const GRADES = ["F", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+"];
 
 interface IFetchGradeResponse {
    data?: IGradeChartTooltipData[];
@@ -355,3 +355,27 @@ const getCourseLocalCache = async (course: string) => {
 };
 
 export { setCourseLocalCache, getCourseLocalCache };
+
+function getSemesterWeight(a: string) {
+   try {
+      const [x, y] = a.split("-");
+      return parseInt(x) * 10 + parseInt(y);
+   } catch {
+      return 0;
+   }
+}
+
+/**
+ *
+ * @param a
+ * @param b
+ * @param asending if true, then the first element will be oldest.
+ * @returns
+ */
+export function semesterCompareFn(a: string, b: string, asending = false) {
+   const _a = getSemesterWeight(a),
+      _b = getSemesterWeight(b);
+   return (asending ? 1 : -1) * (_a - _b);
+}
+
+// export function filterBy() {}

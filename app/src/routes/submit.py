@@ -4,6 +4,7 @@ import re
 
 import bs4
 import requests
+from tqdm import tqdm
 from auth import get_token
 from bs4 import Tag
 from db import get_engine, get_session
@@ -36,8 +37,8 @@ async def insert_grades(*, grades: list[GradeWithUpdate]):
         await asyncio.gather(*[set_lecturer(grade) for grade in grades])
     grades = [grade for grade in grades if grade.lecturer]
 
-    # print("inserting grades...")
-    for grade in grades:
+    print("inserting grades...")
+    for grade in tqdm(grades):
         try:
             assert grade.id
             course: CourseBase = grade.course
@@ -73,7 +74,10 @@ class PageResponse(BaseModel):
 async def set_lecturer(grade: GradeWithUpdate) -> None:
     # * Get lecturer
     course: Course = grade.course
-    assert not grade.lecturer
+    assert not grade.lecturer or not grade.update.solid
+    if grade.lecturer:
+        return
+
     result = await search_course(
         {
             **extract_dict(["id1", "id2", "title"], course.model_dump()),

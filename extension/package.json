@@ -1,7 +1,7 @@
 {
-  "name": "chrome-extension-typescript-starter",
+  "name": "ntu-grade-viewer",
   "version": "1.0.0",
-  "description": "chrome-extension-typescript-starter",
+  "description": "The grade viewer for NTU.",
   "main": "index.js",
   "scripts": {
     "watch": "webpack --config webpack/webpack.dev.js --watch",
@@ -24,7 +24,9 @@
     "@mui/lab": "^5.0.0-alpha.164",
     "@mui/material": "^5.15.6",
     "@mui/x-charts": "^6.19.1",
+    "@radix-ui/react-icons": "^1.3.0",
     "@radix-ui/react-scroll-area": "^1.0.5",
+    "@radix-ui/react-select": "^2.0.0",
     "@react-spring/web": "^9.7.3",
     "@tabler/icons-react": "^2.47.0",
     "axios": "^1.6.7",

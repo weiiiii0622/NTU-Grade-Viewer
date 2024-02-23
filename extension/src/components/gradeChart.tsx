@@ -11,7 +11,7 @@ import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 import { DefaultizedPieValueType } from '@mui/x-charts';
-import { PieChart as MuiPieChart, pieArcLabelClasses  } from '@mui/x-charts/PieChart';
+import { PieChart as MuiPieChart, pieArcLabelClasses } from '@mui/x-charts/PieChart';
 import { BarChart as MuiBarChart } from '@mui/x-charts/BarChart';
 import { axisClasses, AxisConfig } from '@mui/x-charts';
 
@@ -40,28 +40,29 @@ export interface IChartData {
 
 
 const sizing = {
-  margin: {
-    left: 20,
-    right: 80,
-    top: 20,
-    bottom: 20,
-  },
+	margin: {
+		left: 20,
+		right: 80,
+		top: 20,
+		bottom: 20,
+	},
 };
+
 
 const getArcLabel = (params: DefaultizedPieValueType): string => {
-  return `${params.value!}%`;
+	return `${params.value!}%`;
 };
 
-const valueFormatter = (params: number) => {return `${params}%`};
+const valueFormatter = (params: number) => { return `${params}%` };
 
-export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, width, height} ) => {
-	
+export const GradeChart: React.FC<IScoreChartProps> = ({ grades, defaultTitle, width, height }) => {
+
 	const [graphType, setGraphType] = React.useState<GradeChartType>(GradeChartType.Pie);
 	const [datas, setDatas] = useState<IChartData[]>(grades[0].datas);
-	const [title, setTitle] = useState<string|null>(grades[0].title);
-	const [lecturer, setLecturer] = useState<string|null>(grades[0].lecturer);
-	const [semester, setSemester] = useState<string|null>(grades[0].semester);
-	const [class_id, setClass_id] = useState<string|null>(grades[0].class_id);
+	const [title, setTitle] = useState<string | null>(grades[0].title);
+	const [lecturer, setLecturer] = useState<string | null>(grades[0].lecturer);
+	const [semester, setSemester] = useState<string | null>(grades[0].semester);
+	const [class_id, setClass_id] = useState<string | null>(grades[0].class_id);
 	const [value, setValue] = useState<number>(0);
 
 
@@ -72,8 +73,9 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 		if (newType !== null) setGraphType(newType);
 	}
 
+	// todo: I think this does not need effect
 	useEffect(() => {
-		if(grades[value].title == "")
+		if (grades[value].title == "")
 			setTitle(defaultTitle);
 		else
 			setTitle(grades[value].title);
@@ -85,13 +87,13 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 
 	return (
 		<>
-			<Box sx={{ width:"100%", height:"50%", display: "flex", flexDirection: "column", justifyContent: 'center', alignContent: 'center', alignItems: 'center' }}>
+			<Box sx={{ width: "100%", height: "50%", display: "flex", flexDirection: "column", justifyContent: 'center', alignContent: 'center', alignItems: 'center' }}>
 				<Box sx={{ display: "flex", justifyContent: 'space-evenly', alignContent: 'center', alignItems: 'center', mt: "5px", bgcolor: "#F8F8F8" }}>
-					<Typography variant="subtitle2" color={{ color: grey[700] } } sx={{mr: "20px"}} fontWeight="bold">
+					<Typography variant="subtitle2" color={{ color: grey[700] }} sx={{ mr: "20px" }} fontWeight="bold">
 						{title}
 					</Typography>
-					<Typography variant="subtitle2" color={{ color: grey[700] } } fontWeight="bold">
-						{semester}{class_id!=""?` ${class_id}班`:""} {lecturer==""?"查無授課教授":lecturer}
+					<Typography variant="subtitle2" color={{ color: grey[700] }} fontWeight="bold">
+						{semester}{class_id != "" ? ` ${class_id}班` : ""} {lecturer == "" ? "查無授課教授" : lecturer}
 					</Typography>
 					<ToggleButtonGroup
 						value={graphType}
@@ -107,16 +109,16 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 							mr: "20px"
 						}}
 					>
-					<ToggleButton value={GradeChartType.Pie} aria-label="left aligned" sx={{padding:"6px"}}>
-						<PieChartIcon />
-					</ToggleButton>
-					<ToggleButton value={GradeChartType.Bar} aria-label="right aligned" sx={{padding:"6px"}}>
-						<BarChartIcon />
-					</ToggleButton>
+						<ToggleButton value={GradeChartType.Pie} aria-label="left aligned" sx={{ padding: "6px" }}>
+							<PieChartIcon />
+						</ToggleButton>
+						<ToggleButton value={GradeChartType.Bar} aria-label="right aligned" sx={{ padding: "6px" }}>
+							<BarChartIcon />
+						</ToggleButton>
 					</ToggleButtonGroup>
 				</Box>
 				<Box sx={{ display: "flex", bgcolor: "#F8F8F8" }}>
-					<IconButton aria-label="before" disabled={value==0} onClick={() => {setValue((value>0?value-1:0));}}>
+					<IconButton aria-label="before" disabled={value == 0} onClick={() => { setValue((value > 0 ? value - 1 : 0)); }}>
 						<NavigateBeforeIcon />
 					</IconButton>
 
@@ -125,12 +127,12 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 							<PieChart
 								{...{ datas, width, height }}
 							/>
-						:
+							:
 							<BarChart
 								{...{ datas, width, height }}
 							/>
 					}
-					<IconButton aria-label="next" disabled={value==grades.length-1} onClick={() => {setValue((value<grades.length-1?value+1:value));}}>
+					<IconButton aria-label="next" disabled={value == grades.length - 1} onClick={() => { setValue((value < grades.length - 1 ? value + 1 : value)); }}>
 						<NavigateNextIcon />
 					</IconButton>
 				</Box>
@@ -139,7 +141,6 @@ export const GradeChart: React.FC<IScoreChartProps> = ( {grades, defaultTitle, w
 
 	)
 }
-
 
 export function PieChart({
 	datas, width, height
@@ -197,7 +198,7 @@ export function BarChart({
 		// @ts-ignore
 		dataset={datas}
 		xAxis={[
-			{ scaleType: 'band', dataKey: 'label', barGapRatio: 0.1} as AxisConfig<'band'>,
+			{ scaleType: 'band', dataKey: 'label', barGapRatio: 0.1 } as AxisConfig<'band'>,
 		]}
 		series={[
 			{ dataKey: 'value', label: '', valueFormatter, highlightScope: { faded: 'global', highlighted: 'item' }, },
@@ -209,7 +210,7 @@ export function BarChart({
 		// 		label: '人數 (%)',
 		// 	},
 		// ]}
-		slotProps={{ legend: { hidden: true }}}
+		slotProps={{ legend: { hidden: true } }}
 		sx={{
 			[`.${axisClasses.left} .${axisClasses.label}`]: {
 				transform: 'translate(-0px, 0)',

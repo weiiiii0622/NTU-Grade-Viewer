@@ -41,7 +41,7 @@ async def get_query_dict(
     return {k: v for k in keys if (v := d[k])}
 
 
-def _query_grades( session: Session, query: dict):
+def _query_grades(session: Session, query: dict):
     fields = {k: v for k, v in query.items() if k in QUERY_FIELDS}
     filters = {k: v for k, v in query.items() if k in QUERY_FILTERS}
 
@@ -102,5 +102,13 @@ def get_suggestion(
     *, session: Session = Depends(get_session), keyword: str
 ) -> list[CourseSuggestion]:
 
-    courses = session.exec(select(Course).where(col(Course.title).contains(keyword))).all()
-    return [CourseSuggestion(**c.model_dump(), count=len(c.grades)) for c in courses]
+    if keyword == "<all>":
+        courses = session.exec(select(Course)).all()
+    else:
+        courses = session.exec(select(Course).where(col(Course.title).contains(keyword))).all()
+
+    # todo: do we really need to compute this in backend?
+    def get_count(c: Course):
+        return len(set(g.class_id for g in c.grades))
+
+    return [CourseSuggestion(**c.model_dump(), count=get_count(c)) for c in courses]

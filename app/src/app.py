@@ -30,11 +30,12 @@ from fastapi import (
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
-from models import Course, CourseRead, Id1, SemesterStr, StudentId, User
+from models import Course, CourseReadWithGrade, GradeWithSegments, Id1, SemesterStr, StudentId, User
 from pydantic import BaseModel
 from sqlalchemy import create_engine, text
 from sqlmodel import Session, select
 from utils.general import test_only
+from utils.grade import get_grade_element
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "../../.env"), override=True)
 
@@ -75,11 +76,12 @@ for router in routes.ROUTERS:
 
 
 @app.get("/course/{id1}")
-def get_course(*, session: Session = Depends(get_session), id1: Id1) -> CourseRead:
+def get_course(*, session: Session = Depends(get_session), id1: Id1) -> CourseReadWithGrade:
     course = session.exec(select(Course).where(Course.id1 == id1)).one_or_none()
     if not course:
         raise HTTPException(404)
-    return CourseRead.model_validate(course)
+    grades = [GradeWithSegments.model_validate(get_grade_element(g)) for g in course.grades]
+    return CourseReadWithGrade(**course.model_dump(), grades=grades)
 
 
 # ---------------------------------- Config ---------------------------------- #
@@ -133,13 +135,16 @@ def _add_auth(
     return token
 
 
-@app.exception_handler(500)
+# @app.exception_handler(500)
 async def internal_error_handler(request: Request, exc: Exception):
-    exc.__class__.__name__
-    # todo: hide error message in production
-    resp = InternalErrorResponse(detail=f"{exc.__class__.__name__}: {exc.args}")
-    # todo: why is args of validation error empty
-    return JSONResponse(resp.model_dump(), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    try:
+        exc.__class__.__name__
+        # todo: hide error message in production
+        resp = InternalErrorResponse(detail=f"{exc.__class__.__name__}: {exc.args}")
+        # todo: why is args of validation error empty
+        return JSONResponse(resp.model_dump(), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except:
+        return JSONResponse({}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.exception_handler(RequestValidationError)
@@ -148,21 +153,24 @@ async def request_validation_error(request: Request, exc: RequestValidationError
     raise HTTPException(422, detail=exc.args[0])
 
 
-@app.exception_handler(HTTPException)
+# @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     print(f"HTTPException: {exc.args}")
     print(exc.detail)
-    match exc.status_code:
-        case 401:
-            try:
-                detail = UnauthorizedErrorDetail(type=exc.detail)  # type: ignore
-            except:
-                detail = UnauthorizedErrorDetail(type="invalid")
-            resp = UnauthorizedErrorResponse(detail=detail)
-        case 422:
-            resp = ValidationErrorResponse(detail=exc.detail)  # type: ignore
-        case _:
-            resp = BadRequestResponse(detail=f"HTTPException ({exc.status_code}): {exc.detail}")
+    try:
+        match exc.status_code:
+            case 401:
+                try:
+                    detail = UnauthorizedErrorDetail(type=exc.detail)  # type: ignore
+                except:
+                    detail = UnauthorizedErrorDetail(type="invalid")
+                resp = UnauthorizedErrorResponse(detail=detail)
+            case 422:
+                resp = ValidationErrorResponse(detail=exc.detail)  # type: ignore
+            case _:
+                resp = BadRequestResponse(detail=f"HTTPException ({exc.status_code}): {exc.detail}")
+    except:
+        resp = BadRequestResponse(detail=f"HTTPException ({exc.status_code}): {exc.detail}")
 
     return JSONResponse(resp.model_dump(), status_code=exc.status_code)
 

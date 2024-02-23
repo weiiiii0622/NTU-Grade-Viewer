@@ -112,7 +112,7 @@ frame.setAttribute('style', `
 
 function isInFrame(x: number, y: number) {
    // const l = parseFloat(frame.style.left), r = l + DIALOG_WIDTH, t = parseFloat(frame.style.top), b = t + DIALOG_HEIGHT;
-   //console.log(dialogPos);
+   // console.log(dialogPos);
    const [x0, y0] = dialogPos;
    const l = x0, r = l + DIALOG_WIDTH, t = y0, b = t + DIALOG_HEIGHT;
    const inFrame = l <= x && x <= r && t <= y && y <= b;

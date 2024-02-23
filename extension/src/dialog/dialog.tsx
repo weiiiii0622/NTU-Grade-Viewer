@@ -1,19 +1,19 @@
 /**
  * Found out chrome.sidePanel is actually more suitable for this LOL 🤡
  */
+import { } from './foo'
 
-import React, { ChangeEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { History, addMessageListener, getStorage, removeMessageListener, sendRuntimeMessage, setStorage } from "../api";
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { History, getStorage, sendRuntimeMessage, setStorage } from "../api";
 import styled from 'styled-components';
 import { CourseBase, CourseSuggestion } from "../client";
 import { useStorage } from "../hooks/useStorage";
-import { clamp } from "../utils";
-import { IconBook2, IconHistory, TablerIconsProps, IconSearch, IconX } from '@tabler/icons-react';
-import { ScrollArea } from "../../@/components/ui/scroll-area";
+import { IconSearch, IconX } from '@tabler/icons-react';
+import { ScrollArea, ScrollBar } from "../../@/components/ui/scroll-area";
 
 import "../style.css";
 import { createRoot } from "react-dom/client";
-import { DialogMessage, addDialogMessageHandler } from "./utils";
+import { DialogMessage, addDialogMessageHandler, getSortedCourses, isRecent } from "./utils";
 import { animated, config, useSpring } from "@react-spring/web";
 
 const REFERRER = document.referrer || '*';
@@ -24,7 +24,11 @@ console.log("Referrer: ", REFERRER)
 // const WIDTH = 452;
 // const HEIGHT = 525;
 // const GAP = 8;
-import { DIALOG_WIDTH as WIDTH, DIALOG_HEIGHT as HEIGHT, DIALOG_GAP as GAP, DialogAction } from "../config"
+import { DIALOG_WIDTH as WIDTH, DIALOG_HEIGHT as HEIGHT, DialogAction } from "../config"
+import { ItemList, ItemProps } from "./itemList";
+import { ChartPage } from "./chartPage";
+import { RecentItemsSection } from './recentItemsSection';
+import { cn } from '../components/shadcn-ui/lib';
 
 /* -------------------------------- Position -------------------------------- */
 
@@ -63,7 +67,7 @@ function useItems(
             if (cancel)
                return;
             if (error)
-               throw 'gg'
+               throw 'gg'  // todo
             setItems(_grades);
             setLoading(false);
          }
@@ -71,20 +75,14 @@ function useItems(
       return () => { cancel = true; setLoading(false); }
    }, [rawKeyword]);
 
-   const findHistory = (course: CourseSuggestion) => histories.find(h => h.courseId1 === course.id1)
-   const isRecent = (course: CourseSuggestion) => !!findHistory(course)
-   const cmp = (a: CourseSuggestion, b: CourseSuggestion) => {
-      // sort asending by cmp
-      // => first from recent (by negative timeStamp), then by title
-      function timeStampWeight(course: CourseSuggestion) {
-         const history = findHistory(course);
-         return history ? -history.timeStamp : 0;
-      }
-      return a.title.length - b.title.length + 100 * (timeStampWeight(a) - timeStampWeight(b));
-   }
 
-   return [loading, courses.map(course => ({
-      type: isRecent(course) ? 'recent' : 'normal',
+   // console.log('course: ')
+   // console.log(courses, courses.sort(cmp));
+   // console.log(courses.map(c => findHistory(c)));
+
+
+   return [loading, getSortedCourses(courses, histories).map(course => ({
+      type: isRecent(course, histories) ? 'recent' : 'normal',
       course, count: course.count, onClick: onClickFactory(course.id1),
    }))]
    // console.log(items);
@@ -101,7 +99,6 @@ function useItems(
 const DialogWrapper = animated(styled.div`
     box-sizing: border-box;
     position: absolute;
-    z-index: 9999;
 
     background: rgba(255,255,255,0.99);
     border:  #adadad solid 1px;
@@ -195,13 +192,13 @@ export function Dialog({ }: DialogProps) {
       window.parent.postMessage({ action: DialogAction.Active, active }, REFERRER);
    }, [active]);
 
-   console.log('position: ', realPos);
+   // console.log('position: ', realPos);
    useEffect(() => {
       window.parent.postMessage({ action: DialogAction.Position, position: realPos }, REFERRER);
    }, [realPos]);
 
    useEffect(() => {
-      console.log('effect: ', active, realPos);
+      // console.log('effect: ', active, realPos);
 
       const [x0, y0] = realPos;
 
@@ -209,20 +206,17 @@ export function Dialog({ }: DialogProps) {
          const l = x0, r = l + WIDTH, t = y0, b = t + HEIGHT;
          const inFrame = l <= x && x <= r && t <= y && y <= b;
 
-         console.log(inFrame, "(frame)");
-         console.log(l, r, t, b)
-         console.log(x, y);
+         // console.log(inFrame, "(frame)");
+         // console.log(l, r, t, b)
+         // console.log(x, y);
          return inFrame;
       }
 
       const f = (e: MouseEvent) => {
          const x = e.clientX, y = e.clientY;
          if (!active || !isInFrame(x, y)) {
-            // console.log('postMessage to ', window.parent.location.href);
-            // console.log('which is ', document.referrer);
 
             window.parent.postMessage({ action: DialogAction.DisablePointer }, REFERRER);
-            // window.parent.postMessage({ action: DialogAction.DisablePointer }, document.referrer);
          }
       }
       document.body.addEventListener('mousemove', f);
@@ -253,7 +247,6 @@ export function Dialog({ }: DialogProps) {
 
          // ! side effect
          getStorage('histories').then(histories => {
-            // todo: order of history
             console.log('prev histories: ', histories);
 
             const timeStamp = Date.now();
@@ -261,6 +254,10 @@ export function Dialog({ }: DialogProps) {
                histories = [{ courseId1, timeStamp }];
             if (histories.findIndex(h => h.courseId1 === courseId1) === -1)
                histories = [...histories, { courseId1, timeStamp }];
+            else {
+               const idx = histories.findIndex(h => h.courseId1 === courseId1);
+               histories[idx].timeStamp = timeStamp;
+            }
             setStorage({ 'histories': histories })
          })
       }
@@ -271,7 +268,8 @@ export function Dialog({ }: DialogProps) {
 
    function goBack() {
       setPageIdx(0);
-      setCourseId1(null);
+      // ? maybe not necessary
+      // setCourseId1(null);
    }
 
 
@@ -303,43 +301,48 @@ export function Dialog({ }: DialogProps) {
          }}
       >
          <InnerContainer pageIdx={pageIdx}>
-            <PageContainer >
+            <PageContainer>
                <div className="flex flex-row items-center justify-between mb-4 ml-2" >
                   <h3 className="  text-xl font-bold  text-[#4e4e4e] ">
                      {APP_TITLE}
                   </h3>
-                  <span
-                     className=" hover:cursor-pointer aspect-square h-6 flex justify-center items-center hover:bg-[#d9d9d9] rounded-full"
-                     onClick={() => setActive(false)}
-                  >
-                     <IconX size={20} stroke={2} color={'#8e8e8e'} />
-                  </span>
+                  <CloseBtn onClick={() => setActive(false)} />
                </div>
                <SearchInput
                   className="mx-2 mb-6"
                   keyword={rawKeyword} setKeyword={setRawKeyword}
                />
-               {rawKeyword
-                  ? loadingItems && !items.length
-                     ? "loading"
-                     : <ItemList title="搜尋結果" items={items} />
-                  : loadingHistories && !histories.length
-                     ? "loading"
-                     : <RecentItemSection
-                        histories={histories}
-                        itemOnClickFactory={itemOnClickFactory}
-                     />
-               }
+               <ScrollArea>
+                  {rawKeyword
+                     ? loadingItems && !items.length
+                        ? "loading"
+                        : <ItemList title="搜尋結果" items={items} />
+                     : loadingHistories && !histories.length
+                        ? "loading"
+                        : <RecentItemsSection
+                           histories={histories}
+                           // items={items.filter(item => item.type === 'recent')}
+                           itemOnClickFactory={itemOnClickFactory}
+                        />
+                  }
+
+                  <ScrollBar orientation="vertical"
+                  // todo: add more padding
+                  />
+               </ScrollArea>
             </PageContainer>
             <PageContainer>
                {courseId1
-                  // @ts-ignore
-                  ? <ChartPage {...{
-                     courseId1,
-                     defaultChartType: 'pie',
-                     defaultClassId: null,
-                     goBack,
-                  }} />
+                  ? <ChartPage
+                     key={courseId1}
+                     {...{
+                        courseId1,
+                        defaultChartType: 'pie',
+                        // defaultClassId: null,
+                        defaultClassKey: null,
+                        close: () => setActive(false),
+                        goBack,
+                     }} />
                   : null
                }
             </PageContainer>
@@ -350,9 +353,10 @@ export function Dialog({ }: DialogProps) {
 }
 
 
+/**
+ * Handling horizontal spacing & overflow of pages.
+ */
 function InnerContainer({ children, pageIdx }: { children: ReactNode[], pageIdx: number }) {
-
-
    return <div className="box-border flex flex-row w-full h-full p-4">
       <div className="w-full overflow-hidden ">
          <div className="box-border flex flex-row items-stretch w-full h-full"
@@ -368,7 +372,7 @@ function InnerContainer({ children, pageIdx }: { children: ReactNode[], pageIdx:
 }
 
 function PageContainer({ children }: { children: ReactNode[] | ReactNode }) {
-   return <div className="min-w-full " >
+   return <div className="flex flex-col min-w-full" >
       {children}
    </div>
 
@@ -387,7 +391,7 @@ function SearchInput(props: SearchInputProps) {
    // todo: outline when focused
 
    return <div
-      className={className + " px-1 border-[#d9d9d9] border-solid border rounded-md flex flex-row items-center"}
+      className={className + " px-1 gap-1 border-[#d9d9d9] border-solid border rounded-md flex flex-row items-center"}
    >
       <IconSearch size={16} stroke={1} color={'#828282'} />
       <input
@@ -399,156 +403,18 @@ function SearchInput(props: SearchInputProps) {
    </div>
 }
 
-type ChartType = 'pie' | 'bar';
-
-type ChartPageProps = {
-   // grades: GradeElement[];
-   courseId1: CourseBase['id1'];
-   defaultClassId: string | null;
-   defaultChartType: ChartType;
-
-   goBack: () => void;
-}
-
-export function ChartPage(props: ChartPageProps) {
-   const { goBack } = props;
-
-   return <>
-      <button onClick={goBack}>back</button>
-   </>
-}
-
-function RecentItemSection({ histories, itemOnClickFactory }: {
-   histories: History[],
-   itemOnClickFactory: (courseId1: CourseBase['id1']) => () => void,
-}) {
-
-   // todo: loading state
-
-   const [items, setItems] = useState<ItemProps[]>([]);
-   useEffect(() => {
-      if (!histories) {
-         setItems([]);
-         return;
-      }
-      console.log('dispatch')
-
-      let cancel = false;
-      const newItems: ItemProps[] = [];
-      Promise.all(histories.sort((a, b) => b.timeStamp - a.timeStamp).map(async history => {
-         const { courseId1: id1 } = history;
-         const [course, error] = await sendRuntimeMessage('service', { funcName: 'getCourseCourseId1Get', args: { id1 } });
-         console.log(course, error);
-         if (course)
-            newItems.push({
-               type: 'recent',
-               course,
-               count: course.grades.length,
-               onClick: itemOnClickFactory(course.id1),
-            });
-      })).then(() => {
-         if (!cancel) {
-            setItems(newItems);
-         } else
-            console.log('canceled, not set');
-
-      })
-
-      return () => { console.log('cancel'); cancel = true };
-   }, [histories]);
-
-
-   return <>
-      <ItemList
-         title="最近搜尋"
-         items={items}
-      />
-   </>
-}
-
-type ItemListProps = {
-   title: string,
-   items: ItemProps[],
-
-   // todo: collapse
-   // initialMaxItems: number;
-};
-function ItemList(props: ItemListProps) {
-   const { title, items } = props;
-
-   return <div className="w-full">
-      <h4
-         className="ml-2 text-xs text-[#a6a6a6] mb-2 font-semibold"
-         onClick={() => { console.log('h4') }}
-      >
-         {title}
-      </h4>
-      {items.length ?
-         <ScrollArea className="flex">
-            <ul
-               className="flex flex-col items-stretch"
-            >
-               {
-                  items.map((itemProp, i) => (
-                     <Item {...itemProp} key={`item-${itemProp.course.id1}`} />
-                  ))
-               }
-            </ul>
-         </ScrollArea>
-         :
-         <div
-            className="h-8 flex items-center justify-center text-sm text-[#717171]">
-            尚無紀錄
-         </div>
-         // todo: icon
-      }
-   </div>
-}
-
-type ItemProps = {
-   type: 'normal' | 'recent';
-   course: CourseBase;
-   count: number;
-   onClick: () => void;
-}
-
-function Item(props: ItemProps) {
-   const { type, course, count, onClick } = props;
-
-   // console.log(onClick);
-
-   const iconProps: TablerIconsProps = {
-      size: 16,
-      color: '#717171',
-      stroke: 1.5,
-   };
-
-   return <li
-      className=' hover:cursor-pointer justify-between rounded-md  flex flex-row p-2 m-0 hover:bg-[#dfdfdf] hover:bg-opacity-[.40]'
+export function CloseBtn({ onClick, className, ...props }: { onClick: () => void } & React.ComponentProps<'span'>) {
+   return <span
+      className={cn(
+         " hover:cursor-pointer aspect-square h-6 flex justify-center items-center hover:bg-[#d9d9d9] rounded-full",
+         className
+      )}
       onClick={onClick}
    >
-      <div className="flex flex-row items-center p-0 m-0">
-         <span className="p-0 m-0 mr-2">
-            {type === 'normal'
-               ? <IconBook2 {...iconProps} />
-               : <IconHistory {...iconProps} />
-            }
-         </span>
-         <span className="mr-1 align-middle text-[#717171] text-sm"> {course.title} </span>
-         <span className="align-middle text-[#cccccc] text-xs">{course.id1}</span>
-      </div>
-      <div className=" text-[#717171] text-xs align-middle flex flex-row items-center">
-         {count} 個班次
-      </div>
-   </li>
+      <IconX size={20} stroke={2} color={'#8e8e8e'} />
+   </span>
 }
 
-
-function Divider() {
-   return <>
-      <div className="h-0 border-b border-solid border-b-black"></div>
-   </>
-}
 
 const rootEle = document.querySelector("#root")!;
 const dialogRoot = createRoot(rootEle);

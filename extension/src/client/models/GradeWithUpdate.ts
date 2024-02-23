@@ -27,11 +27,11 @@ export type GradeWithUpdate = {
     /**
      * '班次'
      */
-    class_id?: string;
+    class_id: string;
     /**
      * The lecturer.
      */
-    lecturer?: string;
+    lecturer: string;
     course: CourseBase;
     update: UpdateBase;
 };

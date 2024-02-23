@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CourseRead } from '../models/CourseRead';
+import type { CourseReadWithGrade } from '../models/CourseReadWithGrade';
 import type { CourseSuggestion } from '../models/CourseSuggestion';
 import type { GradeElement } from '../models/GradeElement';
 import type { GradeWithUpdate } from '../models/GradeWithUpdate';
@@ -380,14 +380,14 @@ export class DefaultService {
     }
     /**
      * Get Course
-     * @returns CourseRead Successful Response
+     * @returns CourseReadWithGrade Successful Response
      * @throws ApiError
      */
     public static getCourseCourseId1Get({
         id1,
     }: {
         id1: string,
-    }): CancelablePromise<CourseRead> {
+    }): CancelablePromise<CourseReadWithGrade> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/course/{id1}',

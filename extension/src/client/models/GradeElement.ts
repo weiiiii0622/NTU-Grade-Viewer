@@ -30,11 +30,11 @@ export type GradeElement = {
     /**
      * '班次'
      */
-    class_id?: string;
+    class_id: string;
     /**
      * The lecturer.
      */
-    lecturer?: string;
+    lecturer: string;
     course: CourseBase;
     /**
      * A list of segments. The segments are expected to be disjoint, and taking up the whole [0, 9] range. The sum is expected to be (nearly) 100.
