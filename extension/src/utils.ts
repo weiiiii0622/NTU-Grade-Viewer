@@ -171,7 +171,7 @@ export { submitPage };
 /*                                Grade Related                               */
 /* -------------------------------------------------------------------------- */
 
-export const GRADES = ["F", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+"];
+export const GRADES = ["F", "C⁻", "C", "C⁺", "B⁻", "B", "B⁺", "A⁻", "A", "A⁺"];
 
 interface IFetchGradeResponse {
    data?: IGradeChartTooltipData[];

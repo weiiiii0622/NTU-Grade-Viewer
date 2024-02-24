@@ -3,3 +3,5 @@ node_modules
 data/sql/mysql
 .env
 .vscode/
+
+NTU_GRADE_VIEWER

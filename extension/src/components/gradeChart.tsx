@@ -48,6 +48,7 @@ const sizing = {
 	},
 };
 
+type TriggerOptions = 'item' | 'axis' | 'none';
 
 const getArcLabel = (params: DefaultizedPieValueType): string => {
 	return `${params.value!}%`;
@@ -57,13 +58,16 @@ const valueFormatter = (params: number) => { return `${params}%` };
 
 export const GradeChart: React.FC<IScoreChartProps> = ({ grades, defaultTitle, width, height }) => {
 
-	const [graphType, setGraphType] = React.useState<GradeChartType>(GradeChartType.Pie);
+	const [graphType, setGraphType] = useState<GradeChartType>(GradeChartType.Pie);
 	const [datas, setDatas] = useState<IChartData[]>(grades[0].datas);
 	const [title, setTitle] = useState<string | null>(grades[0].title);
 	const [lecturer, setLecturer] = useState<string | null>(grades[0].lecturer);
 	const [semester, setSemester] = useState<string | null>(grades[0].semester);
 	const [class_id, setClass_id] = useState<string | null>(grades[0].class_id);
 	const [value, setValue] = useState<number>(0);
+
+	// For Chart Tooltip Hover Bug
+	const [tooltipTrigger, setTooltipTrigger] = useState<TriggerOptions>('item');
 
 
 	const handleGradeChartType = (
@@ -118,21 +122,21 @@ export const GradeChart: React.FC<IScoreChartProps> = ({ grades, defaultTitle, w
 					</ToggleButtonGroup>
 				</Box>
 				<Box sx={{ display: "flex", bgcolor: "#F8F8F8" }}>
-					<IconButton aria-label="before" disabled={value == 0} onClick={() => { setValue((value > 0 ? value - 1 : 0)); }}>
+					<IconButton aria-label="before" disabled={value == 0} onClick={() => { setValue((value > 0 ? value - 1 : 0)); setTooltipTrigger('none'); setTimeout(()=>{setTooltipTrigger('item')}, 300)}}>
 						<NavigateBeforeIcon />
 					</IconButton>
 
 					{
 						graphType == GradeChartType.Pie ?
 							<PieChart
-								{...{ datas, width, height }}
+								{...{ datas, width, height, trigger:tooltipTrigger }}
 							/>
 							:
 							<BarChart
-								{...{ datas, width, height }}
+								{...{ datas, width, height, trigger:tooltipTrigger }}
 							/>
 					}
-					<IconButton aria-label="next" disabled={value == grades.length - 1} onClick={() => { setValue((value < grades.length - 1 ? value + 1 : value)); }}>
+					<IconButton aria-label="next" disabled={value == grades.length - 1} onClick={() => { setValue((value < grades.length - 1 ? value + 1 : value)); setTooltipTrigger('none'); setTimeout(()=>{setTooltipTrigger('item')}, 300) }}>
 						<NavigateNextIcon />
 					</IconButton>
 				</Box>
@@ -143,11 +147,12 @@ export const GradeChart: React.FC<IScoreChartProps> = ({ grades, defaultTitle, w
 }
 
 export function PieChart({
-	datas, width, height
+	datas, width, height, trigger
 }: {
 	datas: IChartData[],
 	width: number,
 	height: number,
+	trigger?: TriggerOptions
 }) {
 	return <MuiPieChart
 		series={[
@@ -181,6 +186,7 @@ export function PieChart({
 				itemGap: 10,
 			},
 		}}
+		tooltip={{trigger: trigger}}
 		width={width}
 		height={height}
 		{...sizing}
@@ -188,11 +194,12 @@ export function PieChart({
 }
 
 export function BarChart({
-	datas, width, height
+	datas, width, height, trigger
 }: {
 	datas: IChartData[],
 	width: number,
 	height: number,
+	trigger?: TriggerOptions
 }) {
 	return <MuiBarChart
 		// @ts-ignore
@@ -211,6 +218,7 @@ export function BarChart({
 		// 	},
 		// ]}
 		slotProps={{ legend: { hidden: true } }}
+		tooltip={{trigger: trigger}}
 		sx={{
 			[`.${axisClasses.left} .${axisClasses.label}`]: {
 				transform: 'translate(-0px, 0)',
