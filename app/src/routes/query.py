@@ -62,6 +62,8 @@ def _query_grades(session: Session, query: dict):
                     # TODO: modify exception
                     raise Exception()
 
+            # print(key, value, course)
+
             if not course:
                 return []
             grades = [get_grade_element(grade) for grade in course.grades]
@@ -90,6 +92,7 @@ def query_grades(
 def query_grades_batch(
     *, session: Session = Depends(get_session), queries: list[dict]
 ) -> list[list[GradeElement]]:
+    open("log", "+a").write(f"hi {queries}\n")
     return [_query_grades(session, query) for query in queries]
 
 

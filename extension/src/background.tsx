@@ -1,9 +1,12 @@
-import { ServiceError, addMessageListener, getStorage, sendRuntimeMessage, sendTabMessage, setStorage } from "./api";
+import { GetResponseType, GetServiceArgs, GetServiceResponse, MessageHandler, RuntimeMessageMap, ServiceError, ServiceFuncName, addMessageListener, getStorage, sendRuntimeMessage, sendTabMessage, setStorage } from "./api";
 import { ApiError, DefaultService, OpenAPI } from "./client";
+import { QueryGradeBatcher } from "./queryGradeBatcher";
+import { serviceHandler } from "./serviceHandler";
 import { injectContentScriptIfNotRunning } from "./utils";
 
 OpenAPI['BASE'] = APP_URL
 
+console.log("background");
 
 // todo: notification, omnibox, commands
 
@@ -47,37 +50,50 @@ addMessageListener('session_id', async (msg, sender) => {
 
 /* ----------------------------- Service Handler ---------------------------- */
 
-addMessageListener('service', async (msg, sender) => {
 
-   const { funcName, args } = msg;
+global.batcher = new QueryGradeBatcher();
+addMessageListener('service', serviceHandler);
 
-   const func = DefaultService[funcName];
-   let token = await getStorage('token');
-   if (token)
-      token = token.replaceAll('=', '%3D')
 
-   console.log(`service: ${funcName}`)
+// addMessageListener('service', async (msg, sender) => {
 
-   try {
-      const response = await func({ ...args, xToken: token } as any);
+//    const { funcName, args } = msg;
 
-      console.log(`response: ( ${response} )`)
+//    const func = DefaultService[funcName];
+//    let token = await getStorage('token');
+//    if (token)
+//       token = token.replaceAll('=', '%3D')
 
-      if (typeof response === 'object' && 'token' in response) {
-         const { token } = response;
-         await setStorage({ token })
-      }
+//    console.log(`service: ${funcName}`)
 
-      return [response, null] as const;
-   } catch (e) {
-      if (e instanceof ApiError) {
-         return [null, { status: e.status, response: e.body } as ServiceError] as const;
-      }
-      else {
-         return [null, { status: 400, response: { detail: `UnhandledError: ${e}` } }] as const;
-      }
-   }
-})
+//    try {
+//       // const response = funcName === 'queryGradesQueryGet'
+//       //    ? await batcher.addTask(args)
+//       //    : await func({ ...args, xToken: token } as any);
+
+
+//       if (funcName === 'queryGradesQueryGet')
+//          console.log(args, await batcher.addTask(args));
+//       const response = funcName === 'queryGradesQueryGet'
+//       await func({ ...args, xToken: token } as any);
+
+//       console.log(`response: ( ${response} )`)
+
+//       if (typeof response === 'object' && 'token' in response) {
+//          const { token } = response;
+//          await setStorage({ token })
+//       }
+
+//       return [response, null] as const;
+//    } catch (e) {
+//       if (e instanceof ApiError) {
+//          return [null, { status: e.status, response: e.body } as ServiceError] as const;
+//       }
+//       else {
+//          return [null, { status: 400, response: { detail: `UnhandledError: ${e}` } }] as const;
+//       }
+//    }
+// })
 
 
 /* ---------------------- Inject Script When Activated ---------------------- */

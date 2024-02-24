@@ -179,7 +179,7 @@ class GradeBase(SQLModel):
         )
 
     @model_validator(mode="after")
-    def check_passwords_match(self) -> Self:
+    def check_passwords_match(self) -> "Self":
         if not self.id:
             self.id = GradeBase.get_id(self)
         elif self.id != GradeBase.get_id(self):
@@ -240,7 +240,6 @@ class Update(UpdateBase, table=True):
 
     grade_id: int = Field(foreign_key="grade.id")
     grade: Grade = Relationship(back_populates="updates")
-
 
 
 class GradeWithSegments(GradeBase):
