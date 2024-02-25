@@ -84,6 +84,8 @@ function getDialogPosition(): [number, number] {
    return [x, y];
 }
 
+// todo: maybe use snackbar for initial loading
+
 // todo: refactor
 
 const frame = document.createElement('iframe');
@@ -127,6 +129,8 @@ window.addEventListener('mousemove', (e => {
    const x = e.clientX, y = e.clientY;
    const inFrame = isInFrame(x, y);
    frame.style.pointerEvents = dialogActive && inFrame ? 'auto' : 'none';
+   if (dialogActive && inFrame)
+      document.body.style.overflow = 'hidden';
 }));
 
 // frame.addEventListener('mousemove', e => {
@@ -135,10 +139,25 @@ window.addEventListener('mousemove', (e => {
 //    frame.style.pointerEvents = inFrame ? 'auto' : 'none';
 // })
 
+const frameURL = chrome.runtime.getURL('dialog.html');
+
+const blurEvents: (keyof WindowEventMap)[] = [
+   'click', 'scroll'
+];
+for (let name of blurEvents) {
+   window.addEventListener(name, e => {
+      console.log('window', name)
+      if (frame.style.pointerEvents === 'none')
+         frame.contentWindow?.postMessage('close', frameURL);
+      else
+         e.preventDefault();  // not working for scroll
+   })
+}
+
 const handler = (msg: TabMessageMap['dialog']['msg']) => {
    const position = getDialogPosition();
    //console.log('dialog')
-   frame.contentWindow?.postMessage({ ...msg, position }, chrome.runtime.getURL("dialog.html"));
+   frame.contentWindow?.postMessage({ ...msg, position }, frameURL);
 }
 let ready = false;
 // type MessageAction = typeof DIALOG_POSITION | typeof DIALOG_READY;
@@ -165,6 +184,7 @@ window.addEventListener('message', (e: MessageEvent<{ action: DialogAction, posi
             break;
          case DialogAction.DisablePointer:
             frame.style.pointerEvents = 'none';
+            document.body.style.overflow = 'scroll';
             break;
          case DialogAction.Active:
             const { active } = e.data;
@@ -297,6 +317,8 @@ async function searchPageFeature() {
 }
 
 /* ---------------------------- Register Feature ---------------------------- */
+
+console.time('snack')
 
 function registerFeature(fn: () => void, pattern: string | RegExp) {
    let previousUrl = "";

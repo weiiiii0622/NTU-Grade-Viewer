@@ -2,6 +2,10 @@
 
 A chrome plugin for the purpose of showing each course's score distribution on the site "台大課程網"
 
+## Important!!
+
+If existing storage type is changed, then should clearStorage in next update.
+
 ## How to run
 
 ### App
@@ -47,12 +51,14 @@ $ mysqlsh
 
 If you don't want to run app with docker, just comment the `app` service and run `python app/app.py` as usual.
 
-The data stored in MySQL is mounted on `./data/sql/mysql`, meaning that it is persistent. 
+The data stored in MySQL is mounted on `./data/sql/mysql`, meaning that it is persistent.
 
 #### `init.sql`
 
 I have not figured out exactly how it works, but if you update it, then perhaps you have to run
+
 ```bash
 sudo rm ./data/sql/mysql/* -rf
 ```
+
 to make `init.sql` run.

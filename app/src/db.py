@@ -35,6 +35,10 @@ def db_init():
         SQLModel.metadata.create_all(engine)
     except Exception as e:
         engine = None
+        open(
+            "error_",
+            "+w",
+        ).write(str(e))
         raise DatabaseConnectionError()
 
 

@@ -61,6 +61,10 @@ export function Item(props: ItemProps) {
         stroke: 1.5,
     };
 
+    // todo: title truncate
+    // todo: show lecturers
+    // todo: add space between en & zh
+
     return <li
         className=' hover:cursor-pointer justify-between rounded-md  flex flex-row p-2 m-0 hover:bg-[#dfdfdf] hover:bg-opacity-[.40]'
         onClick={onClick}

@@ -1,15 +1,16 @@
 /**
  * Found out chrome.sidePanel is actually more suitable for this LOL 🤡
  */
+import { ErrorBoundary, ErrorBoundaryContext } from "react-error-boundary";
 import { } from './foo'
 
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { History, getStorage, sendRuntimeMessage, setStorage } from "../api";
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { CourseBase, CourseSuggestion } from "../client";
 import { useStorage } from "../hooks/useStorage";
 import { IconSearch, IconX } from '@tabler/icons-react';
-import { ScrollArea, ScrollBar } from "../../@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "./lib/scroll-area";
 
 import "../style.css";
 import { createRoot } from "react-dom/client";
@@ -29,6 +30,8 @@ import { ItemList, ItemProps } from "./itemList";
 import { ChartPage } from "./chartPage";
 import { RecentItemsSection } from './recentItemsSection';
 import { cn } from '../components/shadcn-ui/lib';
+import { Error } from "./error";
+import { Loading } from "./loading";
 
 /* -------------------------------- Position -------------------------------- */
 
@@ -47,22 +50,34 @@ function transformDialogPosition(pos: [number, number]): [Direction, [number, nu
 
 /* ---------------------------------- Hooks --------------------------------- */
 
+const KEYWORD_TIMEOUT = 500  // ms  
+const MAX_DELAY = 2000;  // ms 
+
+export type ItemOnClickProps = {
+   course: CourseBase;
+   classCount: number;
+}
+
 function useItems(
-   { histories, rawKeyword, onClickFactory }: { histories: History[], rawKeyword: string, onClickFactory: (courseId1: CourseBase['id1']) => () => void }
+   { histories, rawKeyword, onClickFactory }: { histories: History[], rawKeyword: string, onClickFactory: (props: ItemOnClickProps) => () => void }
 ): [boolean, ItemProps[]] {
 
    const [loading, setLoading] = useState(true);
    const [courses, setItems] = useState<CourseSuggestion[]>([]);
+
+
+   const [keyword, setKeyword] = useState('');
    useEffect(() => {
-      if (!rawKeyword) {
+      if (!keyword) {
+         console.log('keyword empty; ', rawKeyword);
          setItems([]);
-         setLoading(false);
+         setLoading(!!rawKeyword);
          return;
       }
 
       let cancel = false;
       setLoading(true);
-      sendRuntimeMessage('service', { funcName: 'getSuggestionQuerySuggestionGet', args: { keyword: rawKeyword } }).then(
+      sendRuntimeMessage('service', { funcName: 'getSuggestionQuerySuggestionGet', args: { keyword: keyword } }).then(
          ([_grades, error]) => {
             if (cancel)
                return;
@@ -73,20 +88,40 @@ function useItems(
          }
       )
       return () => { cancel = true; setLoading(false); }
+   }, [keyword]);
+
+   const curTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+   const changeStart = useRef<number | null>(null);
+   useEffect(() => {
+      if (!keyword)
+         setLoading(!!rawKeyword);
+      if (!curTimeout.current && rawKeyword !== keyword)
+         setLoading(true);
+
+      if (curTimeout.current)
+         clearTimeout(curTimeout.current);
+
+      curTimeout.current = setTimeout(() => {
+         setKeyword(rawKeyword);
+         curTimeout.current = null;
+         changeStart.current = null;
+      }, KEYWORD_TIMEOUT);
+
+      if (!changeStart.current)
+         changeStart.current = Date.now();
+      if (Date.now() - changeStart.current >= MAX_DELAY) {
+         setKeyword(rawKeyword);
+         changeStart.current = null;
+      }
+
    }, [rawKeyword]);
 
-
-   // console.log('course: ')
-   // console.log(courses, courses.sort(cmp));
-   // console.log(courses.map(c => findHistory(c)));
-
+   console.log(keyword);
 
    return [loading, getSortedCourses(courses, histories).map(course => ({
       type: isRecent(course, histories) ? 'recent' : 'normal',
-      course, count: course.count, onClick: onClickFactory(course.id1),
+      course, count: course.count, onClick: onClickFactory({ course, classCount: course.count }),
    }))]
-   // console.log(items);
-   // return items;
 
    // todo: delay
 }
@@ -100,11 +135,11 @@ const DialogWrapper = animated(styled.div`
     box-sizing: border-box;
     position: absolute;
 
-    background: rgba(255,255,255,0.99);
-    border:  #adadad solid 1px;
+    background: rgba(255,255,255,0.5);
+    border:  #c7c7c7 solid 1px;
     border-radius: 15px;
     box-shadow: 0px 4px 52.8px 4px rgba(0,0,0,0.09);
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(14px);
     
     display: flex;
     align-items: stretch;
@@ -128,7 +163,13 @@ export function Dialog({ }: DialogProps) {
 
 
    useEffect(() => {
-      const handler = ({ position, selection }: DialogMessage) => {
+      const handler = (msg: DialogMessage) => {
+         if (typeof msg === 'string') {
+            if (msg === 'close')
+               setActive(false);
+            return;
+         }
+         const { position, selection } = msg;
          console.log('dialog')
          console.log(position)
          setActive(true);
@@ -239,23 +280,29 @@ export function Dialog({ }: DialogProps) {
    /* ------------------------------- Result Page ------------------------------ */
 
    const [courseId1, setCourseId1] = useState<CourseBase['id1'] | null>(null);
+   const [title, setTitle] = useState<string | null>(null);
 
-   function itemOnClickFactory(courseId1: CourseBase['id1']) {
+   function itemOnClickFactory(props: ItemOnClickProps) {
       return () => {
+         const { classCount, course } = props;
+         const { id1: courseId1, title } = course;
+
          setPageIdx(1);
          setCourseId1(courseId1);
+         setTitle(title);
 
          // ! side effect
          getStorage('histories').then(histories => {
             console.log('prev histories: ', histories);
 
             const timeStamp = Date.now();
+            const newHistory: History = { course, classCount, timeStamp };
             if (!histories)
-               histories = [{ courseId1, timeStamp }];
-            if (histories.findIndex(h => h.courseId1 === courseId1) === -1)
-               histories = [...histories, { courseId1, timeStamp }];
+               histories = [newHistory];
+            if (histories.findIndex(h => h.course.id1 === courseId1) === -1)
+               histories = [...histories, newHistory];
             else {
-               const idx = histories.findIndex(h => h.courseId1 === courseId1);
+               const idx = histories.findIndex(h => h.course.id1 === courseId1);
                histories[idx].timeStamp = timeStamp;
             }
             setStorage({ 'histories': histories })
@@ -285,6 +332,9 @@ export function Dialog({ }: DialogProps) {
    //    setPosition([window.innerWidth / 2 - WIDTH, window.innerHeight / 2 - HEIGHT]);
    // }, []);
 
+   const contentLoading = (loadingItems && !items.length) ||
+      loadingHistories && !histories.length;
+
 
    return (
       <DialogWrapper
@@ -300,53 +350,56 @@ export function Dialog({ }: DialogProps) {
             ...spring
          }}
       >
-         <InnerContainer pageIdx={pageIdx}>
-            <PageContainer>
-               <div className="flex flex-row items-center justify-between mb-4 ml-2" >
-                  <h3 className="  text-xl font-bold  text-[#4e4e4e] ">
-                     {APP_TITLE}
-                  </h3>
-                  <CloseBtn onClick={() => setActive(false)} />
-               </div>
-               <SearchInput
-                  className="mx-2 mb-6"
-                  keyword={rawKeyword} setKeyword={setRawKeyword}
-               />
-               <ScrollArea>
-                  {rawKeyword
-                     ? loadingItems && !items.length
-                        ? "loading"
-                        : <ItemList title="搜尋結果" items={items} />
-                     : loadingHistories && !histories.length
-                        ? "loading"
-                        : <RecentItemsSection
-                           histories={histories}
-                           // items={items.filter(item => item.type === 'recent')}
-                           itemOnClickFactory={itemOnClickFactory}
-                        />
-                  }
-
-                  <ScrollBar orientation="vertical"
-                  // todo: add more padding
+         <ErrorBoundary fallback={<Error />}>
+            <InnerContainer pageIdx={pageIdx}>
+               <PageContainer>
+                  <div className="flex flex-row items-center justify-between mb-4 ml-2" >
+                     <h3 className="  text-xl font-bold  text-[#4e4e4e] ">
+                        {APP_TITLE}
+                     </h3>
+                     <CloseBtn onClick={() => setActive(false)} />
+                  </div>
+                  <SearchInput
+                     className="mx-2 mb-6"
+                     keyword={rawKeyword} setKeyword={setRawKeyword}
                   />
-               </ScrollArea>
-            </PageContainer>
-            <PageContainer>
-               {courseId1
-                  ? <ChartPage
-                     key={courseId1}
-                     {...{
-                        courseId1,
-                        defaultChartType: 'pie',
-                        // defaultClassId: null,
-                        defaultClassKey: null,
-                        close: () => setActive(false),
-                        goBack,
-                     }} />
-                  : null
-               }
-            </PageContainer>
-         </InnerContainer>
+                  {contentLoading
+                     ? <Loading />
+                     : <ScrollArea className='pr-4 '>
+                        {rawKeyword
+                           ? <ItemList title="搜尋結果" items={items} />
+                           : <RecentItemsSection
+                              histories={histories}
+                              // items={items.filter(item => item.type === 'recent')}
+                              itemOnClickFactory={itemOnClickFactory}
+                           />
+                        }
+
+                        <ScrollBar orientation="vertical"
+                           className='w-2 '
+                        // todo: add more padding
+                        />
+                     </ScrollArea>
+                  }
+               </PageContainer>
+               <PageContainer>
+                  {courseId1 && title
+                     ? <ChartPage
+                        key={courseId1}
+                        {...{
+                           title,
+                           courseId1,
+                           defaultChartType: 'pie',
+                           // defaultClassId: null,
+                           defaultClassKey: null,
+                           close: () => setActive(false),
+                           goBack,
+                        }} />
+                     : null
+                  }
+               </PageContainer>
+            </InnerContainer>
+         </ErrorBoundary>
       </DialogWrapper>
    );
 
@@ -391,7 +444,7 @@ function SearchInput(props: SearchInputProps) {
    // todo: outline when focused
 
    return <div
-      className={className + " px-1 gap-1 border-[#d9d9d9] border-solid border rounded-md flex flex-row items-center"}
+      className={className + " min-h-8 has-[input:focus]:ring-1 has-[input:focus]:ring-[#8e8e8e] px-2 gap-1 border-[#d9d9d9] border-solid border rounded-md flex flex-row items-center"}
    >
       <IconSearch size={16} stroke={1} color={'#828282'} />
       <input
