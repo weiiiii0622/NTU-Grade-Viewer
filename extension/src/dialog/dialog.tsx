@@ -131,6 +131,8 @@ function useItems(
 
 /* -------------------------------- Component ------------------------------- */
 
+// todo: responsive position
+
 const DialogWrapper = animated(styled.div`
     box-sizing: border-box;
     position: absolute;
@@ -449,7 +451,7 @@ function SearchInput(props: SearchInputProps) {
       <IconSearch size={16} stroke={1} color={'#828282'} />
       <input
          // {...restProps}
-         className="focus:outline-none  w-full bg-none py-1 text-[#828282] placeholder:text-[#d9d9d9] text-xs  border-none"
+         className="  bg-transparent focus:outline-none  w-full  py-1 text-[#828282] placeholder:text-[#d9d9d9] text-xs  border-none"
          onChange={e => setKeyword(e.target.value)}
          value={keyword}
          placeholder="輸入課程名稱"
