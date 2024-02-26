@@ -451,7 +451,10 @@ function SearchInput(props: SearchInputProps) {
          // {...restProps}
          className="focus:outline-none  w-full bg-none py-1 text-[#828282] placeholder:text-[#d9d9d9] text-xs  border-none"
          onChange={e => setKeyword(e.target.value)}
-         value={keyword} >
+         value={keyword}
+         placeholder="輸入課程名稱"
+      >
+
       </input>
    </div>
 }

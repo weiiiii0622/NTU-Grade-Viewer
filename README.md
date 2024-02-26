@@ -6,6 +6,12 @@ A chrome plugin for the purpose of showing each course's score distribution on t
 
 If existing storage type is changed, then should clearStorage in next update.
 
+## Possible Todos
+
+-   Extend to NTU COOL
+-   Add tests
+-   Bug report `tabs.captureVisibleTab`
+
 ## How to run
 
 ### App
