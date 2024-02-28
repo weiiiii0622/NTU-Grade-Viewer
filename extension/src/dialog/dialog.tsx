@@ -18,7 +18,7 @@ import { DialogMessage, addDialogMessageHandler, getSortedCourses, isRecent } fr
 import { animated, config, useSpring } from "@react-spring/web";
 
 const REFERRER = document.referrer || '*';
-console.log("Referrer: ", REFERRER)
+//console.log("Referrer: ", REFERRER)
 
 /* --------------------------------- Config --------------------------------- */
 
@@ -30,7 +30,7 @@ import { ItemList, ItemProps } from "./itemList";
 import { ChartPage } from "./chartPage";
 import { RecentItemsSection } from './recentItemsSection';
 import { cn } from '../components/shadcn-ui/lib';
-import { Error } from "./error";
+import { Error, AuthError } from "./error";
 import { Loading } from "./loading";
 
 /* -------------------------------- Position -------------------------------- */
@@ -69,7 +69,7 @@ function useItems(
    const [keyword, setKeyword] = useState('');
    useEffect(() => {
       if (!keyword) {
-         console.log('keyword empty; ', rawKeyword);
+         //console.log('keyword empty; ', rawKeyword);
          setItems([]);
          setLoading(!!rawKeyword);
          return;
@@ -116,7 +116,7 @@ function useItems(
 
    }, [rawKeyword]);
 
-   console.log(keyword);
+   //console.log(keyword);
 
    return [loading, getSortedCourses(courses, histories).map(course => ({
       type: isRecent(course, histories) ? 'recent' : 'normal',
@@ -172,8 +172,8 @@ export function Dialog({ }: DialogProps) {
             return;
          }
          const { position, selection } = msg;
-         console.log('dialog')
-         console.log(position)
+         //console.log('dialog')
+         //console.log(position)
          setActive(true);
          setPosition(position)
          setRawKeyword(selection);
@@ -295,7 +295,7 @@ export function Dialog({ }: DialogProps) {
 
          // ! side effect
          getStorage('histories').then(histories => {
-            console.log('prev histories: ', histories);
+            //console.log('prev histories: ', histories);
 
             const timeStamp = Date.now();
             const newHistory: History = { course, classCount, timeStamp };
@@ -321,6 +321,9 @@ export function Dialog({ }: DialogProps) {
       // setCourseId1(null);
    }
 
+   /* ---------------------------------- Auth ---------------------------------- */
+
+   const [isAuth, setIsAuth] = useState<boolean>(false);
 
    /* ----------------------------- Page Animation ----------------------------- */
 
@@ -334,9 +337,15 @@ export function Dialog({ }: DialogProps) {
    //    setPosition([window.innerWidth / 2 - WIDTH, window.innerHeight / 2 - HEIGHT]);
    // }, []);
 
+      
+   let token = getStorage('token').then((data) => {
+      if (data !== undefined) {
+         setIsAuth(true);
+      }
+   });
+
    const contentLoading = (loadingItems && !items.length) ||
       loadingHistories && !histories.length;
-
 
    return (
       <DialogWrapper
@@ -355,33 +364,40 @@ export function Dialog({ }: DialogProps) {
          <ErrorBoundary fallback={<Error />}>
             <InnerContainer pageIdx={pageIdx}>
                <PageContainer>
-                  <div className="flex flex-row items-center justify-between mb-4 ml-2" >
-                     <h3 className="  text-xl font-bold  text-[#4e4e4e] ">
-                        {APP_TITLE}
-                     </h3>
-                     <CloseBtn onClick={() => setActive(false)} />
-                  </div>
-                  <SearchInput
-                     className="mx-2 mb-6"
-                     keyword={rawKeyword} setKeyword={setRawKeyword}
-                  />
-                  {contentLoading
-                     ? <Loading />
-                     : <ScrollArea className='pr-4 '>
-                        {rawKeyword
-                           ? <ItemList title="搜尋結果" items={items} />
-                           : <RecentItemsSection
-                              histories={histories}
-                              // items={items.filter(item => item.type === 'recent')}
-                              itemOnClickFactory={itemOnClickFactory}
-                           />
-                        }
-
-                        <ScrollBar orientation="vertical"
-                           className='w-2 '
-                        // todo: add more padding
+                  {
+                     !isAuth ? 
+                        <AuthError />
+                     :
+                     <>
+                        <div className="flex flex-row items-center justify-between mb-4 ml-2" >
+                           <h3 className="  text-xl font-bold  text-[#4e4e4e] ">
+                              {APP_TITLE}
+                           </h3>
+                           <CloseBtn onClick={() => setActive(false)} />
+                        </div>
+                        <SearchInput
+                           className="mx-2 mb-6"
+                           keyword={rawKeyword} setKeyword={setRawKeyword}
                         />
-                     </ScrollArea>
+                        {contentLoading
+                           ? <Loading />
+                           : <ScrollArea className='pr-4 '>
+                              {rawKeyword
+                                 ? <ItemList title="搜尋結果" items={items} />
+                                 : <RecentItemsSection
+                                    histories={histories}
+                                    // items={items.filter(item => item.type === 'recent')}
+                                    itemOnClickFactory={itemOnClickFactory}
+                                 />
+                              }
+
+                              <ScrollBar orientation="vertical"
+                                 className='w-2 '
+                              // todo: add more padding
+                              />
+                           </ScrollArea>
+                        }
+                     </>
                   }
                </PageContainer>
                <PageContainer>
@@ -427,12 +443,12 @@ function InnerContainer({ children, pageIdx }: { children: ReactNode[], pageIdx:
 }
 
 function PageContainer({ children }: { children: ReactNode[] | ReactNode }) {
+
    return <div className="flex flex-col min-w-full" >
       {children}
    </div>
 
 }
-
 
 
 type SearchInputProps = {
