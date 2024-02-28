@@ -3,7 +3,7 @@ import { waitUntil, submitPage, clamp } from "./utils";
 import { createRoot } from "react-dom/client";
 import { GradeChartLoader } from "./components/gradeChartLoader";
 import { Dialog } from "./dialog/dialog";
-import { TabAction, TabListenerState, TabMessageMap, addMessageListener, getStorage, sendRuntimeMessage } from "./api";
+import { TabAction, TabListenerState, TabMessageMap, addMessageListener, getStorage, setStorage, sendRuntimeMessage } from "./api";
 import { SnackBar, ISnackBarProps } from "./components/snackBar";
 
 // import './style.css';
@@ -146,7 +146,7 @@ const blurEvents: (keyof WindowEventMap)[] = [
 ];
 for (let name of blurEvents) {
    window.addEventListener(name, e => {
-      console.log('window', name)
+      //console.log('window', name)
       if (frame.style.pointerEvents === 'none')
          frame.contentWindow?.postMessage('close', frameURL);
       else
@@ -206,7 +206,7 @@ addMessageListener('submitPage', async (msg, sender) => {
 /* ------------------------------ Popup Message ----------------------------- */
 
 addMessageListener('snackBar', (msg: ISnackBarProps) => {
-   console.log('add snackBar')
+   //console.log('add snackBar')
    const root = document.createElement("div");
    createRoot(root).render(
       <React.StrictMode>
@@ -271,14 +271,29 @@ async function searchPageFeature() {
 
    await waitUntil(() => !!document.querySelector(LIST));
 
-   //const isAuth = checkCookie("NTU_SCORE_VIEWER");
+   // Check Token
    let token = await getStorage('token');
    const isAuth = (token !== undefined);
+
+
+   // Check TTL
+   let TTL = await getStorage("ttl");
+   if ((TTL && TTL.cache_time < Date.now() - TTL.value) || !TTL) {
+      const [ttl, _2] = await sendRuntimeMessage("service", {
+         funcName: "getTtlTimeToLiveGet",
+         args: {},
+      });
+      if (ttl) {
+         await setStorage({
+            ttl: { value: ttl, cache_time: Date.now() },
+         });
+      }
+   }
 
    const optionButton: any = document.querySelectorAll(".mui-tpbkxp")[1];
 
    if (optionButton) {
-      // TODO restore user option setting
+      // TODO: restore user option setting
       let hasModified: boolean[] = [false, false, false, false, false, false, false, false, false, false, false]
       optionButton.click()
       await waitUntil(() => !!document.querySelector(".mui-12efj16"));
@@ -318,7 +333,7 @@ async function searchPageFeature() {
 
 /* ---------------------------- Register Feature ---------------------------- */
 
-console.time('snack')
+//console.time('snack')
 
 function registerFeature(fn: () => void, pattern: string | RegExp) {
    let previousUrl = "";
