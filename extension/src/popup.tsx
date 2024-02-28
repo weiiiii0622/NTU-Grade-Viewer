@@ -55,12 +55,6 @@ const Popup = () => {
       setAnchorEl(null);
    };
 
-   (
-      async () => {
-         console.log("Hi");
-      }
-   )()
-
    return (
       <>
          <Box sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: 'center', alignContent: 'center', alignItems: 'center', bgcolor: "#F8F8F8" }}>
@@ -96,12 +90,12 @@ const Popup = () => {
                         </ListItemIcon>
                         註冊
                      </MenuItem>
-                     <MenuItem onClick={() => handleClose(1)}>
+                     {/* <MenuItem onClick={() => handleClose(1)}>
                         <ListItemIcon>
                            <SearchIcon fontSize="small" />
                         </ListItemIcon>
                         尋找課程
-                     </MenuItem>
+                     </MenuItem> */}
                   </Menu>
                </Box>
                <Box sx={{ width: "80%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center' }}>
@@ -113,7 +107,7 @@ const Popup = () => {
                   </Tooltip>
                </Box>
                <Box sx={{ width: "20%", height: "100%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center' }}>
-                  <Tooltip title="發生未知錯誤時按我重整" arrow>
+                  <Tooltip title="發生未知錯誤時請按我" arrow>
                      <IconButton
                         size="medium"
                         color="inherit"
@@ -141,7 +135,7 @@ const Popup = () => {
 
             {/* Footer */}
             <Box sx={{ width: "100%", height: "10%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center', '& hr': { mx: 1, } }}>
-               <Typography variant="caption" display="block" color={{ color: grey[600] }} fontWeight="bold">
+               <Typography sx={{mr: '10px'}} variant="caption" display="block" color={{ color: grey[600] }} fontWeight="bold">
                   Made By
                </Typography>
                {/* <Tooltip title="您好！" placement="top" arrow
@@ -203,6 +197,10 @@ const Popup = () => {
                      <AdminAvatarWithToolTip enableLink name="Wei" githubId="weiiiii0622" toolTipProps={{ title: 'Wei, NTU B10 CSIE' }} presetIdx={0} />
                   </>
                }
+               <Divider orientation="vertical" flexItem />
+               <Link href="https://weiiiii0622.github.io/NTU-Grade-Viewer/About/" target="_blank" underline="hover" variant="caption" fontWeight="bold">
+                  {'關於我們'}
+               </Link>
                <Divider orientation="vertical" flexItem />
                <Link href="https://weiiiii0622.github.io/NTU-Grade-Viewer/Tutorial/" target="_blank" underline="hover" variant="caption" fontWeight="bold">
                   {'使用教學'}
