@@ -293,8 +293,9 @@ async function searchPageFeature() {
       });
       if (ttl) {
          await setStorage({
-            ttl: { value: ttl, cache_time: Date.now() },
+            ttl: { value: ttl * 1000, cache_time: Date.now() },
          });
+         console.log("Set TTL", ttl);
       }
    }
 
