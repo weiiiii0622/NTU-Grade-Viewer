@@ -52,7 +52,7 @@ function ChartWrapper(props: { type: ChartType, segments: Segment[] }) {
         />,
         'bar': <BarChart
             datas={datas}
-            width={180}
+            width={340}
             height={180}
         />
     };
@@ -191,7 +191,7 @@ function InnerChartPage(props: ChartPageProps & { course: CourseReadWithGrade })
     }
 
     function updateClassIdx(classIdx: number) {
-        console.log("cls:", classes, classIdx);
+        //console.log("cls:", classes, classIdx);
         setClassIdx(classIdx);
 
         const gradesFiltered = getGradesFiltered(classes[classIdx]);
@@ -231,7 +231,7 @@ function InnerChartPage(props: ChartPageProps & { course: CourseReadWithGrade })
             'pie': 0,
         }
         if (!(type in chartTypes)) {
-            console.error(`unexpected chart type ${type}`)
+            //console.error(`unexpected chart type ${type}`)
             return;
         }
 
