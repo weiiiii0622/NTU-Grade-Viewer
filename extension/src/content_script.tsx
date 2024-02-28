@@ -1,5 +1,5 @@
 import React from "react";
-import { waitUntil, submitPage, clamp } from "./utils";
+import { waitUntil, submitPage, clamp, rgbToHex } from "./utils";
 import { createRoot } from "react-dom/client";
 import { GradeChartLoader } from "./components/gradeChartLoader";
 import { Dialog } from "./dialog/dialog";
@@ -88,19 +88,25 @@ function getDialogPosition(): [number, number] {
 
 // todo: refactor
 
+function toRgb(s: string): [number, number, number] {
+   try {
+      return s.match(/\((.*)\)/)![1].split(',').slice(0, 3)
+         .map(x => parseInt(x)) as [number, number, number];
+   } catch {
+      return [255, 255, 255];
+   }
+}
+
+
+
+
+const bgColor = rgbToHex(toRgb(window.getComputedStyle(document.body, null)
+   .getPropertyValue('background-color')))
+console.log('bg: ', bgColor);
+
 const frame = document.createElement('iframe');
-frame.src = chrome.runtime.getURL('dialog.html');
+frame.src = chrome.runtime.getURL('dialog.html') + `?bgColor=${encodeURIComponent(bgColor)}`;
 document.body.insertBefore(frame, null);
-const a = styled.div`
-      z-index: 9999;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      background-color: rgba(0,0,0,0);
-   `;
 frame.setAttribute('style', `
    z-index: 9999;
    position: fixed;
@@ -129,8 +135,8 @@ window.addEventListener('mousemove', (e => {
    const x = e.clientX, y = e.clientY;
    const inFrame = isInFrame(x, y);
    frame.style.pointerEvents = dialogActive && inFrame ? 'auto' : 'none';
-   if (dialogActive && inFrame)
-      document.body.style.overflow = 'hidden';
+   // if (dialogActive && inFrame)
+   //    document.body.style.overflow = 'hidden';
 }));
 
 // frame.addEventListener('mousemove', e => {
@@ -142,7 +148,9 @@ window.addEventListener('mousemove', (e => {
 const frameURL = chrome.runtime.getURL('dialog.html');
 
 const blurEvents: (keyof WindowEventMap)[] = [
-   'click', 'scroll'
+   'click',
+   // todo
+   // 'scroll'
 ];
 for (let name of blurEvents) {
    window.addEventListener(name, e => {
@@ -184,7 +192,7 @@ window.addEventListener('message', (e: MessageEvent<{ action: DialogAction, posi
             break;
          case DialogAction.DisablePointer:
             frame.style.pointerEvents = 'none';
-            document.body.style.overflow = 'scroll';
+            // document.body.style.overflow = 'scroll';
             break;
          case DialogAction.Active:
             const { active } = e.data;

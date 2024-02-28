@@ -32,6 +32,7 @@ import { RecentItemsSection } from './recentItemsSection';
 import { cn } from '../components/shadcn-ui/lib';
 import { Error, AuthError } from "./error";
 import { Loading } from "./loading";
+import { hexToRgb, rgbToHsl } from "../utils";
 
 /* -------------------------------- Position -------------------------------- */
 
@@ -137,11 +138,11 @@ const DialogWrapper = animated(styled.div`
     box-sizing: border-box;
     position: absolute;
 
-    background: rgba(255,255,255,0.8);
+    background: rgba(255,255,255,0.85);
     border:  #c7c7c7 solid 1px;
     border-radius: 15px;
-    box-shadow: 0px 4px 52.8px 4px rgba(0,0,0,0.09);
-    backdrop-filter: blur(14px);
+    box-shadow: 0px 4px 52.8px 4px rgba(0,0,0,0.15);
+    backdrop-filter: blur(40px);
     
     display: flex;
     align-items: stretch;
@@ -337,15 +338,46 @@ export function Dialog({ }: DialogProps) {
    //    setPosition([window.innerWidth / 2 - WIDTH, window.innerHeight / 2 - HEIGHT]);
    // }, []);
 
-      
-   let token = getStorage('token').then((data) => {
-      if (data !== undefined) {
-         setIsAuth(true);
-      }
-   });
+
+   if (!isAuth)
+      getStorage('token').then((data) => {
+         if (data !== undefined) {
+            setIsAuth(true);
+         }
+      });
 
    const contentLoading = (loadingItems && !items.length) ||
       loadingHistories && !histories.length;
+
+
+   const bgColor = new URLSearchParams(window.location.search).get('bgColor');
+   let dialogColor: string | undefined;
+   console.log('bgColor: ', bgColor)
+   if (bgColor) {
+      const [h, s, l] = rgbToHsl(hexToRgb(bgColor));
+      console.log('hsl', h, s, l)
+      if (l < 255 * 2 / 3)
+         dialogColor = 'white';
+   }
+
+
+   if (!isAuth)
+      return (
+         <DialogWrapper ref={containerRef} style={{
+            left,
+            top,
+
+            width: WIDTH,
+            height: HEIGHT,
+
+            overflowX: 'hidden',
+            ...spring,
+            backgroundColor: dialogColor,
+         }}>
+            <AuthError />
+         </DialogWrapper>
+      )
+
 
    return (
       <DialogWrapper
@@ -358,47 +390,42 @@ export function Dialog({ }: DialogProps) {
             height: HEIGHT,
 
             overflowX: 'hidden',
-            ...spring
+            ...spring,
+            backgroundColor: dialogColor,
          }}
       >
          <ErrorBoundary fallback={<Error />}>
             <InnerContainer pageIdx={pageIdx}>
                <PageContainer>
-                  {
-                     !isAuth ? 
-                        <AuthError />
-                     :
-                     <>
-                        <div className="flex flex-row items-center justify-between mb-4 ml-2" >
-                           <h3 className="  text-xl font-bold  text-[#4e4e4e] ">
-                              {APP_TITLE}
-                           </h3>
-                           <CloseBtn onClick={() => setActive(false)} />
-                        </div>
-                        <SearchInput
-                           className="mx-2 mb-6"
-                           keyword={rawKeyword} setKeyword={setRawKeyword}
-                        />
-                        {contentLoading
-                           ? <Loading />
-                           : <ScrollArea className='pr-4 '>
-                              {rawKeyword
-                                 ? <ItemList title="搜尋結果" items={items} />
-                                 : <RecentItemsSection
-                                    histories={histories}
-                                    // items={items.filter(item => item.type === 'recent')}
-                                    itemOnClickFactory={itemOnClickFactory}
-                                 />
-                              }
-
-                              <ScrollBar orientation="vertical"
-                                 className='w-2 '
-                              // todo: add more padding
-                              />
-                           </ScrollArea>
+                  <div className="flex flex-row items-center justify-between mb-4 ml-2" >
+                     <h3 className="  text-xl font-bold  text-[#4e4e4e] ">
+                        {APP_TITLE}
+                     </h3>
+                     <CloseBtn onClick={() => setActive(false)} />
+                  </div>
+                  <SearchInput
+                     className="mx-2 mb-6"
+                     keyword={rawKeyword} setKeyword={setRawKeyword}
+                  />
+                  {contentLoading
+                     ? <Loading />
+                     : <ScrollArea className='pr-4 '>
+                        {rawKeyword
+                           ? <ItemList title="搜尋結果" items={items} />
+                           : <RecentItemsSection
+                              histories={histories}
+                              // items={items.filter(item => item.type === 'recent')}
+                              itemOnClickFactory={itemOnClickFactory}
+                           />
                         }
-                     </>
+
+                        <ScrollBar orientation="vertical"
+                           className='w-2 '
+                        // todo: add more padding
+                        />
+                     </ScrollArea>
                   }
+
                </PageContainer>
                <PageContainer>
                   {courseId1 && title

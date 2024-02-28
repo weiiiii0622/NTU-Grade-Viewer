@@ -391,3 +391,43 @@ export function addSpaceBetween(s: string) {
         .replace(/([^\x00-\xFF]+)/g, "$1 ")
         .replace(/\s\s/g, " ");
 }
+
+type Vector3 = [number, number, number];
+
+export function hexToRgb(s: string): Vector3 {
+    if (s.startsWith("#")) s = s.slice(1);
+    return [0, 2, 4].map((i) => s.slice(i, i + 2)).map((x) => parseInt(x, 16)) as Vector3;
+}
+
+export function rgbToHex(c: Vector3): string {
+    return "#" + c.map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * This function is copied from python's `colorsys` module.
+ *
+ * @param color [r, g, b]
+ * @returns [h, s, l]
+ */
+export function rgbToHsl([r, g, b]: Vector3): Vector3 {
+    const maxc = Math.max(r, g, b);
+    const minc = Math.min(r, g, b);
+    const sumc = maxc + minc;
+    const rangec = maxc - minc;
+    const l = sumc / 2.0;
+    if (minc === maxc) return [0.0, 0.0, l];
+
+    let s: number;
+    if (l <= 0.5) s = rangec / sumc;
+    else s = rangec / (2.0 - maxc - minc); // Not always 2.0-sumc: gh-106498.
+    const rc = (maxc - r) / rangec;
+    const gc = (maxc - g) / rangec;
+    const bc = (maxc - b) / rangec;
+
+    let h: number;
+    if (r == maxc) h = bc - gc;
+    else if (g == maxc) h = 2.0 + rc - bc;
+    else h = 4.0 + gc - rc;
+    h = (h / 6.0) % 1.0;
+    return [h, s, l];
+}

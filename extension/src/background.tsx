@@ -115,7 +115,7 @@ chrome.contextMenus.create(
       id: 'all',
       type: 'normal',
       title: `開啟 ${APP_TITLE} 面板`,
-      contexts: ['all'],
+      contexts: ['page', 'frame'],
    }
 )
 

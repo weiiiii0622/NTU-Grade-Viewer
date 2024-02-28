@@ -1,3 +1,4 @@
+from colorsys import rgb_to_hls
 import os
 from datetime import datetime, time
 from typing import Annotated
@@ -110,6 +111,9 @@ def get_root():
 @app.get("/db")
 def db_test():
     return Session(get_engine()).execute(text("SELECT 'HELLO WORLD'")).scalar()
+
+
+rgb_to_hls
 
 
 @app.get("/add-auth/{student_id}")
