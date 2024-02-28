@@ -6,7 +6,7 @@ import { SnackBar, ISnackBarProps } from "./components/snackBar";
 /* ------------------------------ Popup Message ----------------------------- */
 
 addMessageListener('snackBar', (msg: ISnackBarProps) => {
-	console.log('add snackBar')
+	//console.log('add snackBar')
 	const root = document.createElement("div");
 	createRoot(root).render(
 		<React.StrictMode>

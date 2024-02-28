@@ -184,7 +184,7 @@ const fetchGrade = async (
     title: string,
     class_id: string
 ): Promise<[number, IFetchGradeResponse]> => {
-    console.log("fetchGrade params: ", course_id1, course_id2, title, class_id);
+    //console.log("fetchGrade params: ", course_id1, course_id2, title, class_id);
 
     // Check Cache
     const key = `${course_id1}_${course_id2}_${class_id}`;
@@ -204,7 +204,7 @@ const fetchGrade = async (
         },
     });
 
-    console.log(res, err);
+    //console.log(res, err);
 
     // const [res, err] = await sendRuntimeMessage('service', {
     //    funcName: 'getAllGradesGradeAllGet',
@@ -215,7 +215,7 @@ const fetchGrade = async (
     // }
 
     if (err) {
-        console.log("fetchGrade Error: ", err);
+        //console.log("fetchGrade Error: ", err);
         switch (err.status) {
             case 400:
                 return [400, { error: "Bad Request 400" }];
