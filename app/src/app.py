@@ -1,5 +1,5 @@
-from colorsys import rgb_to_hls
 import os
+from colorsys import rgb_to_hls
 from datetime import datetime, time
 from typing import Annotated
 from urllib.parse import quote
@@ -31,7 +31,15 @@ from fastapi import (
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
-from models import Course, CourseReadWithGrade, GradeWithSegments, Id1, SemesterStr, StudentId, User
+from models import (
+    Course,
+    CourseReadWithGrade,
+    GradeWithSegments,
+    Id1,
+    SemesterStr,
+    StudentId,
+    User,
+)
 from pydantic import BaseModel
 from sqlalchemy import create_engine, text
 from sqlmodel import Session, select
@@ -68,8 +76,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-if api_key := os.getenv("APP_ANALYTICS_KEY"):
-    app.add_middleware(Analytics, api_key=api_key)
+if os.getenv("APP_MODE") == 'PROD':
+    if api_key := os.getenv("APP_ANALYTICS_KEY"):
+        app.add_middleware(Analytics, api_key=api_key)
 
 
 for router in routes.ROUTERS:
@@ -111,9 +120,6 @@ def get_root():
 @app.get("/db")
 def db_test():
     return Session(get_engine()).execute(text("SELECT 'HELLO WORLD'")).scalar()
-
-
-rgb_to_hls
 
 
 @app.get("/add-auth/{student_id}")
