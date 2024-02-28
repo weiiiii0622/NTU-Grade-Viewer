@@ -137,7 +137,7 @@ const DialogWrapper = animated(styled.div`
     box-sizing: border-box;
     position: absolute;
 
-    background: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.8);
     border:  #c7c7c7 solid 1px;
     border-radius: 15px;
     box-shadow: 0px 4px 52.8px 4px rgba(0,0,0,0.09);
