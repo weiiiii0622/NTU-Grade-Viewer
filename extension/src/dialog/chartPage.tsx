@@ -57,7 +57,9 @@ function ChartWrapper(props: { type: ChartType, segments: Segment[] }) {
         />
     };
 
-    return <div className="flex items-center justify-between flex-1 w-full p-2">
+    return <div className={clsx(` flex items-center flex-1 w-full p-2`,
+        type === 'pie' ? 'justify-between' : ' justify-center'
+    )}>
         <div className="flex items-center pl-8">
             {chartMap[type]}
         </div>

@@ -11,6 +11,7 @@ If existing storage type is changed, then should clearStorage in next update.
 -   Extend to NTU COOL
 -   Add tests
 -   Bug report `tabs.captureVisibleTab`
+-   Add quick badge for course search items (e.g. '35% A+')
 
 ## How to run
 
