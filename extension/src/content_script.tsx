@@ -149,7 +149,7 @@ const frameURL = chrome.runtime.getURL('dialog.html');
 
 const blurEvents: (keyof WindowEventMap)[] = [
    'click',
-   // todo
+   // todo: add infinite scroll in card container?
    // 'scroll'
 ];
 for (let name of blurEvents) {
