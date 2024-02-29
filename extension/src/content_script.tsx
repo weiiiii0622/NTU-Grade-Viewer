@@ -295,7 +295,7 @@ async function searchPageFeature() {
          await setStorage({
             ttl: { value: ttl * 1000, cache_time: Date.now() },
          });
-         console.log("Set TTL", ttl);
+         // console.log("Set TTL", ttl);
       }
    }
 

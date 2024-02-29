@@ -352,10 +352,10 @@ export function Dialog({ }: DialogProps) {
 
    const bgColor = new URLSearchParams(window.location.search).get('bgColor');
    let dialogColor: string | undefined;
-   console.log('bgColor: ', bgColor)
+   // console.log('bgColor: ', bgColor)
    if (bgColor) {
       const [h, s, l] = rgbToHsl(hexToRgb(bgColor));
-      console.log('hsl', h, s, l)
+      // console.log('hsl', h, s, l)
       if (l < 255 * 2 / 3)
          dialogColor = 'white';
    }
