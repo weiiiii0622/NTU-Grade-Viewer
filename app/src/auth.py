@@ -11,8 +11,8 @@ from fastapi import Cookie, Header, HTTPException, status
 from fastapi.exceptions import RequestValidationError
 from models import User
 from sqlmodel import Session
-from typing_extensions import deprecated
-from utils.general import add_decorator_doc, extract_dict
+
+from utils.route import add_decorator_doc
 
 aes_key = os.getenv("APP_AUTH_KEY", "secret_aes_key").encode()[:16].ljust(16)
 cipher = AES.new(aes_key, AES.MODE_ECB)
@@ -69,7 +69,7 @@ def auth_required(f: Callable):
     def _f(cookie_token: str, x_token: str, *args, **kwargs):
         print("tokens:")
         print(cookie_token, ";", x_token)
-        token = x_token or cookie_token 
+        token = x_token or cookie_token
         token = unquote(token)
         if not validate_token(token):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token")
@@ -139,4 +139,3 @@ def auth_required_dependency(
     token = unquote(token)
     if not validate_token(token):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token")
-

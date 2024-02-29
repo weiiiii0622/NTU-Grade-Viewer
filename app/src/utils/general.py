@@ -10,26 +10,6 @@ def extract_dict(keys: list[Any], d: Mapping[Any, Any]):
     return {k: d[k] for k in keys if k in d}
 
 
-def add_decorator_doc(dec):
-    @wraps(dec)
-    def _dec(f):
-        prefix = f"@{dec.__name__}\n"
-        if (
-            not getattr(f, "__decorated_doc__", None)
-            and f.__doc__
-            # print(getattr(_f,"__decorated_doc__" ))
-            and not f.__doc__.startswith("\n")
-        ):
-            prefix += "\n"
-
-        _f = dec(f)
-        _f.__doc__ = prefix + (_f.__doc__ or "")
-        setattr(_f, "__decorated_doc__", True)
-        return _f
-
-    return _dec
-
-
 a = "現代科學與心靈科學"
 b = "現代科學與心靈科學"
 # print(a==b)  # False
@@ -77,14 +57,3 @@ def edit_distance(s1: str, s2: str) -> int:
                 )  # Replace
 
     return dp[m][n]
-
-
-@add_decorator_doc
-def test_only(f):
-    # TODO: use some special header or ban in PROD mode
-    # todo: not generate openapi
-    @wraps(f)
-    def _f(*args, **kwargs):
-        return f(*args, **kwargs)
-
-    return _f
