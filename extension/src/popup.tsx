@@ -24,18 +24,15 @@ import { RegisterPage } from "./components/registerPage";
 import { SearchPage } from "./components/searchPage";
 
 
-import { removeStorage } from "./api";
+import { removeStorage, sendRuntimeMessage } from "./api";
 import { OpenAPI } from "./client";
-import { injectContentScriptIfNotRunning } from "./utils";
+import { getDataFromURL, injectContentScriptIfNotRunning } from "./utils";
 import { AdminAvatarWithToolTip } from "./components/adminAvatar";
+
+import html2canvas from 'html2canvas';
 
 OpenAPI['BASE'] = APP_URL
 
-/* ------------------------------ Inject Script ----------------------------- */
-
-chrome.tabs.query(({ active: true })).then(([tab]) => {
-   injectContentScriptIfNotRunning(tab.id!);
-})
 
 
 /* -------------------------------- Component ------------------------------- */
@@ -90,6 +87,20 @@ const Popup = () => {
                         </ListItemIcon>
                         註冊
                      </MenuItem>
+                     <MenuItem onClick={async () => {
+                        const canvas = await html2canvas(document.body, { useCORS: true });
+                        const url = canvas.toDataURL("image/jpeg");
+                        sendRuntimeMessage('service', {
+                           funcName: 'reportIssueReportIssuePost', args: {
+                              requestBody: {
+                                 image_data: getDataFromURL(url),
+                              }
+                           }
+                        })
+                        console.log(url);
+                     }}>
+                        截圖
+                     </MenuItem>
                      {/* <MenuItem onClick={() => handleClose(1)}>
                         <ListItemIcon>
                            <SearchIcon fontSize="small" />
@@ -135,7 +146,7 @@ const Popup = () => {
 
             {/* Footer */}
             <Box sx={{ width: "100%", height: "10%", display: "flex", flexDirection: "row", justifyContent: 'center', alignContent: 'center', alignItems: 'center', '& hr': { mx: 1, } }}>
-               <Typography sx={{mr: '10px'}} variant="caption" display="block" color={{ color: grey[600] }} fontWeight="bold">
+               <Typography sx={{ mr: '10px' }} variant="caption" display="block" color={{ color: grey[600] }} fontWeight="bold">
                   Made By
                </Typography>
                {/* <Tooltip title="您好！" placement="top" arrow
@@ -227,3 +238,9 @@ root.render(
    </React.StrictMode>
 );
 
+
+/* ------------------------------ Inject Script ----------------------------- */
+
+chrome.tabs.query(({ active: true })).then(([tab]) => {
+   injectContentScriptIfNotRunning(tab.id!);
+})

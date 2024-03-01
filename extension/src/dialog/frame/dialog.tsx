@@ -1,38 +1,34 @@
 /**
  * Found out chrome.sidePanel is actually more suitable for this LOL 🤡
  */
-import { ErrorBoundary, ErrorBoundaryContext } from "react-error-boundary";
+import { ErrorBoundary } from "react-error-boundary";
 import { } from './foo'
 
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { History, getStorage, sendRuntimeMessage, setStorage } from "../api";
+import { History, getStorage, sendRuntimeMessage, setStorage } from "../../api";
 import styled, { keyframes } from 'styled-components';
-import { CourseBase, CourseSuggestion } from "../client";
-import { useStorage } from "../hooks/useStorage";
-import { IconSearch, IconX } from '@tabler/icons-react';
+import { CourseBase, CourseSuggestion } from "../../client";
+import { useStorage } from "../../hooks/useStorage";
+import { IconPlaylistX, IconSearch, IconX } from '@tabler/icons-react';
 import { ScrollArea, ScrollBar } from "./lib/scroll-area";
 
-import "../style.css";
+import "../../style.css";
 import { createRoot } from "react-dom/client";
-import { DialogMessage, addDialogMessageHandler, getSortedCourses, isRecent } from "./utils";
+import { DialogMessage, addDialogMessageHandler, getSortedCourses, isRecent } from "../utils";
 import { animated, config, useSpring } from "@react-spring/web";
 
 const REFERRER = document.referrer || '*';
-//console.log("Referrer: ", REFERRER)
 
 /* --------------------------------- Config --------------------------------- */
 
-// const WIDTH = 452;
-// const HEIGHT = 525;
-// const GAP = 8;
-import { DIALOG_WIDTH as WIDTH, DIALOG_HEIGHT as HEIGHT, DialogAction } from "../config"
+import { DIALOG_WIDTH as WIDTH, DIALOG_HEIGHT as HEIGHT, DialogAction } from "../../config"
 import { ItemList, ItemProps } from "./itemList";
 import { ChartPage } from "./chartPage";
 import { RecentItemsSection } from './recentItemsSection';
-import { cn } from '../components/shadcn-ui/lib';
+import { cn } from '../../components/shadcn-ui/lib';
 import { Error, AuthError } from "./error";
 import { Loading } from "./loading";
-import { hexToRgb, rgbToHsl } from "../utils";
+import { hexToRgb, rgbToHsl } from "../../utils";
 
 /* -------------------------------- Position -------------------------------- */
 
@@ -40,8 +36,6 @@ enum Direction {
    Up,
    Down,
 };
-
-
 
 function transformDialogPosition(pos: [number, number]): [Direction, [number, number]] {
    const [x, y] = pos;
@@ -134,6 +128,8 @@ function useItems(
 
 // todo: responsive position
 
+// todo
+// IconPlaylistX
 const DialogWrapper = animated(styled.div`
     box-sizing: border-box;
     position: absolute;
@@ -154,6 +150,8 @@ type DialogProps = {
 }
 
 export function Dialog({ }: DialogProps) {
+
+   // todo: draggable
 
    const containerRef = useRef<HTMLDivElement>(null);
 

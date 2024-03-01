@@ -2,7 +2,7 @@ import React from "react";
 import { waitUntil, submitPage, clamp, rgbToHex } from "./utils";
 import { createRoot } from "react-dom/client";
 import { GradeChartLoader } from "./components/gradeChartLoader";
-import { Dialog } from "./dialog/dialog";
+import { Dialog } from "./dialog/frame/dialog";
 import { TabAction, TabListenerState, TabMessageMap, addMessageListener, getStorage, setStorage, sendRuntimeMessage } from "./api";
 import { SnackBar, ISnackBarProps } from "./components/snackBar";
 
@@ -131,6 +131,7 @@ function isInFrame(x: number, y: number) {
    return inFrame;
 }
 
+// todo: use esc to close
 window.addEventListener('mousemove', (e => {
    const x = e.clientX, y = e.clientY;
    const inFrame = isInFrame(x, y);

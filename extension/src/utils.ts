@@ -431,3 +431,12 @@ export function rgbToHsl([r, g, b]: Vector3): Vector3 {
     h = (h / 6.0) % 1.0;
     return [h, s, l];
 }
+
+
+export function getDataFromURL(url: string) {
+    const pattern = /data:image\/jpeg;base64,(.*)/
+    const obj = url.match(pattern);
+    if (obj)
+        return obj[1];
+    return null;
+}

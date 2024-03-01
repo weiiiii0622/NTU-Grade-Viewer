@@ -2,11 +2,9 @@ import { GetResponseType, GetServiceArgs, GetServiceResponse, MessageHandler, Ru
 import { ApiError, DefaultService, OpenAPI } from "./client";
 import { QueryGradeBatcher } from "./queryGradeBatcher";
 import { serviceHandler } from "./serviceHandler";
-import { injectContentScriptIfNotRunning } from "./utils";
+import { getDataFromURL, injectContentScriptIfNotRunning } from "./utils";
 
 OpenAPI['BASE'] = APP_URL
-
-//console.log("background");
 
 // todo: notification, omnibox, commands
 
@@ -118,17 +116,41 @@ chrome.contextMenus.create(
       contexts: ['page', 'frame'],
    }
 )
+chrome.contextMenus.create(
+   {
+      id: 'report',
+      type: 'normal',
+      title: `Report issue`,
+      contexts: ['page', 'frame'],
+   }
+)
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
    if (tab?.url?.includes("chrome://")) {
       return;
    }
 
-   await injectContentScriptIfNotRunning(tab?.id!)
-   // ! fix racing condition
-   sendTabMessage(tab?.id!, 'dialog', { selection: info.selectionText ?? '' });
+   if (info.menuItemId === 'report') {
+      const dataURL = await chrome.tabs.captureVisibleTab();
+      const image_data = getDataFromURL(dataURL);
+      DefaultService.reportIssueReportIssuePost({ requestBody: { image_data } })
+      return;
+   }
+
+   openDialog(tab!, info.selectionText ?? '');
+
 })
 
 
+async function openDialog(tab: chrome.tabs.Tab, selection: string = '') {
+   await injectContentScriptIfNotRunning(tab.id!)
+   sendTabMessage(tab?.id!, 'dialog', { selection });
+}
+
 
 // todo: jump to options on installed.
+
+
+chrome.commands.onCommand.addListener((command, tab) => {
+   openDialog(tab)
+});

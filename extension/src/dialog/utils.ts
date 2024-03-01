@@ -1,7 +1,6 @@
-import { History, TabMessageMap } from "../api";
-import { CourseBase, CourseSuggestion } from "../client";
+import { History } from "../api";
+import { CourseBase } from "../client";
 import { DialogAction } from "../config";
-import { ItemProps } from "./itemList";
 
 // export type DialogMessage = TabMessageMap["dialog"]["msg"];
 export type DialogMessage = { selection: string; position: [number, number] } | "close";

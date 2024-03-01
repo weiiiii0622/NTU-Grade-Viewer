@@ -3,10 +3,6 @@
   "name": "NTU 選課小幫手",
   "description": "A chrome plugin for the purpose of showing each course's score distribution on the site '台大課程網'",
   "version": "1.0",
-  "options_ui": {
-    "page": "options.html",
-    "open_in_tab": true
-  },
   "icons": {
     "16": "icon.png",
     "24": "icon.png",
@@ -38,6 +34,14 @@
       ]
     }
   ],
+  "commands": {
+    "open-dialog": {
+      "suggested_key": {
+        "default": "Alt+G"
+      },
+      "description": "開啟 NTU 選課小幫手搜尋面板"
+    }
+  },
   "background": {
     "service_worker": "js/background.js"
   },
