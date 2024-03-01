@@ -18,7 +18,7 @@ import { DialogMessage, addDialogMessageHandler, getSortedCourses, isRecent } fr
 import { animated, config, useSpring } from "@react-spring/web";
 
 const REFERRER = document.referrer || '*';
-console.log("Referrer: ", REFERRER)
+//console.log("Referrer: ", REFERRER)
 
 /* --------------------------------- Config --------------------------------- */
 
@@ -30,8 +30,9 @@ import { ItemList, ItemProps } from "./itemList";
 import { ChartPage } from "./chartPage";
 import { RecentItemsSection } from './recentItemsSection';
 import { cn } from '../components/shadcn-ui/lib';
-import { Error } from "./error";
+import { Error, AuthError } from "./error";
 import { Loading } from "./loading";
+import { hexToRgb, rgbToHsl } from "../utils";
 
 /* -------------------------------- Position -------------------------------- */
 
@@ -69,7 +70,7 @@ function useItems(
    const [keyword, setKeyword] = useState('');
    useEffect(() => {
       if (!keyword) {
-         console.log('keyword empty; ', rawKeyword);
+         //console.log('keyword empty; ', rawKeyword);
          setItems([]);
          setLoading(!!rawKeyword);
          return;
@@ -116,7 +117,7 @@ function useItems(
 
    }, [rawKeyword]);
 
-   console.log(keyword);
+   //console.log(keyword);
 
    return [loading, getSortedCourses(courses, histories).map(course => ({
       type: isRecent(course, histories) ? 'recent' : 'normal',
@@ -131,15 +132,17 @@ function useItems(
 
 /* -------------------------------- Component ------------------------------- */
 
+// todo: responsive position
+
 const DialogWrapper = animated(styled.div`
     box-sizing: border-box;
     position: absolute;
 
-    background: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.85);
     border:  #c7c7c7 solid 1px;
     border-radius: 15px;
-    box-shadow: 0px 4px 52.8px 4px rgba(0,0,0,0.09);
-    backdrop-filter: blur(14px);
+    box-shadow: 0px 4px 52.8px 4px rgba(0,0,0,0.15);
+    backdrop-filter: blur(40px);
     
     display: flex;
     align-items: stretch;
@@ -170,8 +173,8 @@ export function Dialog({ }: DialogProps) {
             return;
          }
          const { position, selection } = msg;
-         console.log('dialog')
-         console.log(position)
+         //console.log('dialog')
+         //console.log(position)
          setActive(true);
          setPosition(position)
          setRawKeyword(selection);
@@ -293,7 +296,7 @@ export function Dialog({ }: DialogProps) {
 
          // ! side effect
          getStorage('histories').then(histories => {
-            console.log('prev histories: ', histories);
+            //console.log('prev histories: ', histories);
 
             const timeStamp = Date.now();
             const newHistory: History = { course, classCount, timeStamp };
@@ -319,6 +322,9 @@ export function Dialog({ }: DialogProps) {
       // setCourseId1(null);
    }
 
+   /* ---------------------------------- Auth ---------------------------------- */
+
+   const [isAuth, setIsAuth] = useState<boolean>(false);
 
    /* ----------------------------- Page Animation ----------------------------- */
 
@@ -332,8 +338,45 @@ export function Dialog({ }: DialogProps) {
    //    setPosition([window.innerWidth / 2 - WIDTH, window.innerHeight / 2 - HEIGHT]);
    // }, []);
 
+
+   if (!isAuth)
+      getStorage('token').then((data) => {
+         if (data !== undefined) {
+            setIsAuth(true);
+         }
+      });
+
    const contentLoading = (loadingItems && !items.length) ||
       loadingHistories && !histories.length;
+
+
+   const bgColor = new URLSearchParams(window.location.search).get('bgColor');
+   let dialogColor: string | undefined;
+   // console.log('bgColor: ', bgColor)
+   if (bgColor) {
+      const [h, s, l] = rgbToHsl(hexToRgb(bgColor));
+      // console.log('hsl', h, s, l)
+      if (l < 255 * 2 / 3)
+         dialogColor = 'white';
+   }
+
+
+   if (!isAuth)
+      return (
+         <DialogWrapper ref={containerRef} style={{
+            left,
+            top,
+
+            width: WIDTH,
+            height: HEIGHT,
+
+            overflowX: 'hidden',
+            ...spring,
+            backgroundColor: dialogColor,
+         }}>
+            <AuthError />
+         </DialogWrapper>
+      )
 
 
    return (
@@ -347,7 +390,8 @@ export function Dialog({ }: DialogProps) {
             height: HEIGHT,
 
             overflowX: 'hidden',
-            ...spring
+            ...spring,
+            backgroundColor: dialogColor,
          }}
       >
          <ErrorBoundary fallback={<Error />}>
@@ -381,6 +425,7 @@ export function Dialog({ }: DialogProps) {
                         />
                      </ScrollArea>
                   }
+
                </PageContainer>
                <PageContainer>
                   {courseId1 && title
@@ -425,12 +470,12 @@ function InnerContainer({ children, pageIdx }: { children: ReactNode[], pageIdx:
 }
 
 function PageContainer({ children }: { children: ReactNode[] | ReactNode }) {
+
    return <div className="flex flex-col min-w-full" >
       {children}
    </div>
 
 }
-
 
 
 type SearchInputProps = {
@@ -449,7 +494,7 @@ function SearchInput(props: SearchInputProps) {
       <IconSearch size={16} stroke={1} color={'#828282'} />
       <input
          // {...restProps}
-         className="focus:outline-none  w-full bg-none py-1 text-[#828282] placeholder:text-[#d9d9d9] text-xs  border-none"
+         className="  bg-transparent focus:outline-none  w-full  py-1 text-[#828282] placeholder:text-[#d9d9d9] text-xs  border-none"
          onChange={e => setKeyword(e.target.value)}
          value={keyword}
          placeholder="輸入課程名稱"

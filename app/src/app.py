@@ -1,5 +1,4 @@
 import os
-from datetime import datetime, time
 from typing import Annotated
 from urllib.parse import quote
 
@@ -8,7 +7,7 @@ import routes
 import uvicorn
 from api_analytics.fastapi import Analytics
 from auth import get_token
-from db import db_init, get_engine, get_session
+from db import get_engine, get_session
 from dotenv import load_dotenv
 from errors import (
     BadRequestResponse,
@@ -30,28 +29,27 @@ from fastapi import (
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
-from models import Course, CourseReadWithGrade, GradeWithSegments, Id1, SemesterStr, StudentId, User
-from pydantic import BaseModel
-from sqlalchemy import create_engine, text
+from models import (
+    Course,
+    CourseReadWithGrade,
+    GradeWithSegments,
+    Id1,
+    SemesterStr,
+    StudentId,
+    User,
+)
+from sqlalchemy import text
 from sqlmodel import Session, select
-from utils.general import test_only
 from utils.grade import get_grade_element
+from utils.route import admin_required, is_admin, test_only, wrap_router
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "../../.env"), override=True)
 
-if os.getenv("MODE") == "DEV":
-    # os.environ["DB_URL"] = "mysql+pymysql://root:root@db:3306/db"
+if os.getenv("APP_MODE") == "DEV":
     os.environ["APP_URL"] = "http://localhost:5000"
 
 
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     db_init()
-#     yield
-
-
 app = FastAPI(
-    # lifespan=lifespan,
     responses={
         400: {"model": BadRequestResponse},
         401: {"model": UnauthorizedErrorResponse},
@@ -59,6 +57,8 @@ app = FastAPI(
         500: {"model": InternalErrorResponse},
     },
 )
+wrap_router(app.router)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -67,8 +67,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-if api_key := os.getenv("APP_ANALYTICS_KEY"):
-    app.add_middleware(Analytics, api_key=api_key)
+if os.getenv("APP_MODE") == "PROD":
+    if api_key := os.getenv("APP_ANALYTICS_KEY"):
+        app.add_middleware(Analytics, api_key=api_key)
 
 
 for router in routes.ROUTERS:
@@ -102,12 +103,15 @@ def get_TTL() -> int:
 
 
 # ----------------------------------- Test ----------------------------------- #
+
+
 @app.get("/")
 def get_root():
     return "HELLO ROOT"
 
 
 @app.get("/db")
+@test_only
 def db_test():
     return Session(get_engine()).execute(text("SELECT 'HELLO WORLD'")).scalar()
 
@@ -179,10 +183,8 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 
 @app.get("/analytics")
-def get_analytics(admin: Annotated[str, Cookie()]):
-    if not (admin_token := os.getenv("APP_ADMIN")) or admin != admin_token:
-        raise HTTPException(401, "Fxxk off 🤬")
-
+@admin_required
+def get_analytics():
     if api_key := os.getenv("APP_ANALYTICS_KEY"):
         user_id = requests.get(f"https://www.apianalytics-server.com/api/user-id/{api_key}").text
         user_id = user_id[1:-1].replace("-", "")  # get rid of quote
@@ -203,10 +205,7 @@ else:
 @app.middleware("http")
 async def admin_auth(request: Request, call_next):
     if request.url.path.startswith("/admin"):
-        if (
-            not (admin_token := os.getenv("APP_ADMIN"))
-            or request.cookies.get("admin") != admin_token
-        ):
+        if not is_admin(request.cookies.get("admin")):
             return JSONResponse("You don't belong here 👻", status_code=401)
     response = await call_next(request)
     return response

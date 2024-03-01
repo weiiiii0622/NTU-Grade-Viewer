@@ -121,7 +121,7 @@ export const GradeChart: React.FC<IScoreChartProps> = ({ grades, defaultTitle, w
 						</ToggleButton>
 					</ToggleButtonGroup>
 				</Box>
-				<Box sx={{ display: "flex", bgcolor: "#F8F8F8" }}>
+				<Box sx={{ display: "flex", bgcolor: "#F8F8F8", alignItems: 'center' }}>
 					<IconButton aria-label="before" disabled={value == 0} onClick={() => { setValue((value > 0 ? value - 1 : 0)); setTooltipTrigger('none'); setTimeout(() => { setTooltipTrigger('item') }, 300) }}>
 						<NavigateBeforeIcon />
 					</IconButton>

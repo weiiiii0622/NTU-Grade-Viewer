@@ -19,7 +19,7 @@ export function ItemList(props: ItemListProps) {
     return <div className="w-full">
         <h4
             className="ml-2 text-xs text-[#a6a6a6] mb-2 font-semibold"
-            onClick={() => { console.log('h4') }}
+            //onClick={() => { console.log('h4') }}
         >
             {title}
         </h4>

@@ -52,12 +52,14 @@ function ChartWrapper(props: { type: ChartType, segments: Segment[] }) {
         />,
         'bar': <BarChart
             datas={datas}
-            width={180}
+            width={340}
             height={180}
         />
     };
 
-    return <div className="flex items-center justify-between flex-1 w-full p-2">
+    return <div className={clsx(` flex items-center flex-1 w-full p-2`,
+        type === 'pie' ? 'justify-between' : ' justify-center'
+    )}>
         <div className="flex items-center pl-8">
             {chartMap[type]}
         </div>
@@ -76,6 +78,7 @@ function getSortedSemesters(grades: GradeWithSegments[]): string[] {
     return grades.map(g => g.semester).sort(semesterCompareFn);
 }
 
+// todo: maybe merge same lecturer but different class_id
 type ClassKey = {
     lecturer: string;
     classId: string;
@@ -153,15 +156,12 @@ function InnerChartPage(props: ChartPageProps & { course: CourseReadWithGrade })
 
 
     const [classIdx, setClassIdx] = useState<number>(-1);
-    // const [semester, setSemester] = useState('');
     const [semesterIdx, setSemesterIdx] = useState(-1);
     const [chartType, setChartType] = useState<ChartType>('pie');
 
     const { defaultChartType, defaultClassKey, course } = props;
-
-
-
     const { grades, id1, id2, title } = course;
+
     const classes: ClassKey[] = grades.map(g => ({ classId: g.class_id, lecturer: g.lecturer }))
         .reduce<ClassKey[]>((prev, cur) => {
             return prev.find(cls => cls.classId === cur.classId && cls.lecturer === cur.lecturer)
@@ -191,7 +191,6 @@ function InnerChartPage(props: ChartPageProps & { course: CourseReadWithGrade })
     }
 
     function updateClassIdx(classIdx: number) {
-        console.log("cls:", classes, classIdx);
         setClassIdx(classIdx);
 
         const gradesFiltered = getGradesFiltered(classes[classIdx]);
@@ -201,29 +200,18 @@ function InnerChartPage(props: ChartPageProps & { course: CourseReadWithGrade })
     }
 
     const classKey = classes[classIdx];
-    // console.log(classIdx, classKey);
     const gradesFiltered = getGradesFiltered(classKey);
     const semesters = getSortedSemesters(gradesFiltered);
     const semester = semesters[semesterIdx];
     const activeGrade = gradesFiltered.find(g => g.semester === semester);
 
 
-    // console.log('grades', grades, gradesFiltered)
-    // console.log('classes:', classes);
-    // console.log(classKey);
-    // console.log('semester:', semester);
-
-
-    if (!gradesFiltered || !semesters) {
-        // return <>Error! </>
+    if (!gradesFiltered || !semesters)
         throw 'gg'
-    }
     if (!semester)
         throw 'gg'
-    // return <>Error!</>;
     if (!activeGrade)
         throw 'gg'
-    // return <>Error!</>
 
     function onChartTypeChange(type: string) {
         const chartTypes: Record<ChartType, 0> = {
@@ -231,7 +219,7 @@ function InnerChartPage(props: ChartPageProps & { course: CourseReadWithGrade })
             'pie': 0,
         }
         if (!(type in chartTypes)) {
-            console.error(`unexpected chart type ${type}`)
+            //console.error(`unexpected chart type ${type}`)
             return;
         }
 

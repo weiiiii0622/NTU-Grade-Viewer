@@ -6,7 +6,7 @@ import { injectContentScriptIfNotRunning } from "./utils";
 
 OpenAPI['BASE'] = APP_URL
 
-console.log("background");
+//console.log("background");
 
 // todo: notification, omnibox, commands
 
@@ -32,10 +32,10 @@ addMessageListener('session_id', async (msg, sender) => {
    const TS01c67bb5 = await chrome.cookies.getAll({ domain: '.if190.aca.ntu.edu.tw', name: 'TS01c67bb5' });
    const _ga_X3821T0R42 = await chrome.cookies.getAll({ domain: '.ntu.edu.tw', name: '_ga_X3821T0R42' });
 
-   console.log(_ga);
-   console.log(ASP_NET_SessionId);
-   console.log(TS01c67bb5);
-   console.log(_ga_X3821T0R42);
+   //console.log(_ga);
+   //console.log(ASP_NET_SessionId);
+   //console.log(TS01c67bb5);
+   //console.log(_ga_X3821T0R42);
 
    let cookie = '';
    cookie += `_ga=${_ga.length ? _ga[0].value : ""}; `
@@ -115,7 +115,7 @@ chrome.contextMenus.create(
       id: 'all',
       type: 'normal',
       title: `開啟 ${APP_TITLE} 面板`,
-      contexts: ['all'],
+      contexts: ['page', 'frame'],
    }
 )
 

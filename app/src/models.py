@@ -15,6 +15,9 @@ from pydantic import (
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
+
+# todo: split specific model to corresponding routing file
+
 # ------------------------------- Primary Types ------------------------------ #
 
 # * Course

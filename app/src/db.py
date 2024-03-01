@@ -16,6 +16,16 @@ class DatabaseConnectionError(Exception):
     pass
 
 
+if os.getenv("APP_MODE") == "PROD":
+    DB_URL = os.getenv("DB_URL_INTERNAL", "")
+elif os.getenv("USE_PROD_DB"):
+    DB_URL = os.getenv("DB_URL_EXTERNAL", "")
+elif os.getenv("DOCKER"):
+    DB_URL = "mysql+pymysql://root:root@db:3306/db"
+else:
+    DB_URL = "mysql+pymysql://root:root@db:3333/db"
+
+
 def db_init():
     global engine
     if engine:
@@ -27,8 +37,7 @@ def db_init():
     last_try = time()
 
     try:
-        sql_url = os.getenv("DB_URL", "")
-        print(sql_url)
+        sql_url = DB_URL
 
         engine = create_engine(sql_url, echo=False, pool_size=20, max_overflow=100)
         # SQLModel.metadata.drop_all(engine)  # ! dangerous

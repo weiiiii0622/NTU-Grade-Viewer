@@ -1,9 +1,9 @@
 import React from "react";
-import { waitUntil, submitPage, clamp } from "./utils";
+import { waitUntil, submitPage, clamp, rgbToHex } from "./utils";
 import { createRoot } from "react-dom/client";
 import { GradeChartLoader } from "./components/gradeChartLoader";
 import { Dialog } from "./dialog/dialog";
-import { TabAction, TabListenerState, TabMessageMap, addMessageListener, getStorage, sendRuntimeMessage } from "./api";
+import { TabAction, TabListenerState, TabMessageMap, addMessageListener, getStorage, setStorage, sendRuntimeMessage } from "./api";
 import { SnackBar, ISnackBarProps } from "./components/snackBar";
 
 // import './style.css';
@@ -88,19 +88,25 @@ function getDialogPosition(): [number, number] {
 
 // todo: refactor
 
+function toRgb(s: string): [number, number, number] {
+   try {
+      return s.match(/\((.*)\)/)![1].split(',').slice(0, 3)
+         .map(x => parseInt(x)) as [number, number, number];
+   } catch {
+      return [255, 255, 255];
+   }
+}
+
+
+
+
+const bgColor = rgbToHex(toRgb(window.getComputedStyle(document.body, null)
+   .getPropertyValue('background-color')))
+console.log('bg: ', bgColor);
+
 const frame = document.createElement('iframe');
-frame.src = chrome.runtime.getURL('dialog.html');
+frame.src = chrome.runtime.getURL('dialog.html') + `?bgColor=${encodeURIComponent(bgColor)}`;
 document.body.insertBefore(frame, null);
-const a = styled.div`
-      z-index: 9999;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      background-color: rgba(0,0,0,0);
-   `;
 frame.setAttribute('style', `
    z-index: 9999;
    position: fixed;
@@ -129,8 +135,8 @@ window.addEventListener('mousemove', (e => {
    const x = e.clientX, y = e.clientY;
    const inFrame = isInFrame(x, y);
    frame.style.pointerEvents = dialogActive && inFrame ? 'auto' : 'none';
-   if (dialogActive && inFrame)
-      document.body.style.overflow = 'hidden';
+   // if (dialogActive && inFrame)
+   //    document.body.style.overflow = 'hidden';
 }));
 
 // frame.addEventListener('mousemove', e => {
@@ -142,11 +148,13 @@ window.addEventListener('mousemove', (e => {
 const frameURL = chrome.runtime.getURL('dialog.html');
 
 const blurEvents: (keyof WindowEventMap)[] = [
-   'click', 'scroll'
+   'click',
+   // todo: add infinite scroll in card container?
+   // 'scroll'
 ];
 for (let name of blurEvents) {
    window.addEventListener(name, e => {
-      console.log('window', name)
+      //console.log('window', name)
       if (frame.style.pointerEvents === 'none')
          frame.contentWindow?.postMessage('close', frameURL);
       else
@@ -184,7 +192,7 @@ window.addEventListener('message', (e: MessageEvent<{ action: DialogAction, posi
             break;
          case DialogAction.DisablePointer:
             frame.style.pointerEvents = 'none';
-            document.body.style.overflow = 'scroll';
+            // document.body.style.overflow = 'scroll';
             break;
          case DialogAction.Active:
             const { active } = e.data;
@@ -206,7 +214,7 @@ addMessageListener('submitPage', async (msg, sender) => {
 /* ------------------------------ Popup Message ----------------------------- */
 
 addMessageListener('snackBar', (msg: ISnackBarProps) => {
-   console.log('add snackBar')
+   //console.log('add snackBar')
    const root = document.createElement("div");
    createRoot(root).render(
       <React.StrictMode>
@@ -271,14 +279,30 @@ async function searchPageFeature() {
 
    await waitUntil(() => !!document.querySelector(LIST));
 
-   //const isAuth = checkCookie("NTU_SCORE_VIEWER");
+   // Check Token
    let token = await getStorage('token');
    const isAuth = (token !== undefined);
+
+
+   // Check TTL
+   let TTL = await getStorage("ttl");
+   if ((TTL && TTL.cache_time < Date.now() - TTL.value) || !TTL) {
+      const [ttl, _2] = await sendRuntimeMessage("service", {
+         funcName: "getTtlTimeToLiveGet",
+         args: {},
+      });
+      if (ttl) {
+         await setStorage({
+            ttl: { value: ttl * 1000, cache_time: Date.now() },
+         });
+         // console.log("Set TTL", ttl);
+      }
+   }
 
    const optionButton: any = document.querySelectorAll(".mui-tpbkxp")[1];
 
    if (optionButton) {
-      // TODO restore user option setting
+      // TODO: restore user option setting
       let hasModified: boolean[] = [false, false, false, false, false, false, false, false, false, false, false]
       optionButton.click()
       await waitUntil(() => !!document.querySelector(".mui-12efj16"));
@@ -318,7 +342,7 @@ async function searchPageFeature() {
 
 /* ---------------------------- Register Feature ---------------------------- */
 
-console.time('snack')
+//console.time('snack')
 
 function registerFeature(fn: () => void, pattern: string | RegExp) {
    let previousUrl = "";
