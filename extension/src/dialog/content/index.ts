@@ -3,12 +3,14 @@
 
 import { TabMessageMap, addMessageListener } from "../../api";
 import { clamp, rgbToHex } from "../../utils";
-import { DIALOG_HEIGHT, DIALOG_WIDTH, DIALOG_GAP, DialogAction } from "../config";
+import { DIALOG_HEIGHT, DIALOG_WIDTH, DIALOG_GAP } from "../config";
+import { addContentMessageListener, sendFrameMessage } from "../message";
 
 /* ------------------------------ Global States ----------------------------- */
 
 let dialogActive: boolean = false;
 let dialogPos: [number, number] = [0, 0];
+let ready = false;
 
 let mousePos: [number, number] = [0, 0];
 window.addEventListener('mousemove', (event) => {
@@ -88,7 +90,6 @@ function initFrame() {
     frame.src = frameURL + `?bgColor=${encodeURIComponent(bgColor)}`;
     document.body.insertBefore(frame, null);
     frame.setAttribute('style', `
-   z-index: 9999;
    position: fixed;
    top: 0;
    left: 0;
@@ -99,7 +100,8 @@ function initFrame() {
 `);
 }
 function closeFrame() {
-    frame.contentWindow?.postMessage('close', frameURL);
+    // frame.contentWindow?.postMessage('close', frameURL);
+    sendFrameMessage(frame, 'close', undefined);
     dialogActive = false;
 }
 
@@ -130,8 +132,10 @@ export function initDialog() {
     for (let name of blurEvents) {
         window.addEventListener(name, e => {
             //console.log('window', name)
-            if (frame.style.pointerEvents === 'none')
-                closeFrame();
+            if (frame.style.pointerEvents === 'none') {
+                // todo: toggle this
+                // closeFrame(); 
+            }
             else
                 e.preventDefault();  // not working for scroll
         })
@@ -151,47 +155,62 @@ export function initDialog() {
     }));
 
     // * Handle messages
-    const handler = (msg: TabMessageMap['dialog']['msg']) => {
-        const position = getDialogPosition();
-        //console.log('dialog')
-        frame.contentWindow?.postMessage({ ...msg, position }, frameURL);
-    }
-    let ready = false;
-    // type MessageAction = typeof DIALOG_POSITION | typeof DIALOG_READY;
-    window.addEventListener('message', (e: MessageEvent<{ action: DialogAction, position: [number, number], active: boolean }>) => {
-
-        function assertUnreachable(x: never): never {
-            throw new Error("Didn't expect to get here");
-        }
-
-        // console.log("receive message (content): ", e.data);
-        if (typeof e.data === 'object' && 'action' in e.data) {
-            switch (e.data['action']) {
-                case DialogAction.Ready:
-                    if (!ready) {
-                        ready = true;
-                        addMessageListener('dialog', handler)
-                    }
-                    break;
-                case DialogAction.Position:
-                    const { position } = e.data;
-                    dialogPos = position;
-                    // frame.style.left = `${left}px`;
-                    // frame.style.top = `${top}px`;
-                    break;
-                case DialogAction.DisablePointer:
-                    frame.style.pointerEvents = 'none';
-                    // document.body.style.overflow = 'scroll';
-                    break;
-                case DialogAction.Active:
-                    const { active } = e.data;
-                    dialogActive = active;
-                    break;
-                default:
-                    assertUnreachable(e.data['action']);
-
+    addContentMessageListener('ready', () => {
+        if (!ready) {
+            ready = true;
+            const handler = (msg: TabMessageMap['dialog']['msg']) => {
+                const { selection } = msg;
+                const position = getDialogPosition();
+                //console.log('dialog')
+                // frame.contentWindow?.postMessage({ ...msg, position }, frameURL);
+                frame.style.zIndex = '9999';
+                sendFrameMessage(frame, 'open', { selection, position });
             }
+            addMessageListener('dialog', handler)
         }
     })
+    addContentMessageListener('position', (position) => {
+        dialogPos = position;
+    })
+    addContentMessageListener('disablePointer', () => {
+        frame.style.pointerEvents = 'none';
+    });
+    addContentMessageListener('active', (active) => {
+        dialogActive = active;
+    })
+
+    // type MessageAction = typeof DIALOG_POSITION | typeof DIALOG_READY;
+    // window.addEventListener('message', (e: MessageEvent<{ action: DialogAction, position: [number, number], active: boolean }>) => {
+
+
+    //     // console.log("receive message (content): ", e.data);
+    //     if (typeof e.data === 'object' && 'action' in e.data) {
+    //         switch (e.data['action']) {
+    //             case DialogAction.Ready:
+    //                 if (!ready) {
+    //                     ready = true;
+    //                     addMessageListener('dialog', handler)
+    //                 }
+    //                 break;
+    //             case DialogAction.Position:
+    //                 const { position } = e.data;
+    //                 dialogPos = position;
+    //                 // frame.style.left = `${left}px`;
+    //                 // frame.style.top = `${top}px`;
+    //                 break;
+    //             case DialogAction.DisablePointer:
+    //                 frame.style.pointerEvents = 'none';
+    //                 // document.body.style.overflow = 'scroll';
+    //                 break;
+    //             case DialogAction.Active:
+    //                 const { active } = e.data;
+    //                 dialogActive = active;
+    //                 break;
+    //             default:
+    //                 assertUnreachable(e.data['action']);
+
+    //         }
+    //     }
+    // })
 
 }

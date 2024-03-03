@@ -32,6 +32,7 @@
     "@radix-ui/react-toggle-group": "^1.0.4",
     "@react-spring/web": "^9.7.3",
     "@tabler/icons-react": "^2.47.0",
+    "@use-gesture/react": "^10.3.0",
     "axios": "^1.6.7",
     "chart.js": "^4.4.1",
     "class-variance-authority": "^0.7.0",

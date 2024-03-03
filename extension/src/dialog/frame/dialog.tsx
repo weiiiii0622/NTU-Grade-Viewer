@@ -10,26 +10,27 @@ import { sendRuntimeMessage } from "../../api/message";
 import styled, { keyframes } from 'styled-components';
 import { CourseBase, CourseSuggestion } from "../../client";
 import { useStorage } from "../../hooks/useStorage";
-import { IconPlaylistX, IconSearch, IconX } from '@tabler/icons-react';
+import { IconDots, IconPlaylistX, IconSearch, IconX } from '@tabler/icons-react';
 import { ScrollArea, ScrollBar } from "./lib/scroll-area";
 
 import "../../style.css";
 import { createRoot } from "react-dom/client";
-import { DialogMessage, addDialogMessageHandler, getSortedCourses, isRecent } from "../utils";
+import { getSortedCourses, isRecent } from "../utils";
 import { animated, config, useSpring } from "@react-spring/web";
-
-const REFERRER = document.referrer || '*';
-
-/* --------------------------------- Config --------------------------------- */
-
-import { DIALOG_WIDTH as WIDTH, DIALOG_HEIGHT as HEIGHT, DialogAction } from "../config"
+import { useDrag } from '@use-gesture/react'
+import { DIALOG_WIDTH as WIDTH, DIALOG_HEIGHT as HEIGHT } from "../config"
 import { ItemList, ItemProps } from "./itemList";
 import { ChartPage } from "./chartPage";
 import { RecentItemsSection } from './recentItemsSection';
 import { cn } from '../../components/shadcn-ui/lib';
 import { Error, AuthError } from "./error";
 import { Loading } from "./loading";
-import { hexToRgb, rgbToHsl } from "../../utils";
+import { Vec2, clamp, hexToRgb, rgbToHsl } from "../../utils";
+import { addFrameMessageListener, sendContentMessage } from "../message";
+import clsx from "clsx";
+
+
+document.body.style.overflow = 'hidden';
 
 /* -------------------------------- Position -------------------------------- */
 
@@ -152,16 +153,15 @@ type DialogProps = {
 
 export function Dialog({ }: DialogProps) {
 
-   // todo: draggable
-
    const containerRef = useRef<HTMLDivElement>(null);
 
    /* ------------------------------ Display Logic ----------------------------- */
 
    const [active, setActive] = useState(false);
    const [rawKeyword, setRawKeyword] = useState('');
-   const [position, setPosition] = useState<[number, number]>([0, 0]);
-   // const parentRect = parent.getBoundingClientRect()
+   // const [position, setPosition] = useState<[number, number]>([0, 0]);
+   const [dir, setDir] = useState<Direction>(Direction.Up);
+   const [realPos, setRealPos] = useState<Vec2>([0, 0]);
 
    useEffect(() => {
       const handler = (e: KeyboardEvent) => {
@@ -173,22 +173,22 @@ export function Dialog({ }: DialogProps) {
    }, []);
 
    useEffect(() => {
-      const handler = (msg: DialogMessage) => {
-         if (typeof msg === 'string') {
-            if (msg === 'close')
-               setActive(false);
-            return;
-         }
-         const { position, selection } = msg;
-         //console.log('dialog')
-         //console.log(position)
+      const cleanupOpen = addFrameMessageListener('open', ({ position, selection }) => {
          setActive(true);
-         setPosition(position)
+         // setPosition(position)
+         const [dir, realPos] = transformDialogPosition(position);
+         setDir(dir);
+         setRealPos(realPos);
          setRawKeyword(selection);
-      }
-
-      const cleanup = addDialogMessageHandler(handler);
-      return cleanup;
+      });
+      const cleanupClose = addFrameMessageListener('close', () => {
+         setActive(false);
+      })
+      sendContentMessage('ready', undefined)
+      return () => {
+         cleanupOpen();
+         cleanupClose();
+      };
    }, []);
 
 
@@ -223,9 +223,7 @@ export function Dialog({ }: DialogProps) {
 
    // todo: fade out
 
-   const [dir, realPos] = transformDialogPosition(position);
-   const [spring, api] = useSpring(() => {
-      const sign = dir === Direction.Up ? -1 : 1;
+   const [spring, _] = useSpring(() => {
       const origin = `center ${dir === Direction.Up ? 'bottom' : 'top'}`;
       const transform = `scale(${active ? '1' : '0'})`;
       const opacity = active ? 1 : 0;
@@ -240,12 +238,15 @@ export function Dialog({ }: DialogProps) {
    }, [active, dir]);
 
    useEffect(() => {
-      window.parent.postMessage({ action: DialogAction.Active, active }, REFERRER);
+      // window.parent.postMessage({ action: DialogAction.Active, active }, REFERRER);
+      sendContentMessage('active', active);
    }, [active]);
 
    // console.log('position: ', realPos);
    useEffect(() => {
-      window.parent.postMessage({ action: DialogAction.Position, position: realPos }, REFERRER);
+      console.log('position', realPos)
+      // window.parent.postMessage({ action: DialogAction.Position, position: realPos }, REFERRER);
+      sendContentMessage('position', realPos)
    }, [realPos]);
 
    useEffect(() => {
@@ -264,10 +265,14 @@ export function Dialog({ }: DialogProps) {
       }
 
       const f = (e: MouseEvent) => {
+         if (dragging)
+            return;
+
          const x = e.clientX, y = e.clientY;
          if (!active || !isInFrame(x, y)) {
 
-            window.parent.postMessage({ action: DialogAction.DisablePointer }, REFERRER);
+            // window.parent.postMessage({ action: DialogAction.DisablePointer }, REFERRER);
+            sendContentMessage('disablePointer', undefined)
          }
       }
       document.body.addEventListener('mousemove', f);
@@ -286,6 +291,37 @@ export function Dialog({ }: DialogProps) {
    // const left = 0;
    // const top = 0;
 
+
+   const [{ x, y }, api] = useSpring(() => ({
+      x: 0, y: 0, onRest: () => {
+         if (!dragging)
+            onDragEnd();
+      }
+   }));
+   const [dragging, setDragging] = useState(false);
+   const bind = useDrag(({ last, dragging, movement: [x, y] }) => {
+      setDragging(!!dragging);
+
+      const [x0, y0] = realPos;
+      // 0 <= x0+x <= window.width - width
+      x = clamp(x, -x0, window.innerWidth - WIDTH - x0);
+      y = clamp(y, -y0, window.innerHeight - HEIGHT - y0);
+
+      // if (last) {
+      //    onDragEnd();
+      //    return;
+      // }
+      if (!dragging)
+         return;
+
+      console.log('dragging')
+      api.start({ x, y, config: config.stiff });
+   });
+
+   function onDragEnd() {
+      setRealPos(position => [position[0] + x.get(), position[1] + y.get()])
+      api.start({ x: 0, y: 0, immediate: true });
+   }
 
    /* ------------------------------- Result Page ------------------------------ */
 
@@ -385,7 +421,6 @@ export function Dialog({ }: DialogProps) {
          </DialogWrapper>
       )
 
-
    return (
       <DialogWrapper
          ref={containerRef}
@@ -399,9 +434,23 @@ export function Dialog({ }: DialogProps) {
             overflowX: 'hidden',
             ...spring,
             backgroundColor: dialogColor,
+            x,
+            y,
          }}
       >
-         <ErrorBoundary fallback={<Error />}>
+         <div {...bind()} className={clsx(
+            "w-8 py-1 flex z-50 justify-center items-center  absolute left-1/2 translate-x-[-50%] touch-none",
+            dragging ? "cursor-grabbing" : " cursor-grab"
+         )}>
+            <IconDots
+               size={20}
+               color="#aeaeae"
+               stroke={2}
+            />
+         </div>
+         <ErrorBoundary fallback={<Error />} onError={console.log}
+         // todo: put the error boundary in lower level so user can close the dialog.
+         >
             <InnerContainer pageIdx={pageIdx}>
                <PageContainer>
                   <div className="flex flex-row items-center justify-between mb-4 ml-2" >

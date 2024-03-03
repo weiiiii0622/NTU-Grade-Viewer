@@ -2,7 +2,7 @@ import { addMessageListener, getStorage, sendTabMessage } from "./api";
 import { DefaultService, OpenAPI } from "./client";
 import { QueryGradeBatcher } from "./queryGradeBatcher";
 import { serviceHandler } from "./serviceHandler";
-import { getDataFromURL, injectContentScriptIfNotRunning } from "./utils";
+import { getDataFromURL, injectContentScriptIfNotRunning, setCursorWaitWhilePending } from "./utils";
 
 OpenAPI['BASE'] = APP_URL
 
@@ -147,8 +147,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 
 async function openDialog(tab: chrome.tabs.Tab, selection: string = '') {
-   await injectContentScriptIfNotRunning(tab.id!)
-   sendTabMessage(tab?.id!, 'dialog', { selection });
+   // todo: create new tab if current is chrome://
+   setCursorWaitWhilePending(tab.id!, async () => {
+      injectContentScriptIfNotRunning(tab.id!)
+      await sendTabMessage(tab?.id!, 'dialog', { selection });
+   })
 }
 
 
