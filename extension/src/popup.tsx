@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 import Avatar from '@mui/material/Avatar';
@@ -52,6 +52,47 @@ const Popup = () => {
       setAnchorEl(null);
    };
 
+
+   async function reportIssue(description: string, capture: 'popup' | 'tab' | 'none') {
+
+      let url: string | null;
+      switch (capture) {
+         case 'popup':
+            const canvas = await html2canvas(document.body, { useCORS: true });
+            url = canvas.toDataURL("image/jpeg");
+            break;
+         case 'tab':
+            url = await sendRuntimeMessage('captureTab', undefined);
+            break;
+         case 'none':
+            url = null;
+            break;
+      }
+
+      const image_data = url ? getDataFromURL(url) : null;
+      const [issue, _] = await sendRuntimeMessage('service', {
+         funcName: 'createIssueIssuesPost', args: {
+            requestBody: {
+               description,
+               image_data
+            }
+         }
+      })
+      console.log('report issue succeeded!')
+
+      // ! this is only for test purpose
+      if (issue) {
+         chrome.windows.create({
+            url: APP_URL + `/issues/${issue.id}/preview`,
+            focused: true
+         })
+      }
+   }
+
+   const avatarOrder = useMemo(() => {
+      return Math.random() > 0.5  // we are a fair team 😤
+   }, []);
+
    return (
       <>
          <Box sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: 'center', alignContent: 'center', alignItems: 'center', bgcolor: "#F8F8F8" }}>
@@ -88,18 +129,10 @@ const Popup = () => {
                         註冊
                      </MenuItem>
                      <MenuItem onClick={async () => {
-                        const canvas = await html2canvas(document.body, { useCORS: true });
-                        const url = canvas.toDataURL("image/jpeg");
-                        sendRuntimeMessage('service', {
-                           funcName: 'reportIssueReportIssuePost', args: {
-                              requestBody: {
-                                 image_data: getDataFromURL(url),
-                              }
-                           }
-                        })
-                        console.log(url);
+                        // todo: let user modify these
+                        reportIssue('Issue from popup', 'popup');
                      }}>
-                        截圖
+                        回報問題
                      </MenuItem>
                      {/* <MenuItem onClick={() => handleClose(1)}>
                         <ListItemIcon>
@@ -197,16 +230,16 @@ const Popup = () => {
                >
                   <Avatar sx={{ width: 25, height: 25, font: "menu", ml: "2px", mr: "2px" }}>KC</Avatar>
                </Tooltip> */}
-               {Math.random() > 0.5  // we are a fair team 😤
-                  ?
-                  <>
-                     <AdminAvatarWithToolTip enableLink name="Wei" githubId="weiiiii0622" toolTipProps={{ title: 'Wei, NTU B10 CSIE' }} presetIdx={0} />
-                     <AdminAvatarWithToolTip enableLink name="KC" githubId="kc0506" toolTipProps={{ title: 'KC, NTU B10 MED' }} presetIdx={1} />
-                  </>
-                  : <>
-                     <AdminAvatarWithToolTip enableLink name="KC" githubId="kc0506" toolTipProps={{ title: 'KC, NTU B10 MED' }} presetIdx={1} />
-                     <AdminAvatarWithToolTip enableLink name="Wei" githubId="weiiiii0622" toolTipProps={{ title: 'Wei, NTU B10 CSIE' }} presetIdx={0} />
-                  </>
+               {
+                  avatarOrder ?
+                     <>
+                        <AdminAvatarWithToolTip enableLink name="Wei" githubId="weiiiii0622" toolTipProps={{ title: 'Wei, NTU B10 CSIE' }} presetIdx={0} />
+                        <AdminAvatarWithToolTip enableLink name="KC" githubId="kc0506" toolTipProps={{ title: 'KC, NTU B10 MED' }} presetIdx={1} />
+                     </>
+                     : <>
+                        <AdminAvatarWithToolTip enableLink name="KC" githubId="kc0506" toolTipProps={{ title: 'KC, NTU B10 MED' }} presetIdx={1} />
+                        <AdminAvatarWithToolTip enableLink name="Wei" githubId="weiiiii0622" toolTipProps={{ title: 'Wei, NTU B10 CSIE' }} presetIdx={0} />
+                     </>
                }
                <Divider orientation="vertical" flexItem />
                <Link href="https://weiiiii0622.github.io/NTU-Grade-Viewer/About/" target="_blank" underline="hover" variant="caption" fontWeight="bold">

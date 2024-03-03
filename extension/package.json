@@ -9,7 +9,8 @@
     "clean": "rimraf dist",
     "test": "npx jest",
     "style": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "generate-client": "openapi --input http://localhost:$(grep '^PORT_DEV' ../.env | cut -d '=' -f2)/openapi.json --output ./src/client --useOptions --useUnionTypes"
+    "generate-client": "openapi --input http://localhost:$(grep '^PORT_DEV' ../.env | cut -d '=' -f2)/openapi.json --output ./src/client --useOptions --useUnionTypes",
+    "generate-client-5000": "openapi --input http://localhost:5000/openapi.json --output ./src/client --useOptions --useUnionTypes"
   },
   "author": "",
   "license": "MIT",

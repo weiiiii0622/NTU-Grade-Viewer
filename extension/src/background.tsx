@@ -129,9 +129,13 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
    }
 
    if (info.menuItemId === 'report') {
-      const dataURL = await chrome.tabs.captureVisibleTab();
-      const image_data = getDataFromURL(dataURL);
-      DefaultService.reportIssueReportIssuePost({ requestBody: { image_data } })
+      const image_data = await captureTab();
+      DefaultService.createIssueIssuesPost({
+         requestBody: {
+            description: 'Test issue',
+            image_data,
+         }
+      })
       return;
    }
 
@@ -152,3 +156,14 @@ async function openDialog(tab: chrome.tabs.Tab, selection: string = '') {
 chrome.commands.onCommand.addListener((command, tab) => {
    openDialog(tab)
 });
+
+/* ------------------------------- Capture Tab ------------------------------ */
+
+async function captureTab() {
+   const dataURL = await chrome.tabs.captureVisibleTab();
+   return getDataFromURL(dataURL);
+}
+
+addMessageListener('captureTab', async () => {
+   return await captureTab();
+})

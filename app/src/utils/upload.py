@@ -8,10 +8,14 @@ if not IMAGES_DIR.exists():
     IMAGES_DIR.mkdir()
 
 
+def get_image_path(name: str):
+    return IMAGES_DIR / name
+
+
 @contextmanager
 def open_image(name: str, mode: str = "r"):
     try:
-        path = IMAGES_DIR / name
+        path = get_image_path(name)
         file = path.open(mode)
         yield file
     finally:

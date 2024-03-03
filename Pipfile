@@ -26,6 +26,9 @@ psycopg2-binary = "*"
 fastapi-amis-admin = {extras = ["sqlmodel"], version = "*"}
 pydantic-settings = "*"
 aiosqlite = "*"
+jinja2 = "*"
+jinja = "*"
+2 = "*"
 
 [dev-packages]
 

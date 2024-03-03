@@ -6,7 +6,8 @@ import type { CourseReadWithGrade } from '../models/CourseReadWithGrade';
 import type { CourseSuggestion } from '../models/CourseSuggestion';
 import type { GradeElement } from '../models/GradeElement';
 import type { GradeWithUpdate } from '../models/GradeWithUpdate';
-import type { IssueData } from '../models/IssueData';
+import type { IssueCreate } from '../models/IssueCreate';
+import type { IssueRead } from '../models/IssueRead';
 import type { Page } from '../models/Page';
 import type { PageResponse } from '../models/PageResponse';
 import type { User } from '../models/User';
@@ -14,6 +15,101 @@ import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class DefaultService {
+    /**
+     * Create Issue
+     * @returns IssueRead Successful Response
+     * @throws ApiError
+     */
+    public static createIssueIssuesPost({
+        requestBody,
+    }: {
+        requestBody: IssueCreate,
+    }): CancelablePromise<IssueRead> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/issues/',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Read Issue
+     * @returns IssueRead Successful Response
+     * @throws ApiError
+     */
+    public static readIssueIssuesIssueIdGet({
+        issueId,
+    }: {
+        issueId: number,
+    }): CancelablePromise<IssueRead> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/issues/{issue_id}',
+            path: {
+                'issue_id': issueId,
+            },
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Read Image
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static readImageIssuesIssueIdImageGet({
+        issueId,
+    }: {
+        issueId: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/issues/{issue_id}/image',
+            path: {
+                'issue_id': issueId,
+            },
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Preview Issue
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static previewIssueIssuesIdPreviewGet({
+        id,
+    }: {
+        id: number,
+    }): CancelablePromise<string> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/issues/{id}/preview',
+            path: {
+                'id': id,
+            },
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
     /**
      * Query Grades
      * @auth_required
@@ -137,29 +233,6 @@ export class DefaultService {
             query: {
                 'keyword': keyword,
             },
-            errors: {
-                400: `Bad Request`,
-                401: `Unauthorized`,
-                422: `Unprocessable Entity`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-    /**
-     * Report Issue
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static reportIssueReportIssuePost({
-        requestBody,
-    }: {
-        requestBody: IssueData,
-    }): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/report/issue',
-            body: requestBody,
-            mediaType: 'application/json',
             errors: {
                 400: `Bad Request`,
                 401: `Unauthorized`,

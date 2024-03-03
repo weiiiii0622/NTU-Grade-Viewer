@@ -1,9 +1,9 @@
 import os
 from typing import Annotated
 from urllib.parse import quote
+from fastapi.staticfiles import StaticFiles
 
 import requests
-import routes
 import uvicorn
 from api_analytics.fastapi import Analytics
 from auth import get_token
@@ -40,6 +40,7 @@ from models import (
 )
 from sqlalchemy import text
 from sqlmodel import Session, select
+from routes import get_routers
 from utils.grade import get_grade_element
 from utils.route import admin_required, is_admin, test_only, wrap_router
 
@@ -72,8 +73,10 @@ if os.getenv("APP_MODE") == "PROD":
         app.add_middleware(Analytics, api_key=api_key)
 
 
-for router in routes.ROUTERS:
-    app.include_router(router)
+# for router in routes.ROUTERS:
+#     print(router.prefix)
+for router in get_routers():
+    app.include_router(router, include_in_schema=True)
 
 
 @app.get("/course/{id1}")

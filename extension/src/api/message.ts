@@ -80,6 +80,11 @@ type RuntimeMessageMap = RuntimeMessageServiceMap & {
         msg: undefined;
         response: string;
     };
+    // * Return base64 encoded captured image of current tab
+    captureTab: {
+        msg: undefined;
+        response: string | null;
+    };
 };
 type RuntimeAction = keyof RuntimeMessageMap;
 

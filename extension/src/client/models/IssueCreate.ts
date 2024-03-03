@@ -2,7 +2,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type IssueData = {
+export type IssueCreate = {
+    id?: (number | null);
+    description: string;
+    email?: (string | null);
     /**
      * base64 encoded jpg file
      */
