@@ -22,7 +22,7 @@ const REFERRER = document.referrer || '*';
 
 /* --------------------------------- Config --------------------------------- */
 
-import { DIALOG_WIDTH as WIDTH, DIALOG_HEIGHT as HEIGHT, DialogAction } from "../../config"
+import { DIALOG_WIDTH as WIDTH, DIALOG_HEIGHT as HEIGHT, DialogAction } from "../config"
 import { ItemList, ItemProps } from "./itemList";
 import { ChartPage } from "./chartPage";
 import { RecentItemsSection } from './recentItemsSection';
@@ -163,6 +163,14 @@ export function Dialog({ }: DialogProps) {
    const [position, setPosition] = useState<[number, number]>([0, 0]);
    // const parentRect = parent.getBoundingClientRect()
 
+   useEffect(() => {
+      const handler = (e: KeyboardEvent) => {
+         if (e.key === 'Escape')
+            setActive(false);
+      }
+      window.addEventListener('keydown', handler);
+      return () => window.removeEventListener('keydown', handler);
+   }, []);
 
    useEffect(() => {
       const handler = (msg: DialogMessage) => {
