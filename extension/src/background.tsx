@@ -130,12 +130,14 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
    if (info.menuItemId === 'report') {
       const image_data = await captureTab();
-      DefaultService.createIssueIssuesPost({
+      const issue = await DefaultService.createIssueIssuesPost({
          requestBody: {
             description: 'Test issue',
             image_data,
          }
       })
+      // ! test only
+      chrome.tabs.create({ url: APP_URL + `/issues/${issue.id}/preview`, active: true });
       return;
    }
 
