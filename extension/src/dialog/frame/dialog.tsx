@@ -270,7 +270,7 @@ export function Dialog({ }: DialogProps) {
 
          const x = e.clientX, y = e.clientY;
          if (!active || !isInFrame(x, y)) {
-
+            console.log('disable')
             // window.parent.postMessage({ action: DialogAction.DisablePointer }, REFERRER);
             sendContentMessage('disablePointer', undefined)
          }
@@ -291,16 +291,23 @@ export function Dialog({ }: DialogProps) {
    // const left = 0;
    // const top = 0;
 
-
+   const dragRef = useRef(false);
    const [{ x, y }, api] = useSpring(() => ({
       x: 0, y: 0, onRest: () => {
-         if (!dragging)
-            onDragEnd();
+         // if (!dragging)
+         if (!dragRef.current) {
+            applyCurPos();
+            setDragging(false)
+         }
       }
    }));
    const [dragging, setDragging] = useState(false);
-   const bind = useDrag(({ last, dragging, movement: [x, y] }) => {
-      setDragging(!!dragging);
+   const bind = useDrag(({ first, last, dragging, movement: [x, y] }) => {
+      if (first && dragging) {
+         applyCurPos();
+      }
+      dragRef.current = !!dragging;
+      setDragging(true);
 
       const [x0, y0] = realPos;
       // 0 <= x0+x <= window.width - width
@@ -315,10 +322,10 @@ export function Dialog({ }: DialogProps) {
          return;
 
       console.log('dragging')
-      api.start({ x, y, config: config.stiff });
+      api.start({ x, y, config: { tension: 210, friction: 15, mass: 0.5 } });
    });
 
-   function onDragEnd() {
+   function applyCurPos() {
       setRealPos(position => [position[0] + x.get(), position[1] + y.get()])
       api.start({ x: 0, y: 0, immediate: true });
    }
@@ -440,7 +447,8 @@ export function Dialog({ }: DialogProps) {
       >
          <div {...bind()} className={clsx(
             "w-8 py-1 flex z-50 justify-center items-center  absolute left-1/2 translate-x-[-50%] touch-none",
-            dragging ? "cursor-grabbing" : " cursor-grab"
+            // dragging ? "cursor-grabbing" : " cursor-grab"
+            "cursor-grab"
          )}>
             <IconDots
                size={20}
@@ -454,7 +462,7 @@ export function Dialog({ }: DialogProps) {
             <InnerContainer pageIdx={pageIdx}>
                <PageContainer>
                   <div className="flex flex-row items-center justify-between mb-4 ml-2" >
-                     <h3 className="  text-xl font-bold  text-[#4e4e4e] ">
+                     <h3 className=" select-none  text-xl font-bold  text-[#4e4e4e] ">
                         {APP_TITLE}
                      </h3>
                      <CloseBtn onClick={() => setActive(false)} />
@@ -511,7 +519,7 @@ export function Dialog({ }: DialogProps) {
  * Handling horizontal spacing & overflow of pages.
  */
 function InnerContainer({ children, pageIdx }: { children: ReactNode[], pageIdx: number }) {
-   return <div className="box-border flex flex-row w-full h-full p-4">
+   return <div className="box-border flex flex-row w-full h-full p-4 pt-7">
       <div className="w-full overflow-hidden ">
          <div className="box-border flex flex-row items-stretch w-full h-full"
             style={{
