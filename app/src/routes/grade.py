@@ -1,19 +1,18 @@
 # @app.get("/grades/all")
 
 
-from auth import auth_required
 from db import get_session
 from fastapi import APIRouter, Depends
 from models import Grade, GradeElement
 from sqlmodel import Session, select
-from utils.general import test_only
 from utils.grade import get_grade_element
+from utils.route import test_only, wrap_router
 
 router = APIRouter(prefix="/grade")
+wrap_router(router)
 
 
 @router.get("/all")
-@auth_required
 @test_only
 def get_all_grades(*, session: Session = Depends(get_session)) -> list[GradeElement]:
     """

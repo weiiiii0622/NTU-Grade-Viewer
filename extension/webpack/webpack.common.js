@@ -16,7 +16,7 @@ module.exports = {
       // options: path.join(srcDir, "options.tsx"),
       background: path.join(srcDir, "background.tsx"),
       content_script: path.join(srcDir, "content_script.tsx"),
-      dialog: path.join(srcDir, "dialog/dialog.tsx"),
+      dialog: path.join(srcDir, "dialog/frame/dialog.tsx"),
       // content_script_popup: path.join(srcDir, "content_script_popup.tsx"),
    },
    output: {

@@ -15,6 +15,8 @@ from pydantic import (
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
+# todo: split specific model to corresponding routing file
+
 # ------------------------------- Primary Types ------------------------------ #
 
 # * Course
@@ -219,6 +221,7 @@ class GradeElement(GradeBase):
         return v
 
 
+# todo: I really want to change this to `record`
 class UpdateBase(SQLModel):
 
     pos: GradeInt
@@ -314,3 +317,15 @@ class Page(BaseModel):
 QUERY_FIELDS = ("id1", "id2", "title")
 # QueryField: TypeAlias = Literal["id1", "id2", "title"]
 QUERY_FILTERS = ("class_id", "semester")
+
+# ----------------------------------- Issue ---------------------------------- #
+
+
+class IssueBase(SQLModel):
+    id: int | None = Field(primary_key=True, default=None)
+    description: str
+    email: str | None = Field(default=None)
+
+
+class Issue(IssueBase, table=True):
+    has_image: bool

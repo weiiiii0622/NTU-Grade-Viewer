@@ -5,6 +5,8 @@ from models import *
 from sqlalchemy import Engine
 from sqlmodel import Session, SQLModel, create_engine
 
+# todo: alembic
+
 engine: Engine | None = None
 
 
@@ -14,6 +16,17 @@ last_try: time = None  # type: ignore
 
 class DatabaseConnectionError(Exception):
     pass
+
+
+if os.getenv("APP_MODE") == "PROD":
+    DB_URL = os.getenv("DB_URL_INTERNAL", "")
+elif os.getenv("USE_PROD_DB"):
+    # todo: add rollback mechanism
+    DB_URL = os.getenv("DB_URL_EXTERNAL", "")
+elif os.getenv("DOCKER"):
+    DB_URL = "mysql+pymysql://root:root@db:3306/db"
+else:
+    DB_URL = "mysql+pymysql://root:root@db:3333/db"
 
 
 def db_init():
@@ -27,11 +40,9 @@ def db_init():
     last_try = time()
 
     try:
-        sql_url = os.getenv("DB_URL", "")
-        print(sql_url)
+        sql_url = DB_URL
 
         engine = create_engine(sql_url, echo=False, pool_size=20, max_overflow=100)
-        # SQLModel.metadata.drop_all(engine)  # ! dangerous
         SQLModel.metadata.create_all(engine)
     except Exception as e:
         engine = None
@@ -71,3 +82,6 @@ def update_grade(session: Session, grade_update: GradeWithUpdate):
     session.add(course)
     session.add(grade)
     session.add(db_update)
+
+
+# todo: insert fake and test-onlt data.

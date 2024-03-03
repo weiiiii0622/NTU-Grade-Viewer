@@ -1,38 +1,36 @@
 /**
  * Found out chrome.sidePanel is actually more suitable for this LOL 🤡
  */
-import { ErrorBoundary, ErrorBoundaryContext } from "react-error-boundary";
+import { ErrorBoundary } from "react-error-boundary";
 import { } from './foo'
 
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { History, getStorage, sendRuntimeMessage, setStorage } from "../api";
+import { History, getStorage, setStorage } from "../../api/storage";
+import { sendRuntimeMessage } from "../../api/message";
 import styled, { keyframes } from 'styled-components';
-import { CourseBase, CourseSuggestion } from "../client";
-import { useStorage } from "../hooks/useStorage";
-import { IconSearch, IconX } from '@tabler/icons-react';
+import { CourseBase, CourseSuggestion } from "../../client";
+import { useStorage } from "../../hooks/useStorage";
+import { IconDots, IconPlaylistX, IconSearch, IconX } from '@tabler/icons-react';
 import { ScrollArea, ScrollBar } from "./lib/scroll-area";
 
-import "../style.css";
+import "../../style.css";
 import { createRoot } from "react-dom/client";
-import { DialogMessage, addDialogMessageHandler, getSortedCourses, isRecent } from "./utils";
+import { getSortedCourses, isRecent } from "../utils";
 import { animated, config, useSpring } from "@react-spring/web";
-
-const REFERRER = document.referrer || '*';
-//console.log("Referrer: ", REFERRER)
-
-/* --------------------------------- Config --------------------------------- */
-
-// const WIDTH = 452;
-// const HEIGHT = 525;
-// const GAP = 8;
-import { DIALOG_WIDTH as WIDTH, DIALOG_HEIGHT as HEIGHT, DialogAction } from "../config"
+import { useDrag } from '@use-gesture/react'
+import { DIALOG_WIDTH as WIDTH, DIALOG_HEIGHT as HEIGHT } from "../config"
 import { ItemList, ItemProps } from "./itemList";
 import { ChartPage } from "./chartPage";
 import { RecentItemsSection } from './recentItemsSection';
-import { cn } from '../components/shadcn-ui/lib';
+import { cn } from '../../components/shadcn-ui/lib';
 import { Error, AuthError } from "./error";
 import { Loading } from "./loading";
-import { hexToRgb, rgbToHsl } from "../utils";
+import { Vec2, clamp, hexToRgb, rgbToHsl } from "../../utils";
+import { addFrameMessageListener, sendContentMessage } from "../message";
+import clsx from "clsx";
+
+
+document.body.style.overflow = 'hidden';
 
 /* -------------------------------- Position -------------------------------- */
 
@@ -40,8 +38,6 @@ enum Direction {
    Up,
    Down,
 };
-
-
 
 function transformDialogPosition(pos: [number, number]): [Direction, [number, number]] {
    const [x, y] = pos;
@@ -134,6 +130,8 @@ function useItems(
 
 // todo: responsive position
 
+// todo
+// IconPlaylistX
 const DialogWrapper = animated(styled.div`
     box-sizing: border-box;
     position: absolute;
@@ -161,27 +159,36 @@ export function Dialog({ }: DialogProps) {
 
    const [active, setActive] = useState(false);
    const [rawKeyword, setRawKeyword] = useState('');
-   const [position, setPosition] = useState<[number, number]>([0, 0]);
-   // const parentRect = parent.getBoundingClientRect()
-
+   // const [position, setPosition] = useState<[number, number]>([0, 0]);
+   const [dir, setDir] = useState<Direction>(Direction.Up);
+   const [realPos, setRealPos] = useState<Vec2>([0, 0]);
 
    useEffect(() => {
-      const handler = (msg: DialogMessage) => {
-         if (typeof msg === 'string') {
-            if (msg === 'close')
-               setActive(false);
-            return;
-         }
-         const { position, selection } = msg;
-         //console.log('dialog')
-         //console.log(position)
-         setActive(true);
-         setPosition(position)
-         setRawKeyword(selection);
+      const handler = (e: KeyboardEvent) => {
+         if (e.key === 'Escape')
+            setActive(false);
       }
+      window.addEventListener('keydown', handler);
+      return () => window.removeEventListener('keydown', handler);
+   }, []);
 
-      const cleanup = addDialogMessageHandler(handler);
-      return cleanup;
+   useEffect(() => {
+      const cleanupOpen = addFrameMessageListener('open', ({ position, selection }) => {
+         setActive(true);
+         // setPosition(position)
+         const [dir, realPos] = transformDialogPosition(position);
+         setDir(dir);
+         setRealPos(realPos);
+         setRawKeyword(selection);
+      });
+      const cleanupClose = addFrameMessageListener('close', () => {
+         setActive(false);
+      })
+      sendContentMessage('ready', undefined)
+      return () => {
+         cleanupOpen();
+         cleanupClose();
+      };
    }, []);
 
 
@@ -216,9 +223,7 @@ export function Dialog({ }: DialogProps) {
 
    // todo: fade out
 
-   const [dir, realPos] = transformDialogPosition(position);
-   const [spring, api] = useSpring(() => {
-      const sign = dir === Direction.Up ? -1 : 1;
+   const [spring, _] = useSpring(() => {
       const origin = `center ${dir === Direction.Up ? 'bottom' : 'top'}`;
       const transform = `scale(${active ? '1' : '0'})`;
       const opacity = active ? 1 : 0;
@@ -233,12 +238,15 @@ export function Dialog({ }: DialogProps) {
    }, [active, dir]);
 
    useEffect(() => {
-      window.parent.postMessage({ action: DialogAction.Active, active }, REFERRER);
+      // window.parent.postMessage({ action: DialogAction.Active, active }, REFERRER);
+      sendContentMessage('active', active);
    }, [active]);
 
    // console.log('position: ', realPos);
    useEffect(() => {
-      window.parent.postMessage({ action: DialogAction.Position, position: realPos }, REFERRER);
+      console.log('position', realPos)
+      // window.parent.postMessage({ action: DialogAction.Position, position: realPos }, REFERRER);
+      sendContentMessage('position', realPos)
    }, [realPos]);
 
    useEffect(() => {
@@ -257,10 +265,14 @@ export function Dialog({ }: DialogProps) {
       }
 
       const f = (e: MouseEvent) => {
+         if (dragging)
+            return;
+
          const x = e.clientX, y = e.clientY;
          if (!active || !isInFrame(x, y)) {
-
-            window.parent.postMessage({ action: DialogAction.DisablePointer }, REFERRER);
+            console.log('disable')
+            // window.parent.postMessage({ action: DialogAction.DisablePointer }, REFERRER);
+            sendContentMessage('disablePointer', undefined)
          }
       }
       document.body.addEventListener('mousemove', f);
@@ -279,6 +291,44 @@ export function Dialog({ }: DialogProps) {
    // const left = 0;
    // const top = 0;
 
+   const dragRef = useRef(false);
+   const [{ x, y }, api] = useSpring(() => ({
+      x: 0, y: 0, onRest: () => {
+         // if (!dragging)
+         if (!dragRef.current) {
+            applyCurPos();
+            setDragging(false)
+         }
+      }
+   }));
+   const [dragging, setDragging] = useState(false);
+   const bind = useDrag(({ first, last, dragging, movement: [x, y] }) => {
+      if (first && dragging) {
+         applyCurPos();
+      }
+      dragRef.current = !!dragging;
+      setDragging(true);
+
+      const [x0, y0] = realPos;
+      // 0 <= x0+x <= window.width - width
+      x = clamp(x, -x0, window.innerWidth - WIDTH - x0);
+      y = clamp(y, -y0, window.innerHeight - HEIGHT - y0);
+
+      // if (last) {
+      //    onDragEnd();
+      //    return;
+      // }
+      if (!dragging)
+         return;
+
+      console.log('dragging')
+      api.start({ x, y, config: { tension: 210, friction: 15, mass: 0.5 } });
+   });
+
+   function applyCurPos() {
+      setRealPos(position => [position[0] + x.get(), position[1] + y.get()])
+      api.start({ x: 0, y: 0, immediate: true });
+   }
 
    /* ------------------------------- Result Page ------------------------------ */
 
@@ -378,7 +428,6 @@ export function Dialog({ }: DialogProps) {
          </DialogWrapper>
       )
 
-
    return (
       <DialogWrapper
          ref={containerRef}
@@ -392,13 +441,28 @@ export function Dialog({ }: DialogProps) {
             overflowX: 'hidden',
             ...spring,
             backgroundColor: dialogColor,
+            x,
+            y,
          }}
       >
-         <ErrorBoundary fallback={<Error />}>
+         <div {...bind()} className={clsx(
+            "w-8 py-1 flex z-50 justify-center items-center  absolute left-1/2 translate-x-[-50%] touch-none",
+            // dragging ? "cursor-grabbing" : " cursor-grab"
+            "cursor-grab"
+         )}>
+            <IconDots
+               size={20}
+               color="#aeaeae"
+               stroke={2}
+            />
+         </div>
+         <ErrorBoundary fallback={<Error />} onError={console.log}
+         // todo: put the error boundary in lower level so user can close the dialog.
+         >
             <InnerContainer pageIdx={pageIdx}>
                <PageContainer>
                   <div className="flex flex-row items-center justify-between mb-4 ml-2" >
-                     <h3 className="  text-xl font-bold  text-[#4e4e4e] ">
+                     <h3 className=" select-none  text-xl font-bold  text-[#4e4e4e] ">
                         {APP_TITLE}
                      </h3>
                      <CloseBtn onClick={() => setActive(false)} />
@@ -455,7 +519,7 @@ export function Dialog({ }: DialogProps) {
  * Handling horizontal spacing & overflow of pages.
  */
 function InnerContainer({ children, pageIdx }: { children: ReactNode[], pageIdx: number }) {
-   return <div className="box-border flex flex-row w-full h-full p-4">
+   return <div className="box-border flex flex-row w-full h-full p-4 pt-7">
       <div className="w-full overflow-hidden ">
          <div className="box-border flex flex-row items-stretch w-full h-full"
             style={{

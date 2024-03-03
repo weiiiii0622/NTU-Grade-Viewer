@@ -1,13 +1,4 @@
-
-
-import { } from './foo'
-
-import { useEffect, useState } from "react";
-import { History, sendRuntimeMessage } from "../api";
-import { CourseBase, CourseReadWithGrade } from "../client";
-
-import "../style.css";
-import { getSortedCourses } from "./utils";
+import { History } from "../../api/storage";
 import { ItemList, ItemProps } from './itemList';
 import { ItemOnClickProps } from './dialog';
 

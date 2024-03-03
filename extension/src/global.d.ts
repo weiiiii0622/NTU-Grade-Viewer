@@ -13,4 +13,4 @@ declare global {
     var batcher: QueryGradeBatcher;
 }
 
-export {};
+export { };

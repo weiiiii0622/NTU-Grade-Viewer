@@ -23,8 +23,9 @@ from fastapi.exceptions import RequestValidationError
 from models import *
 from pydantic import BaseModel
 from sqlmodel import Session, select
-from utils.general import extract_dict, test_only
+from utils.general import extract_dict
 from utils.grade import get_grade_element
+from utils.route import test_only
 from utils.search import global_session, search_course
 
 router = APIRouter(prefix="/submit")

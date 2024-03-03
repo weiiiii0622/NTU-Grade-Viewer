@@ -4,6 +4,7 @@ data/sql/mysql
 .env
 .vscode/
 log
+app/upload/images/*
 
 *zip
 NTU_GRADE_VIEWER

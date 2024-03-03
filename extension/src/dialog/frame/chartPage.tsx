@@ -2,14 +2,13 @@
 
 
 import { IconChartBar, IconChartPie, IconChevronLeft, IconChevronRight, IconUser, TablerIconsProps } from "@tabler/icons-react";
-import { CourseBase, CourseReadWithGrade, GradeWithSegments, Segment } from "../client";
+import { CourseBase, CourseReadWithGrade, GradeWithSegments, Segment } from "../../client";
 
-import "../style.css";
 import { ReactNode, useEffect, useMemo, useState } from "react";
-import { sendRuntimeMessage } from "../api";
-import { BarChart, IChartData, PIECHART_COLORS, PieChart } from "../components/gradeChart";
-import { GRADES, semesterCompareFn } from "../utils";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../components/shadcn-ui/select";
+import { sendRuntimeMessage } from "../../api";
+import { BarChart, IChartData, PIECHART_COLORS, PieChart } from "../../components/gradeChart";
+import { GRADES, semesterCompareFn } from "../../utils";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../../components/shadcn-ui/select";
 import { CloseBtn } from "./dialog";
 import clsx from "clsx";
 import { ToggleGroup, ToggleGroupItem } from "./lib/toggleGroup";
@@ -78,6 +77,7 @@ function getSortedSemesters(grades: GradeWithSegments[]): string[] {
     return grades.map(g => g.semester).sort(semesterCompareFn);
 }
 
+// todo: maybe merge same lecturer but different class_id
 type ClassKey = {
     lecturer: string;
     classId: string;
@@ -155,15 +155,12 @@ function InnerChartPage(props: ChartPageProps & { course: CourseReadWithGrade })
 
 
     const [classIdx, setClassIdx] = useState<number>(-1);
-    // const [semester, setSemester] = useState('');
     const [semesterIdx, setSemesterIdx] = useState(-1);
     const [chartType, setChartType] = useState<ChartType>('pie');
 
     const { defaultChartType, defaultClassKey, course } = props;
-
-
-
     const { grades, id1, id2, title } = course;
+
     const classes: ClassKey[] = grades.map(g => ({ classId: g.class_id, lecturer: g.lecturer }))
         .reduce<ClassKey[]>((prev, cur) => {
             return prev.find(cls => cls.classId === cur.classId && cls.lecturer === cur.lecturer)
@@ -193,7 +190,6 @@ function InnerChartPage(props: ChartPageProps & { course: CourseReadWithGrade })
     }
 
     function updateClassIdx(classIdx: number) {
-        //console.log("cls:", classes, classIdx);
         setClassIdx(classIdx);
 
         const gradesFiltered = getGradesFiltered(classes[classIdx]);
@@ -203,29 +199,18 @@ function InnerChartPage(props: ChartPageProps & { course: CourseReadWithGrade })
     }
 
     const classKey = classes[classIdx];
-    // console.log(classIdx, classKey);
     const gradesFiltered = getGradesFiltered(classKey);
     const semesters = getSortedSemesters(gradesFiltered);
     const semester = semesters[semesterIdx];
     const activeGrade = gradesFiltered.find(g => g.semester === semester);
 
 
-    // console.log('grades', grades, gradesFiltered)
-    // console.log('classes:', classes);
-    // console.log(classKey);
-    // console.log('semester:', semester);
-
-
-    if (!gradesFiltered || !semesters) {
-        // return <>Error! </>
+    if (!gradesFiltered || !semesters)
         throw 'gg'
-    }
     if (!semester)
         throw 'gg'
-    // return <>Error!</>;
     if (!activeGrade)
         throw 'gg'
-    // return <>Error!</>
 
     function onChartTypeChange(type: string) {
         const chartTypes: Record<ChartType, 0> = {

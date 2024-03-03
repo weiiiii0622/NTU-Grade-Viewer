@@ -112,6 +112,6 @@ def get_suggestion(
 
     # todo: do we really need to compute this in backend?
     def get_count(c: Course):
-        return len(set(g.class_id for g in c.grades))
+        return len(set(g.class_id + g.lecturer for g in c.grades))
 
     return [CourseSuggestion(**c.model_dump(), count=get_count(c)) for c in courses]

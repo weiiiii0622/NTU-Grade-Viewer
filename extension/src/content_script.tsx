@@ -2,16 +2,14 @@ import React from "react";
 import { waitUntil, submitPage, clamp, rgbToHex } from "./utils";
 import { createRoot } from "react-dom/client";
 import { GradeChartLoader } from "./components/gradeChartLoader";
-import { Dialog } from "./dialog/dialog";
 import { TabAction, TabListenerState, TabMessageMap, addMessageListener, getStorage, setStorage, sendRuntimeMessage } from "./api";
 import { SnackBar, ISnackBarProps } from "./components/snackBar";
+import { initDialog } from "./dialog/content";
 
-// import './style.css';
-// todo: move dialog to iframe
 
-/* --------------------------- Initialze indicator -------------------------- */
+/* --------------------------- Initialze indicators ------------------------- */
 
-function init() {
+function initIndicators() {
    const key = "NTU_GRADE_VIEWER__APP_INDICATOR";
 
    const node = document.createElement('div');
@@ -28,188 +26,18 @@ function init() {
       window[key].setAttribute(k, v);
    })
 }
-init();
+initIndicators();
 
-
-/* -------------------------- Dialog (Context Menu) ------------------------- */
-
-import styled from 'styled-components';
-import { DIALOG_HEIGHT, DIALOG_WIDTH, DIALOG_GAP, DialogAction } from "./config";
-
-let dialogActive: boolean = false;
-let dialogPos: [number, number] = [0, 0];
-
-let mousePos: [number, number] = [0, 0];
-window.addEventListener('mousemove', (event) => {
-   const { clientX: x, clientY: y } = event;
-   mousePos = [x, y] as const;
-});
-
-
-function getDefaultPosition(): [number, number] {
-   return [window.innerWidth / 2 - DIALOG_WIDTH / 2, window.innerHeight / 2 - DIALOG_HEIGHT / 2];
-}
-
-function getDialogPosition(): [number, number] {
-
-   const getMousePosition = () => mousePos;
-
-   const selection = window.getSelection();
-   // if (!selection) return getMousePosition()
-   if (!selection) return getDefaultPosition()
-
-
-   const { isCollapsed } = selection;
-   // todo: fix textarea/input
-   // if (isCollapsed) return getMousePosition();
-   if (isCollapsed) return getDefaultPosition();
-   // console.log(isCollapsed)
-
-   const range = selection.getRangeAt(0);
-   let { x, y, height } = range.getBoundingClientRect();
-
-   //console.log(x, y, height)
-
-   if (y < window.innerHeight / 2)
-      // pop from upside
-      y += height + DIALOG_GAP;
-   else
-      // pop from downside
-      y -= DIALOG_HEIGHT - DIALOG_GAP;
-
-   x = Math.min(x, window.innerWidth - DIALOG_WIDTH);
-   y = clamp(y, DIALOG_GAP, window.innerHeight - DIALOG_HEIGHT - DIALOG_GAP);
-
-   //console.log('x, y: ', x, y)
-   return [x, y];
-}
-
-// todo: maybe use snackbar for initial loading
-
-// todo: refactor
-
-function toRgb(s: string): [number, number, number] {
-   try {
-      return s.match(/\((.*)\)/)![1].split(',').slice(0, 3)
-         .map(x => parseInt(x)) as [number, number, number];
-   } catch {
-      return [255, 255, 255];
-   }
-}
-
-
-
-
-const bgColor = rgbToHex(toRgb(window.getComputedStyle(document.body, null)
-   .getPropertyValue('background-color')))
-console.log('bg: ', bgColor);
-
-const frame = document.createElement('iframe');
-frame.src = chrome.runtime.getURL('dialog.html') + `?bgColor=${encodeURIComponent(bgColor)}`;
-document.body.insertBefore(frame, null);
-frame.setAttribute('style', `
-   z-index: 9999;
-   position: fixed;
-   top: 0;
-   left: 0;
-   width: 100%;
-   height: 100%;
-   background-color: transparent;
-   border: none;
-`);
-
-function isInFrame(x: number, y: number) {
-   // const l = parseFloat(frame.style.left), r = l + DIALOG_WIDTH, t = parseFloat(frame.style.top), b = t + DIALOG_HEIGHT;
-   // console.log(dialogPos);
-   const [x0, y0] = dialogPos;
-   const l = x0, r = l + DIALOG_WIDTH, t = y0, b = t + DIALOG_HEIGHT;
-   const inFrame = l <= x && x <= r && t <= y && y <= b;
-
-   // console.log(inFrame, "(content)");
-   // console.log(l, r, t, b)
-   // console.log(x, y);
-   return inFrame;
-}
-
-window.addEventListener('mousemove', (e => {
-   const x = e.clientX, y = e.clientY;
-   const inFrame = isInFrame(x, y);
-   frame.style.pointerEvents = dialogActive && inFrame ? 'auto' : 'none';
-   // if (dialogActive && inFrame)
-   //    document.body.style.overflow = 'hidden';
-}));
-
-// frame.addEventListener('mousemove', e => {
-//    const x = e.clientX, y = e.clientY;
-//    const inFrame = isInFrame(x, y);
-//    frame.style.pointerEvents = inFrame ? 'auto' : 'none';
-// })
-
-const frameURL = chrome.runtime.getURL('dialog.html');
-
-const blurEvents: (keyof WindowEventMap)[] = [
-   'click',
-   // todo
-   // 'scroll'
-];
-for (let name of blurEvents) {
-   window.addEventListener(name, e => {
-      //console.log('window', name)
-      if (frame.style.pointerEvents === 'none')
-         frame.contentWindow?.postMessage('close', frameURL);
-      else
-         e.preventDefault();  // not working for scroll
-   })
-}
-
-const handler = (msg: TabMessageMap['dialog']['msg']) => {
-   const position = getDialogPosition();
-   //console.log('dialog')
-   frame.contentWindow?.postMessage({ ...msg, position }, frameURL);
-}
-let ready = false;
-// type MessageAction = typeof DIALOG_POSITION | typeof DIALOG_READY;
-window.addEventListener('message', (e: MessageEvent<{ action: DialogAction, position: [number, number], active: boolean }>) => {
-
-   function assertUnreachable(x: never): never {
-      throw new Error("Didn't expect to get here");
-   }
-
-   // console.log("receive message (content): ", e.data);
-   if (typeof e.data === 'object' && 'action' in e.data) {
-      switch (e.data['action']) {
-         case DialogAction.Ready:
-            if (!ready) {
-               ready = true;
-               addMessageListener('dialog', handler)
-            }
-            break;
-         case DialogAction.Position:
-            const { position } = e.data;
-            dialogPos = position;
-            // frame.style.left = `${left}px`;
-            // frame.style.top = `${top}px`;
-            break;
-         case DialogAction.DisablePointer:
-            frame.style.pointerEvents = 'none';
-            // document.body.style.overflow = 'scroll';
-            break;
-         case DialogAction.Active:
-            const { active } = e.data;
-            dialogActive = active;
-            break;
-         default:
-            assertUnreachable(e.data['action']);
-
-      }
-   }
-})
 
 /* --------------------------------- Submit --------------------------------- */
 
 addMessageListener('submitPage', async (msg, sender) => {
    return await submitPage();
 })
+
+/* --------------------------------- Dialog --------------------------------- */
+
+initDialog();
 
 /* ------------------------------ Popup Message ----------------------------- */
 

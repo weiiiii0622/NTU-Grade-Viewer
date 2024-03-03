@@ -2,7 +2,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type UnauthorizedErrorDetail = {
-    type: 'missing' | 'invalid';
+export type IssueRead = {
+    id: number;
+    description: string;
+    email?: (string | null);
+    has_image: boolean;
 };
 

@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from utils.general import test_only
+from utils.route import test_only, wrap_router
 
 router = APIRouter(prefix="/test")
+wrap_router(router)
 
 
 @router.get("/assertion-error")

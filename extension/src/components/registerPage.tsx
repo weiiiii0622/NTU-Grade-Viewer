@@ -17,9 +17,9 @@ interface IRegisterPageProps {
    reset: boolean
 }
 
-export const RegisterPage: React.FC<IRegisterPageProps>  = ( {reset} ) => {
+export const RegisterPage: React.FC<IRegisterPageProps> = ({ reset }) => {
 
-	const [isAuth, setIsAuth] = useState<boolean>(false);
+   const [isAuth, setIsAuth] = useState<boolean>(false);
    const [isLoading, setIsLoading] = useState<boolean>(false);
 
    const sendSnackBarMessage = (msg: ISnackBarProps) => {
@@ -32,7 +32,7 @@ export const RegisterPage: React.FC<IRegisterPageProps>  = ( {reset} ) => {
                sendTabMessage(tab.id, 'snackBar', msg);
             }
          }
-      );      
+      );
    }
 
    const handleSubmitScore = () => {
@@ -41,9 +41,9 @@ export const RegisterPage: React.FC<IRegisterPageProps>  = ( {reset} ) => {
          { active: true, currentWindow: true },
          async function (tabs: chrome.tabs.Tab[]) {
             const tab: chrome.tabs.Tab = tabs[0];
-            
-            if(!tab.url?.startsWith("https://if190.aca.ntu.edu.tw/graderanking") || tab.url?.startsWith("https://if190.aca.ntu.edu.tw/graderanking/Error")){
-               sendSnackBarMessage({msg:"請確認您的頁面位於「成績與名次查詢及探索學分申請系統」！", severity: "error", action: true});
+
+            if (!tab.url?.startsWith("https://if190.aca.ntu.edu.tw/graderanking") || tab.url?.startsWith("https://if190.aca.ntu.edu.tw/graderanking/Error")) {
+               sendSnackBarMessage({ msg: "請確認您的頁面位於「成績與名次查詢及探索學分申請系統」！", severity: "error", action: true });
             }
             else if (isAuth) {
                sendSnackBarMessage({msg:"您已經註冊過了！", severity: "success", action: true});
@@ -53,13 +53,13 @@ export const RegisterPage: React.FC<IRegisterPageProps>  = ( {reset} ) => {
                   const [res, err] = await sendTabMessage(tab.id, 'submitPage', {})
                   console.log("Submit Page result:", res, err);
                   if (err) {
-                     sendSnackBarMessage({msg:"發生錯誤！請重新整理頁面後再試！", severity: "error", action: true});
+                     sendSnackBarMessage({ msg: "發生錯誤！請重新整理頁面後再試！", severity: "error", action: true });
                      setIsAuth(false);
                      removeStorage('token');
                   }
                   else {
                      setIsAuth(true);
-                     sendSnackBarMessage({msg:"註冊成功！歡迎使用 NTU 選課小幫手！", severity: "success", action: true});
+                     sendSnackBarMessage({ msg: "註冊成功！歡迎使用 NTU 選課小幫手！", severity: "success", action: true });
                   }
                } catch (error) {
 
@@ -76,16 +76,16 @@ export const RegisterPage: React.FC<IRegisterPageProps>  = ( {reset} ) => {
 
    const checkToken = async () => {
       let token = await getStorage('token');
-         if (token) {
-            setIsAuth(true);
-         }
-         else {
-            setIsAuth(false);
-         }
+      if (token) {
+         setIsAuth(true);
+      }
+      else {
+         setIsAuth(false);
+      }
    }
 
    useEffect(() => {
-      if(isAuth == false || reset)
+      if (isAuth == false || reset)
          checkToken();
    }, [isAuth, reset])
 
