@@ -2,12 +2,9 @@ import React from "react";
 import { waitUntil, submitPage, clamp, rgbToHex } from "./utils";
 import { createRoot } from "react-dom/client";
 import { GradeChartLoader } from "./components/gradeChartLoader";
-import { Dialog } from "./dialog/frame/dialog";
 import { TabAction, TabListenerState, TabMessageMap, addMessageListener, getStorage, setStorage, sendRuntimeMessage } from "./api";
 import { SnackBar, ISnackBarProps } from "./components/snackBar";
 
-// import './style.css';
-// todo: move dialog to iframe
 
 /* --------------------------- Initialze indicator -------------------------- */
 
@@ -33,7 +30,6 @@ init();
 
 /* -------------------------- Dialog (Context Menu) ------------------------- */
 
-import styled from 'styled-components';
 import { DIALOG_HEIGHT, DIALOG_WIDTH, DIALOG_GAP, DialogAction } from "./config";
 
 let dialogActive: boolean = false;

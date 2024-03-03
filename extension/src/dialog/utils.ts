@@ -23,13 +23,13 @@ export type ContentMessageMap = {};
 export function sendContentMessage<T extends keyof ContentMessageMap>(
     action: T,
     args: ContentMessageMap[T]
-) {}
+) { }
 
 export type FrameMessageMap = {};
 export function sendFrameMessage<T extends keyof FrameMessageMap>(
     action: T,
     args: FrameMessageMap[T]
-) {}
+) { }
 
 export const findHistory = (course: CourseBase, histories: History[]) =>
     histories.find((h) => h.course.id1 === course.id1);

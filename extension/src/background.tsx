@@ -1,5 +1,5 @@
-import { GetResponseType, GetServiceArgs, GetServiceResponse, MessageHandler, RuntimeMessageMap, ServiceError, ServiceFuncName, addMessageListener, getStorage, sendRuntimeMessage, sendTabMessage, setStorage } from "./api";
-import { ApiError, DefaultService, OpenAPI } from "./client";
+import { addMessageListener, getStorage, sendTabMessage } from "./api";
+import { DefaultService, OpenAPI } from "./client";
 import { QueryGradeBatcher } from "./queryGradeBatcher";
 import { serviceHandler } from "./serviceHandler";
 import { getDataFromURL, injectContentScriptIfNotRunning } from "./utils";
@@ -93,37 +93,35 @@ addMessageListener('service', serviceHandler);
 //    }
 // })
 
-
-/* ---------------------- Inject Script When Activated ---------------------- */
-
-
 /* ------------------------------ Context Menu ------------------------------ */
 
-// todo: create two context
-chrome.contextMenus.create(
-   {
-      id: "selection",
-      type: "normal",
-      title: "搜尋 '%s' 的成績分布",
-      contexts: ["selection"]
-   },
-);
-chrome.contextMenus.create(
-   {
-      id: 'all',
-      type: 'normal',
-      title: `開啟 ${APP_TITLE} 面板`,
-      contexts: ['page', 'frame'],
-   }
-)
-chrome.contextMenus.create(
-   {
-      id: 'report',
-      type: 'normal',
-      title: `Report issue`,
-      contexts: ['page', 'frame'],
-   }
-)
+chrome.runtime.onInstalled.addListener(() => {
+   chrome.contextMenus.create(
+      {
+         id: "selection",
+         type: "normal",
+         title: "搜尋 '%s' 的成績分布",
+         contexts: ["selection"]
+      },
+   );
+   chrome.contextMenus.create(
+      {
+         id: 'all',
+         type: 'normal',
+         title: `開啟 ${APP_TITLE} 面板`,
+         contexts: ['page', 'frame'],
+      }
+   )
+   // ! This is for test-only
+   chrome.contextMenus.create(
+      {
+         id: 'report',
+         type: 'normal',
+         title: `Report issue`,
+         contexts: ['page', 'frame'],
+      }
+   )
+})
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
    if (tab?.url?.includes("chrome://")) {

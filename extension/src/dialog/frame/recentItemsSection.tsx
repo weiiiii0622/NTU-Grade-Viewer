@@ -1,4 +1,4 @@
-import { History } from "../../api";
+import { History } from "../../api/storage";
 import { ItemList, ItemProps } from './itemList';
 import { ItemOnClickProps } from './dialog';
 

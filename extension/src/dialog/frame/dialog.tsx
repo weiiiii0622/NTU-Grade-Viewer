@@ -5,7 +5,8 @@ import { ErrorBoundary } from "react-error-boundary";
 import { } from './foo'
 
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { History, getStorage, sendRuntimeMessage, setStorage } from "../../api";
+import { History, getStorage, setStorage } from "../../api/storage";
+import { sendRuntimeMessage } from "../../api/message";
 import styled, { keyframes } from 'styled-components';
 import { CourseBase, CourseSuggestion } from "../../client";
 import { useStorage } from "../../hooks/useStorage";
