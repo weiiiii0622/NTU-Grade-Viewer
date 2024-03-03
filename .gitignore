@@ -5,4 +5,5 @@ data/sql/mysql
 .vscode/
 log
 
+*zip
 NTU_GRADE_VIEWER

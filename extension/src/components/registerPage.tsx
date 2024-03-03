@@ -45,6 +45,9 @@ export const RegisterPage: React.FC<IRegisterPageProps>  = ( {reset} ) => {
             if(!tab.url?.startsWith("https://if190.aca.ntu.edu.tw/graderanking") || tab.url?.startsWith("https://if190.aca.ntu.edu.tw/graderanking/Error")){
                sendSnackBarMessage({msg:"請確認您的頁面位於「成績與名次查詢及探索學分申請系統」！", severity: "error", action: true});
             }
+            else if (isAuth) {
+               sendSnackBarMessage({msg:"您已經註冊過了！", severity: "success", action: true});
+            }
             else if (tab.id) {
                try {
                   const [res, err] = await sendTabMessage(tab.id, 'submitPage', {})
@@ -108,6 +111,7 @@ export const RegisterPage: React.FC<IRegisterPageProps>  = ( {reset} ) => {
 						color="info"
 						loadingPosition="end"
 						loading={isLoading}
+                  disabled={isAuth}
 						variant="outlined"
 						endIcon={<SendIcon />}
 					>
