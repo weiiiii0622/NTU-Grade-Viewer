@@ -27,7 +27,7 @@ export async function setCursorWaitWhilePending(tabId: number, func: () => Promi
  * @param tabId
  */
 export async function injectContentScriptIfNotRunning(tabId: number) {
-    if ((await chrome.tabs.get(tabId)).url?.includes("chrome://")) return;
+    if ((await chrome.tabs.get(tabId)).url?.includes("chrome://")) { console.log("bye"); return; }
 
     const target = { tabId };
     const [{ result: running }] = await chrome.scripting.executeScript({
@@ -474,4 +474,12 @@ export function lerpVec2(current: [number, number], target: [number, number], fa
 
 export function assertUnreachable(x: never): never {
     throw new Error("Didn't expect to get here");
+}
+
+/**
+ * 
+ * @param t ms
+ */
+export async function sleep(t: number) {
+    return new Promise<void>(res => setTimeout(() => res(), t))
 }
