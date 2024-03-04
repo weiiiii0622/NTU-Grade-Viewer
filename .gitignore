@@ -6,4 +6,5 @@ data/sql/mysql
 log
 app/upload/images/*
 
+*zip
 NTU_GRADE_VIEWER

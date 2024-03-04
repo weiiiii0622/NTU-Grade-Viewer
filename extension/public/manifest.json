@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NTU 選課小幫手",
-  "description": "A chrome plugin for the purpose of showing each course's score distribution on the site '台大課程網'",
+  "description": "一個可以搜尋NTU課程成績分布的 Google Chrome 插件，專門服務國立臺灣大學(NTU, National Taiwan University)的學生",
   "version": "1.0",
   "icons": {
     "16": "icon.png",
