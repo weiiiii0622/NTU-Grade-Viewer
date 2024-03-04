@@ -321,15 +321,11 @@ async def main():
     await insert_grades(grades=grades_updates)
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
 
-data_dir = Path(__file__).parent / "../../data/pre-collected/"
+    data_dir = Path(__file__).parent / "../../data/pre-collected/"
 
-wb = load_workbook(str(data_dir / "raw/106-110學年NTU課程成績比例.xlsx"))
-ws = wb.worksheets[0]
-rows = list(ws.rows)
-
-
-f = lambda x: x.quantize(Decimal(".00"), ROUND_HALF_UP)
-# class A:
-#     a: Decimal
+    wb = load_workbook(str(data_dir / "raw/106-110學年NTU課程成績比例.xlsx"))
+    ws = wb.worksheets[0]
+    rows = list(ws.rows)

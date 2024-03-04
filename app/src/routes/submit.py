@@ -235,7 +235,10 @@ def parse_page(text: str) -> tuple[str, list[GradeWithUpdate]]:
     ]
     results: list[GradeWithUpdate] = []
     for row in grade_rows:
-        infos = get_infos(row, extract_cls)
+        try:
+            infos = get_infos(row, extract_cls)
+        except:
+            continue
         semester, id1, id2, class_id, title, grade_str = infos
         # if not class_id:
         #     class_id = None
