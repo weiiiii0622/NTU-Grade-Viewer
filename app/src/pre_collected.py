@@ -186,7 +186,9 @@ async def parse_row(row: tuple[Cell, ...], session: ClientSession) -> Union[Grad
     assert st == -1 and end == -1, f"{st}, {end}, {segments}"
 
     total = sum(seg.value for seg in segments)
-    if math.isclose(total, 1, abs_tol=Decimal("0.02")) or any(seg.value <= Decimal('0.1') for seg in segments):
+    if math.isclose(total, 1, abs_tol=Decimal("0.02")) or any(
+        seg.value <= Decimal("0.1") for seg in segments
+    ):
         for seg in segments:
             seg.value *= 100
 
@@ -271,6 +273,9 @@ async def get_grades() -> list[GradeElement]:
     # TODO: insert into db
     # TODO: add `confirmed` field in db
     return valid_grades
+
+
+# todo: fix weird data
 
 
 async def main():

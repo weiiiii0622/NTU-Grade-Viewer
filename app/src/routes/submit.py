@@ -1,14 +1,14 @@
 import asyncio
 import math
 import re
+from time import sleep
 
 import bs4
 import requests
-from tqdm import tqdm
 from auth import get_token
 from bs4 import Tag
 from db import get_engine, get_session
-from fastapi import APIRouter, BackgroundTasks, Depends, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response
 from fastapi.exceptions import RequestValidationError
 
 # from models import (
@@ -23,10 +23,12 @@ from fastapi.exceptions import RequestValidationError
 from models import *
 from pydantic import BaseModel
 from sqlmodel import Session, select
+from tqdm import tqdm
 from utils.general import extract_dict
 from utils.grade import get_grade_element
 from utils.route import test_only
 from utils.search import global_session, search_course
+from utils.static import get_static_path
 
 router = APIRouter(prefix="/submit")
 
@@ -93,6 +95,9 @@ async def set_lecturer(grade: GradeWithUpdate) -> None:
     grade.lecturer = result["lecturer"]
 
 
+i = 0
+
+
 @router.post("/page")
 async def submit_page(
     *,
@@ -116,12 +121,35 @@ async def submit_page(
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     }
 
-    print(cookie)
+    if not cookie:
+        raise HTTPException(422, "Empty cookie")
 
-    res = requests.get(url, headers=headers)
+    max_retries = 5
+    retry_wait = 0.1  # s
+    student_id = None
+    results = None
+    for _ in range(max_retries):
+        print(f"{_} try")
+        res = requests.get(url, headers=headers)
+        try:
+            student_id, results = parse_page(res.text)
+            break
+        except:
+            sleep(retry_wait)
 
-    student_id, results = parse_page(res.text)
-    # student_id, results = parse_page(page.content)    # Uncomment this to parse the page from front-end
+    if not student_id or not results:
+        try:
+            student_id, results = parse_page(
+                page.content
+            )  # Uncomment this to parse the page from front-end
+        except:
+            pass
+
+    if not student_id or not results:
+        global i
+        i += 1
+        open(str(get_static_path() / f"error{i}.html"), "+w", encoding="utf-8").write(res.text)
+        raise HTTPException(500)
 
     # ---------------------------------------------------------------------------- #
 

@@ -1,7 +1,6 @@
 import os
 from typing import Annotated
 from urllib.parse import quote
-from fastapi.staticfiles import StaticFiles
 
 import requests
 import uvicorn
@@ -29,6 +28,7 @@ from fastapi import (
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from models import (
     Course,
     CourseReadWithGrade,
@@ -38,11 +38,12 @@ from models import (
     StudentId,
     User,
 )
+from routes import get_routers
 from sqlalchemy import text
 from sqlmodel import Session, select
-from routes import get_routers
 from utils.grade import get_grade_element
-from utils.route import admin_required, is_admin, test_only, wrap_router
+from utils.route import APP_MODE, admin_required, is_admin, test_only, wrap_router
+from utils.static import get_static_path
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "../../.env"), override=True)
 
@@ -59,6 +60,8 @@ app = FastAPI(
     },
 )
 wrap_router(app.router)
+
+app.mount("/static", StaticFiles(directory=get_static_path()), name="static")
 
 app.add_middleware(
     CORSMiddleware,
@@ -205,9 +208,13 @@ else:
     print("no site QQ")
 
 
+ADMIN_PATHS = ["/admin", "/static"]
+
+
 @app.middleware("http")
 async def admin_auth(request: Request, call_next):
-    if request.url.path.startswith("/admin"):
+    if any(request.url.path.startswith(path) for path in ADMIN_PATHS):
+        # and APP_MODE == 'PROD':
         if not is_admin(request.cookies.get("admin")):
             return JSONResponse("You don't belong here 👻", status_code=401)
     response = await call_next(request)

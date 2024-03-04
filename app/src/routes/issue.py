@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from models import Issue, IssueBase
 from pydantic import Field
 from sqlmodel import Session
-from utils.route import wrap_router
+from utils.route import test_only, wrap_router
 from utils.upload import get_image_path, open_image
 
 router = APIRouter(prefix="/issues")
@@ -81,6 +81,7 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent / "../templates"
 
 
 @router.get("/{id}/preview", response_class=HTMLResponse)
+@test_only
 def preview_issue(*, request: Request, session: Session = Depends(get_session), id: int):
     issue = session.get(Issue, id)
     if not issue:
