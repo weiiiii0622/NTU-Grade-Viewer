@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { StorageKey, StorageMap, getStorage, subscribeFactory } from "../api";
+import { StorageKey, StorageMap, getStorage, subscribeFactory } from "../api/storage";
 
 export function useStorage<K extends StorageKey>(key: K): [boolean, StorageMap[K] | undefined] {
 

@@ -3,6 +3,26 @@ import { Page } from "./client";
 
 import { IGradeChartTooltipData } from "./components/gradeChartToolTip";
 
+export async function setCursorWaitWhilePending(tabId: number, func: () => Promise<void>) {
+    console.log('set cursor')
+    const target = { tabId };
+    const [{ result: prevCursor }] = await chrome.scripting.executeScript({
+        target, func: () => {
+            const prevCursor = window.getComputedStyle(document.body).getPropertyValue('cursor') || 'auto';
+            document.body.style.cursor = 'wait';
+            return prevCursor;
+        }
+    })
+
+    await func();
+
+    chrome.scripting.executeScript({
+        target, func: (prevCursor) => {
+            document.body.style.cursor = prevCursor;
+        }, args: [prevCursor!]
+    })
+}
+
 /**
  * @param tabId
  */
@@ -430,4 +450,28 @@ export function rgbToHsl([r, g, b]: Vector3): Vector3 {
     else h = 4.0 + gc - rc;
     h = (h / 6.0) % 1.0;
     return [h, s, l];
+}
+
+
+export function getDataFromURL(url: string) {
+    const pattern = /data:image\/jpeg;base64,(.*)/
+    const obj = url.match(pattern);
+    if (obj)
+        return obj[1];
+    return null;
+}
+
+export function lerp(current: number, target: number, factor: number) {
+    factor = clamp(factor, 0, 1);
+    return current + factor * (target - current)
+}
+
+export type Vec2 = [number, number];
+export function lerpVec2(current: [number, number], target: [number, number], factor: number): [number, number] {
+    return current.map((x, i) => lerp(x, target[i], factor)) as [number, number];
+}
+
+
+export function assertUnreachable(x: never): never {
+    throw new Error("Didn't expect to get here");
 }

@@ -1,30 +1,22 @@
 import {
     BadRequestResponse,
-    CourseBase,
     DefaultService,
     InternalErrorResponse,
     Page,
     UnauthorizedErrorResponse,
     ValidationErrorResponse,
-} from "./client";
-import { ClassMethodName, Equal, Expect, IndexFromUnion, ObjectToEntriesTuple } from "./utilTypes";
-import { waitUntil, waitUntilAsync } from "./utils";
+} from "../client";
+import { ClassMethodName, Equal, Expect, IndexFromUnion } from "../utilTypes";
+import { waitUntilAsync } from "../utils";
+
 
 /* -------------------------------------------------------------------------- */
-/*                               Message Passing                              */
+/*                              Type Declaration                              */
 /* -------------------------------------------------------------------------- */
 
-type A = { a: 1 } extends { a?: 1 } ? 1 : 2;
-
-export type GetResponseType<M extends { msg: unknown; response: unknown }, P> = M extends M
-    ? P extends M["msg"]
-        ? M["response"]
-        : never
-    : "never";
+// ? You will only need to modify this part to add new messages.
 
 /* ------------------------------- Tab Message ------------------------------ */
-
-export type TabListenerState = "pending" | "ready";
 
 type TabMessageMap = {
     dialog: {
@@ -43,50 +35,9 @@ type TabMessageMap = {
 type TabAction = keyof TabMessageMap;
 export type { TabMessageMap, TabAction };
 
-function isTabAction(action: string): action is TabAction {
-    // ? this is for type-safety, not missing actions
-    const actionMap: Record<TabAction, 0> = {
-        dialog: 0,
-        snackBar: 0,
-        submitPage: 0,
-    };
-    return Object.keys(actionMap).indexOf(action) !== -1;
-}
-
-async function getTabListenerState(tabId: number, action: TabAction): Promise<TabListenerState> {
-    const [{ result }] = await chrome.scripting.executeScript({
-        target: { tabId },
-        func: (action: TabAction) => {
-            const indicator = window.NTU_GRADE_VIEWER__APP_INDICATOR;
-            // console.log("in:", indicator, indicator?.getAttribute(action));
-            if (!indicator) return "pending";
-            return (indicator.getAttribute(action) as TabListenerState) ?? "pending";
-        },
-        args: [action],
-    });
-    return result!;
-}
-
-export async function sendTabMessage<
-    T extends TabAction,
-    M extends TabMessageMap[T],
-    P extends M["msg"]
->(tabId: number, action: T, msg: P): Promise<GetResponseType<M, P>> {
-    //console.log(`send ${action}: ${msg}`);
-    try {
-        await waitUntilAsync(
-            async () => (await getTabListenerState(tabId, action)) === "ready",
-            30
-        );
-        getTabListenerState(tabId, action).then(console.warn);
-        return await chrome.tabs.sendMessage<any, GetResponseType<M, P>>(tabId, { msg, action });
-    } catch (e) {
-        //console.log("error: ", e);
-        throw `No message listener on ${action} for tab ${tabId}!`;
-    }
-}
-
 /* ----------------------------- Runtime Message ---------------------------- */
+
+// todo: refactor this mess
 
 export type ServiceFuncName = ClassMethodName<typeof DefaultService>;
 
@@ -129,12 +80,77 @@ type RuntimeMessageMap = RuntimeMessageServiceMap & {
         msg: undefined;
         response: string;
     };
+    // * Return base64 encoded captured image of current tab
+    captureTab: {
+        msg: undefined;
+        response: string | null;
+    };
 };
 type RuntimeAction = keyof RuntimeMessageMap;
 
 export type { RuntimeMessageMap, RuntimeMessageServiceMap };
 
-async function sendRuntimeMessage<
+
+/* -------------------------------------------------------------------------- */
+/*                               Message Passing                              */
+/* -------------------------------------------------------------------------- */
+
+
+export type GetResponseType<M extends { msg: unknown; response: unknown }, P> = M extends M
+    ? P extends M["msg"]
+    ? M["response"]
+    : never
+    : "never";
+
+/* ------------------------------- Tab Message ------------------------------ */
+
+export type TabListenerState = "pending" | "ready";
+
+
+function isTabAction(action: string): action is TabAction {
+    // ? this is for type-safety, not missing actions
+    const actionMap: Record<TabAction, 0> = {
+        dialog: 0,
+        snackBar: 0,
+        submitPage: 0,
+    };
+    return Object.keys(actionMap).indexOf(action) !== -1;
+}
+
+async function getTabListenerState(tabId: number, action: TabAction): Promise<TabListenerState> {
+    const [{ result }] = await chrome.scripting.executeScript({
+        target: { tabId },
+        func: (action: TabAction) => {
+            const indicator = window.NTU_GRADE_VIEWER__APP_INDICATOR;
+            if (!indicator) return "pending";
+            return (indicator.getAttribute(action) as TabListenerState) ?? "pending";
+        },
+        args: [action],
+    });
+    return result!;
+}
+
+export async function sendTabMessage<
+    T extends TabAction,
+    M extends TabMessageMap[T],
+    P extends M["msg"]
+>(tabId: number, action: T, msg: P): Promise<GetResponseType<M, P>> {
+    try {
+        await waitUntilAsync(
+            async () => (await getTabListenerState(tabId, action)) === "ready",
+            30
+        );
+        getTabListenerState(tabId, action).then(console.warn);
+        return await chrome.tabs.sendMessage<any, GetResponseType<M, P>>(tabId, { msg, action });
+    } catch (e) {
+        throw `No message listener on ${action} for tab ${tabId}!`;
+    }
+}
+
+/* ----------------------------- Runtime Message ---------------------------- */
+
+
+export async function sendRuntimeMessage<
     T extends RuntimeAction,
     M extends RuntimeMessageMap[T],
     P extends M["msg"]
@@ -142,7 +158,6 @@ async function sendRuntimeMessage<
     return await chrome.runtime.sendMessage<any, GetResponseType<M, P>>({ msg, action });
 }
 
-export { sendRuntimeMessage };
 
 /* ---------------------------- Message Listener ---------------------------- */
 
@@ -211,7 +226,7 @@ export function removeMessageListener<
     try {
         const _handler = listenerMap.get(action)?.get(handler);
         chrome.runtime.onMessage.removeListener(_handler);
-    } catch {}
+    } catch { }
 }
 
 /* ---------------------------------- Test ---------------------------------- */
@@ -262,100 +277,3 @@ async function test() {
         return DefaultService[funcName](args as any);
     });
 }
-
-/* -------------------------------------------------------------------------- */
-/*                                   Storage                                  */
-/* -------------------------------------------------------------------------- */
-
-export type History = {
-    // courseId1: CourseBase["id1"];
-    course: CourseBase;
-    classCount: number;
-    // todo
-    // lecturers: string[];
-    timeStamp: number; // generated by Date.now()
-};
-
-// todo: detect if storage type has changed
-export type StorageMap = {
-    token: string;
-    ttl: { value: number; cache_time: number }; // in second
-    semester: string;
-    foo: number;
-    histories: History[];
-};
-
-export type StorageKey = keyof StorageMap;
-type StorageKeyTuple<T extends StorageKey[] = [], L = ObjectToEntriesTuple<StorageMap>["length"]> =
-    | (T["length"] extends L ? T : StorageKeyTuple<[...T, StorageKey]>)
-    | T;
-
-type StorageKeyTupleReturnType<T extends StorageKey[]> = T extends [
-    infer F extends StorageKey,
-    ...infer R extends StorageKey[]
-]
-    ? { [K in F]?: StorageMap[K] } & StorageKeyTupleReturnType<R>
-    : {};
-
-function getStorage<T extends StorageKey>(key: T): Promise<StorageMap[T] | undefined>;
-async function getStorage(key: StorageKey) {
-    // console.log("get storage: ", key);
-    return (await chrome.storage.sync.get(key))[key];
-}
-
-function getStorages<T extends StorageKeyTuple>(key: T): Promise<StorageKeyTupleReturnType<T>>;
-function getStorages<T extends Partial<StorageMap>>(
-    key: T
-): Promise<{ [K in keyof T]: K extends keyof StorageMap ? StorageMap[K] : "never" }>;
-async function getStorages(keys: StorageKey[] | { [K in StorageKey]?: StorageMap[K] }) {
-    // console.log("get storages: ", keys);
-
-    return await chrome.storage.sync.get(keys);
-}
-
-type StorageChangeHandler<K extends StorageKey> = (data: StorageMap[K] | undefined) => void;
-
-const onStoreChangeMap: { [K in StorageKey]: Set<StorageChangeHandler<K>> } = {
-    foo: new Set(),
-    token: new Set(),
-    histories: new Set(),
-    ttl: new Set(),
-    semester: new Set(),
-};
-
-async function setStorage(items: Partial<StorageMap>) {
-    //console.log("set storage:", items);
-    await chrome.storage.sync.set(items);
-
-    (Object.keys(items) as StorageKey[]).forEach((key) => {
-        onStoreChangeMap[key].forEach((fn) => fn(items[key] as any));
-    });
-}
-
-async function removeStorage<T extends StorageKey>(key: T) {
-    //console.log(`remove storage: ${key}`);
-    await chrome.storage.sync.remove(key);
-
-    onStoreChangeMap[key].forEach((fn) => fn(undefined));
-}
-
-async function removeStorages<T extends StorageKeyTuple>(keys: T) {
-    //console.log(`remove storages: ${keys}`);
-    chrome.storage.sync.remove(keys);
-
-    keys.forEach((key) => {
-        onStoreChangeMap[key].forEach((fn) => fn(undefined));
-    });
-}
-
-export function subscribeFactory<K extends StorageKey>(
-    key: K
-): (onStoreChange: StorageChangeHandler<K>) => () => void {
-    const subscribe = (fn: StorageChangeHandler<K>) => {
-        onStoreChangeMap[key].add(fn);
-        return () => onStoreChangeMap[key].delete(fn);
-    };
-    return subscribe;
-}
-
-export { getStorage, getStorages, setStorage, removeStorage, removeStorages };

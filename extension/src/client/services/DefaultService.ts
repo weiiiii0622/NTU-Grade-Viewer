@@ -6,6 +6,8 @@ import type { CourseReadWithGrade } from '../models/CourseReadWithGrade';
 import type { CourseSuggestion } from '../models/CourseSuggestion';
 import type { GradeElement } from '../models/GradeElement';
 import type { GradeWithUpdate } from '../models/GradeWithUpdate';
+import type { IssueCreate } from '../models/IssueCreate';
+import type { IssueRead } from '../models/IssueRead';
 import type { Page } from '../models/Page';
 import type { PageResponse } from '../models/PageResponse';
 import type { User } from '../models/User';
@@ -14,23 +16,18 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class DefaultService {
     /**
-     * Submit Page
-     * @returns PageResponse Successful Response
+     * Create Issue
+     * @returns IssueRead Successful Response
      * @throws ApiError
      */
-    public static submitPageSubmitPagePost({
-        cookie,
+    public static createIssueIssuesPost({
         requestBody,
     }: {
-        cookie: string,
-        requestBody: Page,
-    }): CancelablePromise<PageResponse> {
+        requestBody: IssueCreate,
+    }): CancelablePromise<IssueRead> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/submit/page',
-            query: {
-                'cookie': cookie,
-            },
+            url: '/issues/',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
@@ -42,20 +39,21 @@ export class DefaultService {
         });
     }
     /**
-     * Submit Grade
-     * @returns GradeElement Successful Response
+     * Read Issue
+     * @returns IssueRead Successful Response
      * @throws ApiError
      */
-    public static submitGradeSubmitGradePost({
-        requestBody,
+    public static readIssueIssuesIssueIdGet({
+        issueId,
     }: {
-        requestBody: GradeWithUpdate,
-    }): CancelablePromise<GradeElement> {
+        issueId: number,
+    }): CancelablePromise<IssueRead> {
         return __request(OpenAPI, {
-            method: 'POST',
-            url: '/submit/grade',
-            body: requestBody,
-            mediaType: 'application/json',
+            method: 'GET',
+            url: '/issues/{issue_id}',
+            path: {
+                'issue_id': issueId,
+            },
             errors: {
                 400: `Bad Request`,
                 401: `Unauthorized`,
@@ -65,20 +63,45 @@ export class DefaultService {
         });
     }
     /**
-     * Submit Grades
-     * @returns GradeElement Successful Response
+     * Read Image
+     * @returns any Successful Response
      * @throws ApiError
      */
-    public static submitGradesSubmitGradesPost({
-        requestBody,
+    public static readImageIssuesIssueIdImageGet({
+        issueId,
     }: {
-        requestBody: Array<GradeWithUpdate>,
-    }): CancelablePromise<Array<GradeElement>> {
+        issueId: number,
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
-            method: 'POST',
-            url: '/submit/grades',
-            body: requestBody,
-            mediaType: 'application/json',
+            method: 'GET',
+            url: '/issues/{issue_id}/image',
+            path: {
+                'issue_id': issueId,
+            },
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Preview Issue
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static previewIssueIssuesIdPreviewGet({
+        id,
+    }: {
+        id: number,
+    }): CancelablePromise<string> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/issues/{id}/preview',
+            path: {
+                'id': id,
+            },
             errors: {
                 400: `Bad Request`,
                 401: `Unauthorized`,
@@ -219,133 +242,71 @@ export class DefaultService {
         });
     }
     /**
-     * Get All Grades
-     * @auth_required
-     * @test_only
-     *
-     * Just get all grades.
+     * Submit Page
+     * @returns PageResponse Successful Response
+     * @throws ApiError
+     */
+    public static submitPageSubmitPagePost({
+        cookie,
+        requestBody,
+    }: {
+        cookie: string,
+        requestBody: Page,
+    }): CancelablePromise<PageResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/submit/page',
+            query: {
+                'cookie': cookie,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Submit Grade
      * @returns GradeElement Successful Response
      * @throws ApiError
      */
-    public static getAllGradesGradeAllGet({
-        xToken = '',
-        cookieToken = '',
+    public static submitGradeSubmitGradePost({
+        requestBody,
     }: {
-        /**
-         * Token represented student_id via X-Token header, automatically sent by background.js. Same as `cookie_token`.
-         */
-        xToken?: string,
-        /**
-         * Token represented student_id via cookie. Same as `x_token`. This parameter is for testing purpose. You should generally rely on `x_token`.
-         */
-        cookieToken?: string,
+        requestBody: GradeWithUpdate,
+    }): CancelablePromise<GradeElement> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/submit/grade',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Submit Grades
+     * @returns GradeElement Successful Response
+     * @throws ApiError
+     */
+    public static submitGradesSubmitGradesPost({
+        requestBody,
+    }: {
+        requestBody: Array<GradeWithUpdate>,
     }): CancelablePromise<Array<GradeElement>> {
         return __request(OpenAPI, {
-            method: 'GET',
-            url: '/grade/all',
-            cookies: {
-                'cookie_token': cookieToken,
-            },
-            headers: {
-                'x-token': xToken,
-            },
-            errors: {
-                400: `Bad Request`,
-                401: `Unauthorized`,
-                422: `Unprocessable Entity`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-    /**
-     * Assertion Error
-     * @test_only
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static assertionErrorTestAssertionErrorGet(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/test/assertion-error',
-            errors: {
-                400: `Bad Request`,
-                401: `Unauthorized`,
-                422: `Unprocessable Entity`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-    /**
-     * Validation Error
-     * @test_only
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static validationErrorTestValidationErrorGet(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/test/validation-error',
-            errors: {
-                400: `Bad Request`,
-                401: `Unauthorized`,
-                422: `Unprocessable Entity`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-    /**
-     * Error 401
-     * @test_only
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static error401Test401Get(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/test/401',
-            errors: {
-                400: `Bad Request`,
-                401: `Unauthorized`,
-                422: `Unprocessable Entity`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-    /**
-     * Error 400
-     * @test_only
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static error400Test400Get(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/test/400',
-            errors: {
-                400: `Bad Request`,
-                401: `Unauthorized`,
-                422: `Unprocessable Entity`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-    /**
-     * Error 422
-     * @test_only
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static error422Test422Get({
-        a,
-    }: {
-        a: number,
-    }): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/test/422',
-            query: {
-                'a': a,
-            },
+            method: 'POST',
+            url: '/submit/grades',
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 400: `Bad Request`,
                 401: `Unauthorized`,
@@ -446,80 +407,6 @@ export class DefaultService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/',
-            errors: {
-                400: `Bad Request`,
-                401: `Unauthorized`,
-                422: `Unprocessable Entity`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-    /**
-     * Db Test
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static dbTestDbGet(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/db',
-            errors: {
-                400: `Bad Request`,
-                401: `Unauthorized`,
-                422: `Unprocessable Entity`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-    /**
-     *  Add Auth
-     * @test_only
-     *
-     * Add a user to database. This will set `token` in cookies.
-     *
-     * Returns:
-     * Token generated by given student id.
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static addAuthAddAuthStudentIdGet({
-        studentId,
-    }: {
-        /**
-         * A student's id, e.g. b10401006.
-         */
-        studentId: string,
-    }): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/add-auth/{student_id}',
-            path: {
-                'student_id': studentId,
-            },
-            errors: {
-                400: `Bad Request`,
-                401: `Unauthorized`,
-                422: `Unprocessable Entity`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-    /**
-     * Get Analytics
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static getAnalyticsAnalyticsGet({
-        admin,
-    }: {
-        admin: string,
-    }): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/analytics',
-            cookies: {
-                'admin': admin,
-            },
             errors: {
                 400: `Bad Request`,
                 401: `Unauthorized`,

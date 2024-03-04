@@ -2,14 +2,13 @@
 
 
 import { IconChartBar, IconChartPie, IconChevronLeft, IconChevronRight, IconUser, TablerIconsProps } from "@tabler/icons-react";
-import { CourseBase, CourseReadWithGrade, GradeWithSegments, Segment } from "../client";
+import { CourseBase, CourseReadWithGrade, GradeWithSegments, Segment } from "../../client";
 
-import "../style.css";
 import { ReactNode, useEffect, useMemo, useState } from "react";
-import { sendRuntimeMessage } from "../api";
-import { BarChart, IChartData, PIECHART_COLORS, PieChart } from "../components/gradeChart";
-import { GRADES, semesterCompareFn } from "../utils";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../components/shadcn-ui/select";
+import { sendRuntimeMessage } from "../../api";
+import { BarChart, IChartData, PIECHART_COLORS, PieChart } from "../../components/gradeChart";
+import { GRADES, semesterCompareFn } from "../../utils";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../../components/shadcn-ui/select";
 import { CloseBtn } from "./dialog";
 import clsx from "clsx";
 import { ToggleGroup, ToggleGroupItem } from "./lib/toggleGroup";

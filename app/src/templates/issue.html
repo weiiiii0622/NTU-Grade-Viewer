@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Issue</title>
+   </head>
+   <body>
+      <h3>Description</h3>
+      <div>{{ issue.description }}</div>
+      <h3>Email</h3>
+      <div>{{ issue.email }}</div>
+      <h3>Image</h3>
+      {% if issue.has_image %}
+      <img src="{{ url_for('read_image', issue_id=issue.id )}}" />
+      {% endif %}
+   </body>
+</html>

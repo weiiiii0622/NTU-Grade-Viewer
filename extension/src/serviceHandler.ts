@@ -7,7 +7,6 @@ import {
     setStorage,
 } from "./api";
 import { ApiError, DefaultService } from "./client";
-import { QueryGradeBatcher } from "./queryGradeBatcher";
 
 // const batcher = new QueryGradeBatcher();
 

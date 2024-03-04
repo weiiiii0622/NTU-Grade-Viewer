@@ -1,10 +1,9 @@
 
 
-import { CourseBase } from "../client";
+import { CourseBase } from "../../client";
 import { IconBook2, IconHistory, TablerIconsProps } from '@tabler/icons-react';
-import { ScrollArea } from "../../@/components/ui/scroll-area";
+import { ScrollArea } from "../../../@/components/ui/scroll-area";
 
-import "../style.css";
 
 export type ItemListProps = {
     title: string,
@@ -19,7 +18,7 @@ export function ItemList(props: ItemListProps) {
     return <div className="w-full">
         <h4
             className="ml-2 text-xs text-[#a6a6a6] mb-2 font-semibold"
-            //onClick={() => { console.log('h4') }}
+        //onClick={() => { console.log('h4') }}
         >
             {title}
         </h4>
@@ -50,6 +49,7 @@ export type ItemProps = {
     onClick: () => void;
 }
 
+// todo: action: pin, remove
 export function Item(props: ItemProps) {
     const { type, course, count, onClick } = props;
 

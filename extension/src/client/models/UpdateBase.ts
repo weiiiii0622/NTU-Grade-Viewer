@@ -9,5 +9,6 @@ export type UpdateBase = {
     pos: number;
     lower: (number | string);
     higher: (number | string);
+    solid?: boolean;
 };
 

@@ -15,6 +15,8 @@ export type { GradeElement } from './models/GradeElement';
 export type { GradeWithSegments } from './models/GradeWithSegments';
 export type { GradeWithUpdate } from './models/GradeWithUpdate';
 export type { InternalErrorResponse } from './models/InternalErrorResponse';
+export type { IssueCreate } from './models/IssueCreate';
+export type { IssueRead } from './models/IssueRead';
 export type { Page } from './models/Page';
 export type { PageResponse } from './models/PageResponse';
 export type { Segment } from './models/Segment';

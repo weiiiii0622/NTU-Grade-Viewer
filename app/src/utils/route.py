@@ -10,7 +10,6 @@ APP_MODE = os.getenv("MODE", "DEV")
 
 
 def wrap_router(router: APIRouter):
-    # def
     api_route = router.api_route
 
     def api_route_wrapped(path: str, **kwargs):

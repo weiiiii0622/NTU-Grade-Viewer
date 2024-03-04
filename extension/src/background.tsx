@@ -1,12 +1,10 @@
-import { GetResponseType, GetServiceArgs, GetServiceResponse, MessageHandler, RuntimeMessageMap, ServiceError, ServiceFuncName, addMessageListener, getStorage, sendRuntimeMessage, sendTabMessage, setStorage } from "./api";
-import { ApiError, DefaultService, OpenAPI } from "./client";
+import { addMessageListener, getStorage, sendTabMessage } from "./api";
+import { DefaultService, OpenAPI } from "./client";
 import { QueryGradeBatcher } from "./queryGradeBatcher";
 import { serviceHandler } from "./serviceHandler";
-import { injectContentScriptIfNotRunning } from "./utils";
+import { getDataFromURL, injectContentScriptIfNotRunning, setCursorWaitWhilePending } from "./utils";
 
 OpenAPI['BASE'] = APP_URL
-
-//console.log("background");
 
 // todo: notification, omnibox, commands
 
@@ -95,40 +93,82 @@ addMessageListener('service', serviceHandler);
 //    }
 // })
 
-
-/* ---------------------- Inject Script When Activated ---------------------- */
-
-
 /* ------------------------------ Context Menu ------------------------------ */
 
-// todo: create two context
-chrome.contextMenus.create(
-   {
-      id: "selection",
-      type: "normal",
-      title: "搜尋 '%s' 的成績分布",
-      contexts: ["selection"]
-   },
-);
-chrome.contextMenus.create(
-   {
-      id: 'all',
-      type: 'normal',
-      title: `開啟 ${APP_TITLE} 面板`,
-      contexts: ['page', 'frame'],
-   }
-)
+chrome.runtime.onInstalled.addListener(() => {
+   chrome.contextMenus.create(
+      {
+         id: "selection",
+         type: "normal",
+         title: "搜尋 '%s' 的成績分布",
+         contexts: ["selection"]
+      },
+   );
+   chrome.contextMenus.create(
+      {
+         id: 'all',
+         type: 'normal',
+         title: `開啟 ${APP_TITLE} 面板`,
+         contexts: ['page', 'frame'],
+      }
+   )
+   // ! This is for test-only
+   chrome.contextMenus.create(
+      {
+         id: 'report',
+         type: 'normal',
+         title: `Report issue`,
+         contexts: ['page', 'frame'],
+      }
+   )
+})
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
    if (tab?.url?.includes("chrome://")) {
       return;
    }
 
-   await injectContentScriptIfNotRunning(tab?.id!)
-   // ! fix racing condition
-   sendTabMessage(tab?.id!, 'dialog', { selection: info.selectionText ?? '' });
+   if (info.menuItemId === 'report') {
+      const image_data = await captureTab();
+      const issue = await DefaultService.createIssueIssuesPost({
+         requestBody: {
+            description: 'Test issue',
+            image_data,
+         }
+      })
+      // ! test only
+      chrome.tabs.create({ url: APP_URL + `/issues/${issue.id}/preview`, active: true });
+      return;
+   }
+
+   openDialog(tab!, info.selectionText ?? '');
+
 })
 
 
+async function openDialog(tab: chrome.tabs.Tab, selection: string = '') {
+   // todo: create new tab if current is chrome://
+   setCursorWaitWhilePending(tab.id!, async () => {
+      injectContentScriptIfNotRunning(tab.id!)
+      await sendTabMessage(tab?.id!, 'dialog', { selection });
+   })
+}
+
 
 // todo: jump to options on installed.
+
+
+chrome.commands.onCommand.addListener((command, tab) => {
+   openDialog(tab)
+});
+
+/* ------------------------------- Capture Tab ------------------------------ */
+
+async function captureTab() {
+   const dataURL = await chrome.tabs.captureVisibleTab();
+   return getDataFromURL(dataURL);
+}
+
+addMessageListener('captureTab', async () => {
+   return await captureTab();
+})
