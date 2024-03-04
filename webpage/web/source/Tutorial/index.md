@@ -31,5 +31,5 @@ date: 2024-02-08 22:56:14
 (無法在google搜尋主頁或是 "chrome://" 開頭的頁面使用)<img src="../assets/img/tutorial_panel.jpg" width="80%" style="margin-top: 10px; margin-bottom: 20px;" />
 2. 搜尋任一課程的名字，在下方點選您想查詢的課程
 <img src="../assets/img/tutorial_panelsearch.jpg" width="80%" style="margin-top: 10px; margin-bottom: 20px;" />
-3. 查看該課程之詳細課程圖表，點擊左上角按鈕返回搜尋頁面
+3. 查看該課程之詳細成績圖表，點擊左上角按鈕返回搜尋頁面
 <img src="../assets/img/tutorial_demo2.jpg" width="80%" style="margin-top: 10px; margin-bottom: 20px;" />

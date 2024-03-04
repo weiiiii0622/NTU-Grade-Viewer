@@ -2,9 +2,15 @@ import os
 from contextlib import contextmanager
 from pathlib import Path
 
+UPLOAD_DIR = Path(__file__).parent / "../../upload"
 IMAGES_DIR = Path(__file__).parent / "../../upload/images"
 
+if not UPLOAD_DIR.exists():
+    UPLOAD_DIR.mkdir()
+
 if not IMAGES_DIR.exists():
+    if not IMAGES_DIR.parent.exists():
+        IMAGES_DIR.parent.mkdir()
     IMAGES_DIR.mkdir()
 
 
