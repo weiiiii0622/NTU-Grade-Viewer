@@ -191,7 +191,7 @@ export { submitPage };
 /*                                Grade Related                               */
 /* -------------------------------------------------------------------------- */
 
-export const GRADES = ["F", "C⁻", "C", "C⁺", "B⁻", "B", "B⁺", "A⁻", "A", "A⁺"];
+export const GRADES = ["F", "C⁻", "C", "C⁺", "B⁻", "B", "B⁺", "A⁻", "A", "A⁺", "通過", "不通過"];
 
 interface IFetchGradeResponse {
     data?: IGradeChartTooltipData[];
@@ -269,7 +269,7 @@ const fetchGrade = async (
 };
 
 const getLabel = (seg: { l: number; r: number; value: number }) => {
-    return seg.l === seg.r ? GRADES[seg.l] : GRADES[seg.r] + "~" + GRADES[seg.l];
+    return seg.l === seg.r ? GRADES[seg.l] : GRADES[seg.r] + "-" + GRADES[seg.l];
 };
 
 // Convert Back-end Data to Front-End format
