@@ -41,6 +41,7 @@ from models import (
 from routes import get_routers
 from sqlalchemy import text
 from sqlmodel import Session, select
+from routes.submit import parse_page
 from utils.grade import get_grade_element
 from utils.route import APP_MODE, admin_required, is_admin, test_only, wrap_router
 from utils.static import get_static_path
@@ -200,6 +201,15 @@ def get_analytics():
     return HTTPException(404, "Oops")
 
 
+@app.get("/analytics/dialog")
+def get_dialog():
+    """
+    Only for analytics purpose.
+    The extension will fetch this endpoint every time dialog is opened.
+    """
+    return
+
+
 from admin import site
 
 if site:
@@ -224,6 +234,5 @@ async def admin_auth(request: Request, call_next):
 # ----------------------------------- Main ----------------------------------- #
 
 PORT = int(os.getenv("PORT_DEV", 4000))
-# HOST = str(os.getenv("HOST_DEV"))
 if __name__ == "__main__":
     uvicorn.run("app:app", port=PORT, host="0.0.0.0", reload=True)
