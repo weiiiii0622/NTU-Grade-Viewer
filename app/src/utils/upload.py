@@ -5,6 +5,8 @@ from pathlib import Path
 IMAGES_DIR = Path(__file__).parent / "../../upload/images"
 
 if not IMAGES_DIR.exists():
+    if not IMAGES_DIR.parent.exists():
+        IMAGES_DIR.parent.mkdir()
     IMAGES_DIR.mkdir()
 
 

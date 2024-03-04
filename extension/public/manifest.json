@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "NTU 選課小幫手",
   "description": "一個可以搜尋NTU課程成績分布的 Google Chrome 插件，專門服務國立臺灣大學(NTU, National Taiwan University)的學生",
-  "version": "1.0",
+  "version": "1.0.1",
   "icons": {
     "16": "icon.png",
     "24": "icon.png",
