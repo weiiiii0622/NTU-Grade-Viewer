@@ -138,6 +138,8 @@ async def submit_page(
             sleep(retry_wait)
 
     if not student_id or not results:
+        print("Cookies: ", cookie)
+        print("Try to parse user from frontend...")
         try:
             student_id, results = parse_page(
                 page.content
