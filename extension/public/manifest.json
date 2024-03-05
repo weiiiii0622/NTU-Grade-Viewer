@@ -26,7 +26,8 @@
     {
       "matches": [
         "https://course.ntu.edu.tw/*",
-        "https://if190.aca.ntu.edu.tw/graderanking/*"
+        "https://if190.aca.ntu.edu.tw/graderanking/*",
+        "https://www.google.com/*"
       ],
       "js": [
         "js/vendor.js",

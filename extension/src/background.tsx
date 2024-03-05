@@ -2,7 +2,7 @@ import { addMessageListener, getStorage, sendTabMessage } from "./api";
 import { DefaultService, OpenAPI } from "./client";
 import { QueryGradeBatcher } from "./queryGradeBatcher";
 import { serviceHandler } from "./serviceHandler";
-import { getDataFromURL, injectContentScriptIfNotRunning, setCursorWaitWhilePending } from "./utils";
+import { getDataFromURL, injectContentScriptIfNotRunning, setCursorWaitWhilePending, sleep } from "./utils";
 
 OpenAPI['BASE'] = APP_URL
 
@@ -124,10 +124,6 @@ chrome.runtime.onInstalled.addListener(() => {
 })
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-   if (tab?.url?.includes("chrome://")) {
-      return;
-   }
-
    if (info.menuItemId === 'report') {
       const image_data = await captureTab();
       const issue = await DefaultService.createIssueIssuesPost({
@@ -148,6 +144,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 async function openDialog(tab: chrome.tabs.Tab, selection: string = '') {
    // todo: create new tab if current is chrome://
+   if (tab.url?.startsWith('chrome://')) {
+      tab = await chrome.tabs.create({ active: true, url: `http://www.google.com/?q=${selection}` })
+      await sleep(500);
+   }
+
    setCursorWaitWhilePending(tab.id!, async () => {
       injectContentScriptIfNotRunning(tab.id!)
       await sendTabMessage(tab?.id!, 'dialog', { selection });
@@ -158,8 +159,17 @@ async function openDialog(tab: chrome.tabs.Tab, selection: string = '') {
 // todo: jump to options on installed.
 
 
-chrome.commands.onCommand.addListener((command, tab) => {
+chrome.commands.onCommand.addListener(async (command, tab) => {
    openDialog(tab)
+   // return;
+   // setTimeout(() => {
+   //    chrome.scripting.executeScript({
+   //       target: { tabId: newTab.id! }, func: () => {
+   //          document.body.style.background = 'red'
+   //          console.log('hi')
+   //       }
+   //    })
+   // }, 0)
 });
 
 /* ------------------------------- Capture Tab ------------------------------ */

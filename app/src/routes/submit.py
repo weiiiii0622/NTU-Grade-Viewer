@@ -212,17 +212,25 @@ def parse_page(text: str) -> tuple[str, list[GradeWithUpdate]]:
 
     soup = bs4.BeautifulSoup(text, "html.parser")
 
-    rank_rows = soup.select(".table-rank .table-rows")
-
     def get_infos(row: Tag, classes: list[str]) -> list[str]:
         return [row.select(f".{cls}")[0].text for cls in classes]
 
-    extract_cls = ["table-column-uid"]
-    uids = [get_infos(row, extract_cls)[0] for row in rank_rows]
-    if not uids or any(uid != uids[0] for uid in uids):
-        open("page.html", "+w").write(text)
+    student_id = None
+    try:
+        student_id = soup.select("label#regno")[0].text
+    except:
+        rank_rows = soup.select(".table-rank .table-rows")
+        extract_cls = ["table-column-uid"]
+        for row in rank_rows:
+            try:
+                if uid := get_infos(row, extract_cls)[0]:
+                    student_id = uid
+                    break
+            except:
+                pass
+
+    if not student_id:
         raise RequestValidationError(["Cannot find student id"])
-    student_id = uids[0]
 
     grade_rows = soup.select(".table-grade .table-rows")
     extract_cls = [
