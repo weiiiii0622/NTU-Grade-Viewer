@@ -1,0 +1,19 @@
+name: Validate .env
+
+on:
+  push:
+    branches: master
+
+jobs:
+  validate-env:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/get-env
+        with:
+          env-base64: ${{ secrets.ENV_FILE_BASE64 }}
+      - id: sha256
+        run: echo "sha256=$(sha256sum -b .env)" > $GITHUB_OUTPUT
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            core.setFailed('Your .env.sha256 is out-dated.')
