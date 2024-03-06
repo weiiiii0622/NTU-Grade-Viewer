@@ -8,10 +8,24 @@ If existing storage type is changed, then should clearStorage in next update.
 
 ## Possible Todos
 
--   Extend to NTU COOL
--   Add tests
--   Bug report `tabs.captureVisibleTab`
--   Add quick badge for course search items (e.g. '35% A+')
+-  Extend to NTU COOL
+-  Add tests
+-  Bug report `tabs.captureVisibleTab`
+-  Add quick badge for course search items (e.g. '35% A+')
+-  Send notification when new release arrived
+
+### Github Actions
+
+-  Check .env is not out-dated
+-  Check storage definition is modified
+-  Test (on `master`)
+   -  Run test for extension/
+   -  Run test for app/
+   -  Run test for both together?
+-  When `extension` branch is pushed, create release and update extension to web store
+   -  Extract and validate version
+   -  Auto-generated release body by `release/HISTORY.md`
+   -  Build extension/dist/ and upload to web store (this requires futher manual update description & publish)
 
 ## How to run
 
