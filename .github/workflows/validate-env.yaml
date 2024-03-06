@@ -14,8 +14,8 @@ jobs:
           env-base64: ${{ secrets.ENV_FILE_BASE64 }}
       - id: env-sha256-secret
         run: |
-          echo "sha256=$(sha256sum -b .env)" > $GITHUB_OUTPUT
-          echo "sha256=$(sha256sum -b .env)"
+          echo "sha256=$(sha256sum -b .env | cut -d ' ' -f 1)" > $GITHUB_OUTPUT
+          echo "sha256=$(sha256sum -b .env | cut -d ' ' -f 1)"
       - id: env-sha256-file
         run: |
           echo "sha256=$(cat .env.sha256)" > $GITHUB_OUTPUT
