@@ -13,9 +13,13 @@ jobs:
         with:
           env-base64: ${{ secrets.ENV_FILE_BASE64 }}
       - id: env-sha256-secret
-        run: echo "sha256=$(sha256sum -b .env)" > $GITHUB_OUTPUT
+        run: |
+          echo "sha256=$(sha256sum -b .env)" > $GITHUB_OUTPUT
+          echo "sha256=$(sha256sum -b .env)"
       - id: env-sha256-file
-        run: echo "sha256=$(cat .env.sha256)" > $GITHUB_OUTPUT
+        run: |
+          echo "sha256=$(cat .env.sha256)" > $GITHUB_OUTPUT
+          echo "sha256=$(cat .env.sha256)"
       - if: ${{ steps.env-sha256-file != steps.env-sha256-secret }}
         uses: actions/github-script@v7
         with:
