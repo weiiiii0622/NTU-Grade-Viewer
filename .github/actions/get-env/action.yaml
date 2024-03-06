@@ -1,16 +1,15 @@
-name: 'Get .env'
-description: 'Recover .env from secrets'
+name: "Get .env"
+description: "Recover .env from secrets"
 inputs:
-  env-base64: 
-    description: 'Base64 encoded .env file'
+  env-base64:
+    description: "Base64 encoded .env file"
     required: true
   output-path:
-    description: 'Output path for .env'
-    default: './.env'
+    description: "Output path for .env"
+    default: "./.env"
 
 runs:
   using: "composite"
   steps:
-    - run: echo ${{ inputs.env-base64 }} base64 --decode > ${{ inputs.output-path }}
+    - run: echo ${{ inputs.env-base64 }} |  base64 --decode > ${{ inputs.output-path }}
       shell: bash
-      
