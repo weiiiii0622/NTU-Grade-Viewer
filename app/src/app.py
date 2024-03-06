@@ -1,4 +1,6 @@
+import logging
 import os
+from contextlib import asynccontextmanager
 from typing import Annotated
 from urllib.parse import quote
 
@@ -39,17 +41,32 @@ from models import (
     User,
 )
 from routes import get_routers
+from routes.submit import parse_page
 from sqlalchemy import text
 from sqlmodel import Session, select
-from routes.submit import parse_page
 from utils.grade import get_grade_element
 from utils.route import APP_MODE, admin_required, is_admin, test_only, wrap_router
 from utils.static import get_static_path
+from utils.validate_env import validate_env
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "../../.env"), override=True)
 
 if os.getenv("APP_MODE") == "DEV":
     os.environ["APP_URL"] = "http://localhost:5000"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger = logging.getLogger("uvicorn")
+    if not validate_env():
+        logger.error("Your .env file does not match .env.sha256.")
+        logger.error(
+            "Perhaps your environment variables are out-dated and may cause runtime error."
+        )
+    else:
+        logger.info("Checked .env file, up-to-date.")
+
+    yield
 
 
 app = FastAPI(
@@ -59,6 +76,7 @@ app = FastAPI(
         422: {"model": ValidationErrorResponse},
         500: {"model": InternalErrorResponse},
     },
+    lifespan=lifespan,
 )
 wrap_router(app.router)
 

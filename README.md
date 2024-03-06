@@ -2,30 +2,40 @@
 
 A chrome plugin for the purpose of showing each course's score distribution on the site "台大課程網"
 
+## Update `.env`
+
+### Prerequisite
+
+Create `.github/token` and put your github personal access token in it.
+
+### Running script
+
+After updating `.env`, you should run `python scripts/update_env.py` to both update secrets stored in github repo and the `.env.sha256` in local. Then, you should immediately push `.env.sha256` to master.
+
 ## Important!!
 
 If existing storage type is changed, then should clearStorage in next update.
 
 ## Possible Todos
 
--  Extend to NTU COOL
--  Add tests
--  Bug report `tabs.captureVisibleTab`
--  Add quick badge for course search items (e.g. '35% A+')
--  Send notification when new release arrived
+-   Extend to NTU COOL
+-   Add tests
+-   Bug report `tabs.captureVisibleTab`
+-   Add quick badge for course search items (e.g. '35% A+')
+-   Send notification when new release arrived
 
 ### Github Actions
 
--  Check .env is not out-dated
--  Check storage definition is modified
--  Test (on `master`)
-   -  Run test for extension/
-   -  Run test for app/
-   -  Run test for both together?
--  When `extension` branch is pushed, create release and update extension to web store
-   -  Extract and validate version
-   -  Auto-generated release body by `release/HISTORY.md`
-   -  Build extension/dist/ and upload to web store (this requires futher manual update description & publish)
+-   Check .env is not out-dated
+-   Check storage definition is modified
+-   Test (on `master`)
+    -   Run test for extension/
+    -   Run test for app/
+    -   Run test for both together?
+-   When `extension` branch is pushed, create release and update extension to web store
+    -   Extract and validate version
+    -   Auto-generated release body by `release/HISTORY.md`
+    -   Build extension/dist/ and upload to web store (this requires futher manual update description & publish)
 
 ## How to run
 
