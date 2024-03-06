@@ -8,6 +8,7 @@ jobs:
   validate-env:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/get-env
         with:
           env-base64: ${{ secrets.ENV_FILE_BASE64 }}
