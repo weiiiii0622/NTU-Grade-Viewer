@@ -20,7 +20,7 @@ jobs:
         run: |
           echo "sha256=$(cat .env.sha256)" > $GITHUB_OUTPUT
           echo "sha256=$(cat .env.sha256)"
-      - if: ${{ steps.env-sha256-file != steps.env-sha256-secret }}
+      - if: ${{ steps.env-sha256-file.outputs.sha256 != steps.env-sha256-secret.outputs.sha256 }}
         uses: actions/github-script@v7
         with:
           script: |
