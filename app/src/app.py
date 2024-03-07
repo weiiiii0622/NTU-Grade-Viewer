@@ -59,6 +59,7 @@ if os.getenv("APP_MODE") == "DEV":
 async def lifespan(app: FastAPI):
     logger = logging.getLogger("uvicorn")
     if os.getenv("APP_MODE") == "DEV" and not validate_env():
+
         logger.error("Your .env file does not match .env.sha256.")
         logger.error(
             "Perhaps your environment variables are out-dated and may cause runtime error."
