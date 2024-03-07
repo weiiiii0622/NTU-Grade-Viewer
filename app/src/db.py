@@ -29,7 +29,7 @@ else:
     DB_URL = "mysql+pymysql://root:root@db:3333/db"
 
 
-def db_init():
+def db_init(sql_url=DB_URL):
     global engine
     if engine:
         return
@@ -40,7 +40,7 @@ def db_init():
     last_try = time()
 
     try:
-        sql_url = DB_URL
+        # sql_url = DB_URL
 
         engine = create_engine(sql_url, echo=False, pool_size=20, max_overflow=100)
         SQLModel.metadata.create_all(engine)
