@@ -68,7 +68,7 @@ def _query_grades(session: Session, query: dict):
                 return []
             grades = [get_grade_element(grade) for grade in course.grades]
             if grades:
-                return grades
+                return [g for g in grades if g]
 
     return []
 

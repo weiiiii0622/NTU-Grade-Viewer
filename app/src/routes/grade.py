@@ -19,6 +19,7 @@ def get_all_grades(*, session: Session = Depends(get_session)) -> list[GradeElem
     Just get all grades.
     """
 
-    return [get_grade_element(grade) for grade in session.exec(select(Grade)).all()]
+    grades = [get_grade_element(grade) for grade in session.exec(select(Grade)).all()]
+    return [grade for grade in grades if grade]
 
     # return do_query_grades({"1": "1"}, {})
