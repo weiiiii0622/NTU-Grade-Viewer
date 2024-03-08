@@ -99,3 +99,12 @@ export function subscribeFactory<K extends StorageKey>(
 }
 
 export { getStorage, getStorages, setStorage, removeStorage, removeStorages };
+
+
+// todo
+import conflictKeys from "../conflictKeys.json";
+export function clearConflictStorages() {
+    try {
+        removeStorages(conflictKeys as any);
+    } catch { }
+}

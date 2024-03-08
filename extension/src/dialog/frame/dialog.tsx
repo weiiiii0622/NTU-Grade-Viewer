@@ -191,6 +191,8 @@ export function Dialog({ }: DialogProps) {
       };
    }, []);
 
+   console.log("render")
+
 
    const inactiveEvents: (keyof WindowEventMap)[] = [
       'click'
@@ -446,7 +448,7 @@ export function Dialog({ }: DialogProps) {
          }}
       >
          <div {...bind()} className={clsx(
-            "w-8 py-1 flex z-50 justify-center items-center  absolute left-1/2 translate-x-[-50%] touch-none",
+            "w-8 py-1 pt-2 flex z-50 justify-center items-center  absolute left-1/2 translate-x-[-50%] touch-none",
             // dragging ? "cursor-grabbing" : " cursor-grab"
             "cursor-grab"
          )}>
@@ -456,6 +458,8 @@ export function Dialog({ }: DialogProps) {
                stroke={2}
             />
          </div>
+
+         <CloseBtn className="absolute right-2 top-2" onClick={() => setActive(false)} />
          <ErrorBoundary fallback={<Error />} onError={console.log}
          // todo: put the error boundary in lower level so user can close the dialog.
          >
@@ -465,7 +469,7 @@ export function Dialog({ }: DialogProps) {
                      <h3 className=" select-none  text-xl font-bold  text-[#4e4e4e] ">
                         {APP_TITLE}
                      </h3>
-                     <CloseBtn onClick={() => setActive(false)} />
+                     {/* <CloseBtn onClick={() => setActive(false)} /> */}
                   </div>
                   <SearchInput
                      className="mx-2 mb-6"

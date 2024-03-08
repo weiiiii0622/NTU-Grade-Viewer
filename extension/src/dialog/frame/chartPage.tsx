@@ -137,7 +137,7 @@ export function ChartPage(props: ChartPageProps) {
                 <h3 className="text-[#4e4e4e]  flex-wrap font-semibold text-xl">{title}</h3>
                 <div className="text-[#909090]/[.82] text-sm">{courseId1}</div>
             </div>
-            <CloseBtn onClick={close} className="ml-auto" />
+            {/* <CloseBtn onClick={close} className="ml-auto" /> */}
         </header>
         <ErrorBoundary fallback={<Error />}>
             {course
