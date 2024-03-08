@@ -58,6 +58,7 @@ if os.getenv("APP_MODE") == "DEV":
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger = logging.getLogger("uvicorn")
+    # todo: use secret file on render.com
     if os.getenv("APP_MODE") == "DEV" and not validate_env():
         logger.error("Your .env file does not match .env.sha256.")
         logger.error(
