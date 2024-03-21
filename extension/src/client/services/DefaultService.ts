@@ -87,30 +87,6 @@ export class DefaultService {
         });
     }
     /**
-     * Preview Issue
-     * @returns string Successful Response
-     * @throws ApiError
-     */
-    public static previewIssueIssuesIdPreviewGet({
-        id,
-    }: {
-        id: number,
-    }): CancelablePromise<string> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/issues/{id}/preview',
-            path: {
-                'id': id,
-            },
-            errors: {
-                400: `Bad Request`,
-                401: `Unauthorized`,
-                422: `Unprocessable Entity`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-    /**
      * Query Grades
      * @auth_required
      *
@@ -271,14 +247,14 @@ export class DefaultService {
     }
     /**
      * Submit Grade
-     * @returns GradeElement Successful Response
+     * @returns any Successful Response
      * @throws ApiError
      */
     public static submitGradeSubmitGradePost({
         requestBody,
     }: {
         requestBody: GradeWithUpdate,
-    }): CancelablePromise<GradeElement> {
+    }): CancelablePromise<(GradeElement | null)> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/submit/grade',
@@ -294,14 +270,14 @@ export class DefaultService {
     }
     /**
      * Submit Grades
-     * @returns GradeElement Successful Response
+     * @returns any Successful Response
      * @throws ApiError
      */
     public static submitGradesSubmitGradesPost({
         requestBody,
     }: {
         requestBody: Array<GradeWithUpdate>,
-    }): CancelablePromise<Array<GradeElement>> {
+    }): CancelablePromise<Array<(GradeElement | null)>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/submit/grades',
@@ -346,14 +322,19 @@ export class DefaultService {
      */
     public static getCourseCourseId1Get({
         id1,
+        caseSensitive = true,
     }: {
         id1: string,
+        caseSensitive?: boolean,
     }): CancelablePromise<CourseReadWithGrade> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/course/{id1}',
             path: {
                 'id1': id1,
+            },
+            query: {
+                'case_sensitive': caseSensitive,
             },
             errors: {
                 400: `Bad Request`,
@@ -407,6 +388,25 @@ export class DefaultService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/',
+            errors: {
+                400: `Bad Request`,
+                401: `Unauthorized`,
+                422: `Unprocessable Entity`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+    /**
+     * Get Dialog
+     * Only for analytics purpose.
+     * The extension will fetch this endpoint every time dialog is opened.
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static getDialogAnalyticsDialogGet(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/analytics/dialog',
             errors: {
                 400: `Bad Request`,
                 401: `Unauthorized`,

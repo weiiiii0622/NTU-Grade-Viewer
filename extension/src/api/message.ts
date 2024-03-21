@@ -9,7 +9,6 @@ import {
 import { ClassMethodName, Equal, Expect, IndexFromUnion } from "../utilTypes";
 import { waitUntilAsync } from "../utils";
 
-
 /* -------------------------------------------------------------------------- */
 /*                              Type Declaration                              */
 /* -------------------------------------------------------------------------- */
@@ -67,14 +66,15 @@ type GetFuncMessage<F extends ServiceFuncName> = {
     response: GetServiceResponse<F>;
 };
 
-type RuntimeMessageServiceMap<F extends ServiceFuncName = ServiceFuncName> = F extends F
-    ? { service: GetFuncMessage<F> }
-    : "never";
+type RuntimeMessageServiceMap<F extends ServiceFuncName = ServiceFuncName> =
+    F extends F ? { service: GetFuncMessage<F> } : "never";
 
 type RuntimeMessageMap = RuntimeMessageServiceMap & {
     user: {
         msg: undefined;
-        response: null | Awaited<ReturnType<typeof DefaultService.getUserUserGet>>;
+        response: null | Awaited<
+            ReturnType<typeof DefaultService.getUserUserGet>
+        >;
     };
     session_id: {
         msg: undefined;
@@ -85,27 +85,35 @@ type RuntimeMessageMap = RuntimeMessageServiceMap & {
         msg: undefined;
         response: string | null;
     };
+    injectNTUCool: {
+        msg: undefined;
+        response: void;
+    };
+    // scheduleRedirectCharts: {
+    //     msg: undefined;
+    //     response: void;
+    // };
+    getTabId: {
+        msg: undefined;
+        response: number;
+    };
 };
 type RuntimeAction = keyof RuntimeMessageMap;
 
 export type { RuntimeMessageMap, RuntimeMessageServiceMap };
 
-
 /* -------------------------------------------------------------------------- */
 /*                               Message Passing                              */
 /* -------------------------------------------------------------------------- */
 
-
-export type GetResponseType<M extends { msg: unknown; response: unknown }, P> = M extends M
-    ? P extends M["msg"]
-    ? M["response"]
-    : never
-    : "never";
+export type GetResponseType<
+    M extends { msg: unknown; response: unknown },
+    P
+> = M extends M ? (P extends M["msg"] ? M["response"] : never) : "never";
 
 /* ------------------------------- Tab Message ------------------------------ */
 
 export type TabListenerState = "pending" | "ready";
-
 
 function isTabAction(action: string): action is TabAction {
     // ? this is for type-safety, not missing actions
@@ -117,13 +125,19 @@ function isTabAction(action: string): action is TabAction {
     return Object.keys(actionMap).indexOf(action) !== -1;
 }
 
-async function getTabListenerState(tabId: number, action: TabAction): Promise<TabListenerState> {
+async function getTabListenerState(
+    tabId: number,
+    action: TabAction
+): Promise<TabListenerState> {
     const [{ result }] = await chrome.scripting.executeScript({
         target: { tabId },
         func: (action: TabAction) => {
             const indicator = window.NTU_GRADE_VIEWER__APP_INDICATOR;
             if (!indicator) return "pending";
-            return (indicator.getAttribute(action) as TabListenerState) ?? "pending";
+            return (
+                (indicator.getAttribute(action) as TabListenerState) ??
+                "pending"
+            );
         },
         args: [action],
     });
@@ -141,7 +155,10 @@ export async function sendTabMessage<
             30
         );
         getTabListenerState(tabId, action).then(console.warn);
-        return await chrome.tabs.sendMessage<any, GetResponseType<M, P>>(tabId, { msg, action });
+        return await chrome.tabs.sendMessage<any, GetResponseType<M, P>>(
+            tabId,
+            { msg, action }
+        );
     } catch (e) {
         throw `No message listener on ${action} for tab ${tabId}!`;
     }
@@ -149,15 +166,16 @@ export async function sendTabMessage<
 
 /* ----------------------------- Runtime Message ---------------------------- */
 
-
 export async function sendRuntimeMessage<
     T extends RuntimeAction,
     M extends RuntimeMessageMap[T],
     P extends M["msg"]
 >(action: T, msg: P): Promise<GetResponseType<M, P>> {
-    return await chrome.runtime.sendMessage<any, GetResponseType<M, P>>({ msg, action });
+    return await chrome.runtime.sendMessage<any, GetResponseType<M, P>>({
+        msg,
+        action,
+    });
 }
-
 
 /* ---------------------------- Message Listener ---------------------------- */
 
@@ -226,7 +244,7 @@ export function removeMessageListener<
     try {
         const _handler = listenerMap.get(action)?.get(handler);
         chrome.runtime.onMessage.removeListener(_handler);
-    } catch { }
+    } catch {}
 }
 
 /* ---------------------------------- Test ---------------------------------- */
@@ -257,8 +275,20 @@ async function test() {
     type cases = [
         Expect<Equal<A1, TabMessageMap["dialog"]["response"]>>,
         Expect<Equal<A2, TabMessageMap["submitPage"]["response"]>>,
-        Expect<Equal<A3, Awaited<ReturnType<typeof DefaultService.submitPageSubmitPagePost>>>>,
-        Expect<Equal<A4, Awaited<ReturnType<typeof DefaultService.queryGradesQueryGet>>>>
+        Expect<
+            Equal<
+                A3,
+                Awaited<
+                    ReturnType<typeof DefaultService.submitPageSubmitPagePost>
+                >
+            >
+        >,
+        Expect<
+            Equal<
+                A4,
+                Awaited<ReturnType<typeof DefaultService.queryGradesQueryGet>>
+            >
+        >
     ];
 
     addMessageListener("dialog", async (msg) => {

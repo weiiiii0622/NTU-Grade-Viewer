@@ -27,7 +27,7 @@
       "matches": [
         "https://course.ntu.edu.tw/*",
         "https://if190.aca.ntu.edu.tw/graderanking/*",
-        "https://www.google.com/*"
+        "https://cool.ntu.edu.tw/*"
       ],
       "js": [
         "js/vendor.js",
@@ -52,7 +52,9 @@
     "scripting",
     "tabs",
     "activeTab",
-    "cookies"
+    "cookies",
+    "notifications",
+    "declarativeNetRequestWithHostAccess"
   ],
   "web_accessible_resources": [
     {
@@ -70,5 +72,14 @@
     "<all_urls>"
   ],
   "optional_permissions": [],
-  "optional_host_permissions": []
+  "optional_host_permissions": [],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ntucool",
+        "enabled": true,
+        "path": "rules/ntucool.json"
+      }
+    ]
+  }
 }

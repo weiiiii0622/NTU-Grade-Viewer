@@ -4,7 +4,7 @@
 import { ErrorBoundary } from "react-error-boundary";
 import { } from './foo'
 
-import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import React, { ReactNode, forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { History, getStorage, setStorage } from "../../api/storage";
 import { sendRuntimeMessage } from "../../api/message";
 import styled, { keyframes } from 'styled-components';
@@ -22,7 +22,7 @@ import { DIALOG_WIDTH as WIDTH, DIALOG_HEIGHT as HEIGHT } from "../config"
 import { ItemList, ItemProps } from "./itemList";
 import { ChartPage } from "./chartPage";
 import { RecentItemsSection } from './recentItemsSection';
-import { cn } from '../../components/shadcn-ui/lib';
+import { cn } from './lib/utils';
 import { Error, AuthError } from "./error";
 import { Loading } from "./loading";
 import { Vec2, clamp, hexToRgb, rgbToHsl } from "../../utils";
@@ -374,6 +374,13 @@ export function Dialog({ }: DialogProps) {
       // setCourseId1(null);
    }
 
+   /* ------------------------------- Input Focus ------------------------------ */
+   const inputRef = useRef<HTMLInputElement>(null);
+   useEffect(() => {
+      if (inputRef.current)
+         inputRef.current.focus();
+   }, [inputRef])
+
    /* ---------------------------------- Auth ---------------------------------- */
 
    const [isAuth, setIsAuth] = useState<boolean>(false);
@@ -465,33 +472,40 @@ export function Dialog({ }: DialogProps) {
          >
             <InnerContainer pageIdx={pageIdx}>
                <PageContainer>
-                  <div className="flex flex-row items-center justify-between mb-4 ml-2" >
+                  <div className="flex flex-row items-center justify-between mb-4 ml-2 mr-4" >
                      <h3 className=" select-none  text-xl font-bold  text-[#4e4e4e] ">
                         {APP_TITLE}
                      </h3>
                      {/* <CloseBtn onClick={() => setActive(false)} /> */}
                   </div>
                   <SearchInput
-                     className="mx-2 mb-6"
+                     className="mx-2 mb-6 mr-6"
                      keyword={rawKeyword} setKeyword={setRawKeyword}
                   />
                   {contentLoading
                      ? <Loading />
-                     : <ScrollArea className='pr-4 '>
-                        {rawKeyword
-                           ? <ItemList title="搜尋結果" items={items} />
-                           : <RecentItemsSection
-                              histories={histories}
-                              // items={items.filter(item => item.type === 'recent')}
-                              itemOnClickFactory={itemOnClickFactory}
+                     // ! this is cool
+                     : <>
+                        {/* <div className="relative h-full min-h-0"> */}
+                        {/* This will not work */}
+                        {/* <div className='absolute left-0 h-full -right-4'> */}
+                        <ScrollArea className="pr-4"
+                           scrollHideDelay={100000}
+                        >
+                           <ScrollBar orientation="vertical"
+                              className='absolute w-2 '
+                           // todo: add more padding
                            />
-                        }
-
-                        <ScrollBar orientation="vertical"
-                           className='w-2 '
-                        // todo: add more padding
-                        />
-                     </ScrollArea>
+                           {rawKeyword
+                              ? <ItemList title="搜尋結果" items={items} />
+                              : <RecentItemsSection
+                                 histories={histories}
+                                 // items={items.filter(item => item.type === 'recent')}
+                                 itemOnClickFactory={itemOnClickFactory}
+                              />
+                           }
+                        </ScrollArea>
+                     </>
                   }
 
                </PageContainer>
@@ -513,7 +527,7 @@ export function Dialog({ }: DialogProps) {
                </PageContainer>
             </InnerContainer>
          </ErrorBoundary>
-      </DialogWrapper>
+      </DialogWrapper >
    );
 
 }
@@ -523,7 +537,7 @@ export function Dialog({ }: DialogProps) {
  * Handling horizontal spacing & overflow of pages.
  */
 function InnerContainer({ children, pageIdx }: { children: ReactNode[], pageIdx: number }) {
-   return <div className="box-border flex flex-row w-full h-full p-4 pt-7">
+   return <div className="box-border flex flex-row w-full h-full p-4 pt-8 pr-0">
       <div className="w-full overflow-hidden ">
          <div className="box-border flex flex-row items-stretch w-full h-full"
             style={{
@@ -550,7 +564,7 @@ type SearchInputProps = {
    keyword: string;
    setKeyword: React.Dispatch<React.SetStateAction<string>>,
 } & React.HTMLAttributes<HTMLInputElement>;
-function SearchInput(props: SearchInputProps) {
+const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>((props: SearchInputProps, ref) => {
 
    const { keyword, setKeyword, className, ...restProps } = props;
 
@@ -561,6 +575,7 @@ function SearchInput(props: SearchInputProps) {
    >
       <IconSearch size={16} stroke={1} color={'#828282'} />
       <input
+         ref={ref}
          // {...restProps}
          className="  bg-transparent focus:outline-none  w-full  py-1 text-[#828282] placeholder:text-[#d9d9d9] text-xs  border-none"
          onChange={e => setKeyword(e.target.value)}
@@ -570,7 +585,7 @@ function SearchInput(props: SearchInputProps) {
 
       </input>
    </div>
-}
+})
 
 export function CloseBtn({ onClick, className, ...props }: { onClick: () => void } & React.ComponentProps<'span'>) {
    return <span

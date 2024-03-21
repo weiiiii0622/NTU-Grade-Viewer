@@ -1,7 +1,4 @@
-
-import {
-    CourseBase,
-} from "../client";
+import { CourseBase } from "../client";
 import { ObjectToEntriesTuple } from "../utilTypes";
 
 /* -------------------------------------------------------------------------- */
@@ -24,12 +21,16 @@ export type StorageMap = {
     semester: string;
     foo: number;
     histories: History[];
+    hasShownNTUCoolTour: boolean;
 };
 
+/* ----------------------------- Implementation ----------------------------- */
+
 export type StorageKey = keyof StorageMap;
-type StorageKeyTuple<T extends StorageKey[] = [], L = ObjectToEntriesTuple<StorageMap>["length"]> =
-    | (T["length"] extends L ? T : StorageKeyTuple<[...T, StorageKey]>)
-    | T;
+type StorageKeyTuple<
+    T extends StorageKey[] = [],
+    L = ObjectToEntriesTuple<StorageMap>["length"]
+> = (T["length"] extends L ? T : StorageKeyTuple<[...T, StorageKey]>) | T;
 
 type StorageKeyTupleReturnType<T extends StorageKey[]> = T extends [
     infer F extends StorageKey,
@@ -38,22 +39,32 @@ type StorageKeyTupleReturnType<T extends StorageKey[]> = T extends [
     ? { [K in F]?: StorageMap[K] } & StorageKeyTupleReturnType<R>
     : {};
 
-function getStorage<T extends StorageKey>(key: T): Promise<StorageMap[T] | undefined>;
+function getStorage<T extends StorageKey>(
+    key: T
+): Promise<StorageMap[T] | undefined>;
 async function getStorage(key: StorageKey) {
     // console.log("get storage: ", key);
     return (await chrome.storage.sync.get(key))[key];
 }
 
-function getStorages<T extends StorageKeyTuple>(key: T): Promise<StorageKeyTupleReturnType<T>>;
+function getStorages<T extends StorageKeyTuple>(
+    key: T
+): Promise<StorageKeyTupleReturnType<T>>;
 function getStorages<T extends Partial<StorageMap>>(
     key: T
-): Promise<{ [K in keyof T]: K extends keyof StorageMap ? StorageMap[K] : "never" }>;
-async function getStorages(keys: StorageKey[] | { [K in StorageKey]?: StorageMap[K] }) {
+): Promise<{
+    [K in keyof T]: K extends keyof StorageMap ? StorageMap[K] : "never";
+}>;
+async function getStorages(
+    keys: StorageKey[] | { [K in StorageKey]?: StorageMap[K] }
+) {
     // console.log("get storages: ", keys);
     return await chrome.storage.sync.get(keys);
 }
 
-type StorageChangeHandler<K extends StorageKey> = (data: StorageMap[K] | undefined) => void;
+type StorageChangeHandler<K extends StorageKey> = (
+    data: StorageMap[K] | undefined
+) => void;
 
 const onStoreChangeMap: { [K in StorageKey]: Set<StorageChangeHandler<K>> } = {
     foo: new Set(),
@@ -61,6 +72,7 @@ const onStoreChangeMap: { [K in StorageKey]: Set<StorageChangeHandler<K>> } = {
     histories: new Set(),
     ttl: new Set(),
     semester: new Set(),
+    hasShownNTUCoolTour: new Set(),
 };
 
 async function setStorage(items: Partial<StorageMap>) {
@@ -100,11 +112,10 @@ export function subscribeFactory<K extends StorageKey>(
 
 export { getStorage, getStorages, setStorage, removeStorage, removeStorages };
 
-
 // todo
 import conflictKeys from "../conflictKeys.json";
 export function clearConflictStorages() {
     try {
         removeStorages(conflictKeys as any);
-    } catch { }
+    } catch {}
 }

@@ -1,4 +1,4 @@
-import { addMessageListener, getStorage, sendTabMessage } from "./api";
+import { addMessageListener, getStorage, sendTabMessage, setStorage } from "./api";
 import { DefaultService, OpenAPI } from "./client";
 import { QueryGradeBatcher } from "./queryGradeBatcher";
 import { serviceHandler } from "./serviceHandler";
@@ -146,7 +146,7 @@ async function openDialog(tab: chrome.tabs.Tab, selection: string = '') {
    // todo: create new tab if current is chrome://
    if (tab.url?.startsWith('chrome://')) {
       tab = await chrome.tabs.create({ active: true, url: `http://www.google.com/?q=${selection}` })
-      await sleep(500);
+      await sleep(1000);
    }
 
    setCursorWaitWhilePending(tab.id!, async () => {
@@ -161,6 +161,19 @@ async function openDialog(tab: chrome.tabs.Tab, selection: string = '') {
 
 chrome.commands.onCommand.addListener(async (command, tab) => {
    openDialog(tab)
+
+   chrome.notifications.create("new-notification", {
+      iconUrl: "http://www.google.com/favicon.ico",
+      type: 'list',
+      title: 'Primary Title',
+      message: 'Primary message to display',
+      priority: 1,
+      items: [{ title: 'Item1', message: 'This is item 1.' },
+      { title: 'Item2', message: 'This is item 2.' },
+      { title: 'Item3', message: 'This is item 3.' }]
+   }, () => {
+      console.log("notification",)
+   })
    // return;
    // setTimeout(() => {
    //    chrome.scripting.executeScript({
@@ -181,4 +194,54 @@ async function captureTab() {
 
 addMessageListener('captureTab', async () => {
    return await captureTab();
+})
+
+
+chrome.runtime.onInstalled.addListener(async () => {
+
+   chrome.notifications.create("new-notification", {
+      iconUrl: "http://www.google.com/favicon.ico",
+      type: 'list',
+      title: 'Primary Title',
+      message: 'Primary message to display',
+      priority: 1,
+      items: [{ title: 'Item1', message: 'This is item 1.' },
+      { title: 'Item2', message: 'This is item 2.' },
+      { title: 'Item3', message: 'This is item 3.' }]
+   }, () => {
+      console.log("notification",)
+   })
+})
+
+
+addMessageListener('injectNTUCool', (_, sender) => {
+   chrome.scripting.executeScript({
+      target: { tabId: sender.tab?.id! }, files: [
+         'js/NTUCool.js'
+      ]
+   })
+})
+
+
+addMessageListener('getTabId', async (_, sender) => {
+   // (await getStorage('redirectChartIds'))?.add(sender.tab!.id!);
+   return sender.tab!.id!;
+   // chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+   //    if (info.status === 'complete' && tabId === sender.tab?.id) {
+   //       chrome.tabs.onUpdated.removeListener(listener);
+
+   //       chrome.scripting.executeScript({
+   //          target: { tabId: sender.tab?.id! }, files: [
+   //             'js/NTUCool.js'
+   //          ],
+   //       })
+   //    }
+   // });
+})
+
+
+chrome.runtime.onInstalled.addListener(async () => {
+   const res = await getStorage('hasShownNTUCoolTour');
+   if (!res)
+      setStorage({ 'hasShownNTUCoolTour': false })
 })

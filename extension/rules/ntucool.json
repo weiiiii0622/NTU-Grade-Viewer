@@ -1,0 +1,18 @@
+[
+    {
+        "id": 1,
+        "priority": 1,
+        "action": {
+            "type": "redirect",
+            "redirect": {
+                "regexSubstitution": "https://cool.ntu.edu.tw/courses/\\1/?charts"
+            }
+        },
+        "condition": {
+            "regexFilter": "^https://cool.ntu.edu.tw/courses/(\\d+)/charts",
+            "resourceTypes": [
+                "main_frame"
+            ]
+        }
+    }
+]
