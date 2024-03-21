@@ -156,7 +156,7 @@ function TourMask() {
             className={
                cn(" [animation-fill-mode:forwards] fixed inset-0  z-[10000] pointer-events-none overflow-hidden ",
                   open ? "animate-in fade-in-15" : "animate-out fade-out-0",
-                  `[animation-duration:300ms]`
+                  `[animation-duration:200ms]`
                )
             }
 

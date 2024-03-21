@@ -3,15 +3,20 @@ import { createRoot } from "react-dom/client";
 import { Tour, TourContent, TourTarget } from "./components/tour";
 
 import "./style.css"
-import { getStorage, sendRuntimeMessage, setStorage } from "./api";
+import { ServiceError, getStorage, sendRuntimeMessage, setStorage } from "./api";
 import { waitUntil, waitUntilAsync } from "./utils";
 import { InnerChartPage } from "./dialog/frame/chartPage";
 import { CourseReadWithGrade } from "./client";
 import { createPortal } from "react-dom";
 import { useStorage } from "./hooks/useStorage";
-import { IconX } from "@tabler/icons-react";
+import { IconChartPieOff, IconFolder, IconFolderX, IconX } from "@tabler/icons-react";
+import { Loading } from "./dialog/frame/loading";
+import { Error } from "./dialog/frame/error";
 
 export type NTUCoolState = 'normal' | 'chart' | null;
+
+
+const PAGE_TITLE = "成績分布";
 
 const RE_COURSE = /https:\/\/cool.ntu.edu.tw\/courses\/(\d+)/;
 const RE_CHARTS = /https:\/\/cool.ntu.edu.tw\/courses\/(\d+)\/charts/;
@@ -110,7 +115,7 @@ async function getCourseInfo(id: string) {
 
 function useCourse(id: string) {
 
-   const [error, setError] = useState(false);
+   const [error, setError] = useState<ServiceError | null>(null);
    const [loading, setLoading] = useState(true);
    const [course, setCourse] = useState<CourseReadWithGrade>(null!);
 
@@ -132,7 +137,7 @@ function useCourse(id: string) {
          if (canceled)
             return;
          if (err) {
-            setError(true)
+            setError(err)
             return;
          }
 
@@ -143,36 +148,72 @@ function useCourse(id: string) {
    return [loading, error, course] as const;
 }
 
+
+function NotFound() {
+
+   return <div className=" gap-4 flex flex-col items-center justify-center h-full text-[#888888]  text-xl">
+      <IconFolderX size={128} color="#999999" stroke={0.4} style={{ transform: 'translateX(-5%)' }} />
+      尚無此課程資料
+   </div>
+}
+
 function Main(props: { id: string }) {
 
    const { id } = props;
    const [loading, error, course] = useCourse(id);
 
    return <>
-      hello, {id}
-      {loading
-         ? "Loading"
-         : error ? "Error"
-            : <InnerChartPage
-               defaultChartType="pie"
-               defaultClassKey={null}
-               course={course}
-            />
-      }
+      <div className=" bg-white w-1/2 min-w-[500px] h-2/3 border border-solid border-[#dddddd]  rounded-xl shadow p-8 px-10">
+         {loading
+            ? <Loading />
+            : !error
+               ? <InnerChartPage
+                  defaultChartType="pie"
+                  defaultClassKey={null}
+                  course={course}
+               />
+               : error.status === 404
+                  ? <NotFound />
+                  : <Error />
+         }
+      </div>
    </>
+}
+
+
+function fixCrumb() {
+   try {
+      const nav = document.querySelector<HTMLElement>('nav#breadcrumbs')!;
+      const eles = nav.querySelectorAll<HTMLElement>("li");
+      for (let i = 0; i < eles.length; i++) {
+
+         if (i == 2)
+            eles[i].innerText = PAGE_TITLE;
+         if (i > 2)
+            eles[i].style.visibility = 'hidden';
+      }
+   } catch (e) { console.log(e) }
 }
 
 // todo: restore main style
 // todo: manully revert style
 function showChart(id: string) {
+   fixCrumb();
+
    const main = document.querySelector<HTMLElement>('#not_right_side');
    if (!main)
       return;
    main.innerHTML = '';
-   main.className = 'flex items-center justify-center flex-1'
+   main.className = 'flex justify-center flex-1'
    main.parentElement?.setAttribute('style', "display: flex; flex-direction: column")
 
    const root = document.createElement("div");
+   root.setAttribute('style', `
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+   `)
    createRoot(root).render(
       <React.StrictMode>
          <Main id={id} />
@@ -228,31 +269,41 @@ function SideBarBtn({ id }: { id: string }) {
       // setStorage({ hasShownNTUCoolTour: true })
       if (!loading)
          setOpen(!hasShown);
+      if (!hasShown) {
+         window.scrollTo(0, 0);
+      }
    }, [hasShown, loading]);
 
+
    const [open, setOpen] = useState(false);
-   console.log('open=', open)
+   function close() {
+      setOpen(false);
+      setStorage({ 'hasShownNTUCoolTour': true });
+   }
 
 
    return <Tour
       open={open}
-      onOpenChange={setOpen}>
+      onOpenChange={setOpen}
+   >
       <TourTarget asChild>
          <a className="cursor-pointer charts" tabIndex={0}
             onClick={() => {
                history.pushState({ id }, '', `/courses/${id}/charts`)
                showChart(id);
             }}
-         >成績分布</a>
+         >{PAGE_TITLE}</a>
       </TourTarget>
-      <TourContent>
-         <div className=" w-[500px] h-[300px] bg-white rounded-lg overflow-hidden flex justify-center items-center ">
+      <TourContent >
+         <div className="flex items-center justify-center px-10 py-8 overflow-hidden bg-white rounded-lg ">
             <div className="absolute cursor-pointer right-4 top-4"
-               onClick={() => setOpen(false)}
+               onClick={close}
             >
                <IconX size={20} />
             </div>
-            This is our cool feature. Your should definitely try! 🤩
+            歡迎使用 {APP_TITLE} 🤗
+            <br />
+            你可以在這裡看到此課程的成績分布，快試試看吧！
          </div>
       </TourContent>
    </Tour>

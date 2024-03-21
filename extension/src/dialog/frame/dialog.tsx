@@ -133,7 +133,7 @@ function useItems(
 // todo
 // IconPlaylistX
 const DialogWrapper = animated(styled.div`
-    box-sizing: border-box;
+   box-sizing: border-box;
     position: absolute;
 
     background: rgba(255,255,255,0.85);
@@ -453,6 +453,7 @@ export function Dialog({ }: DialogProps) {
             x,
             y,
          }}
+         className={"ntu-grade-viewer--app"}
       >
          <div {...bind()} className={clsx(
             "w-8 py-1 pt-2 flex z-50 justify-center items-center  absolute left-1/2 translate-x-[-50%] touch-none",

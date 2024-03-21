@@ -65,31 +65,33 @@ function ChartWrapper(props: { type: ChartType, segments: Segment[] }) {
    const height = 20;
    const totalHeight = datas.length * (gap + height) - gap;
 
-   return <div className={clsx(` flex items-center flex-1 w-full p-2`,
+   return <div className={clsx(` flex items-center flex-1 w-full p-2 px-8 gap-8`,
       type === 'pie' ? 'justify-between' : ' justify-center'
    )}>
-      <div className="flex items-center pl-8">
+      <div className="flex items-center w-2/3">
          {chartMap[type]}
       </div>
       {type === 'pie' &&
          // <div className="flex flex-col items-stretch justify-center flex-1 px-8">
-         <div className="relative flex-1 h-full px-8 ">
-            {/* <div className="flex flex-col items-start justify-center gap-1">
+         <div className="flex-1 h-full ">
+            <div className="relative flex-1 w-32 h-full">
+               {/* <div className="flex flex-col items-start justify-center gap-1">
                {datas.map((data, i) => <LegendItem key={`label-${i}`} {...data} color={PIECHART_COLORS[i]} />)}
             </div> */}
 
-            {/* <div className="relative" style={{ height: `${datas.length * (gap + height) - gap}px` }}> */}
-            {datas.map((data, i) => <LegendItem
-               key={`label-${data.label}`}
-               {...data}
-               color={PIECHART_COLORS[i]}
-               className="absolute w-full transition-transform duration-300 top-1/2 animate-in fade-in-0"
-               style={{
-                  transitionDuration: '300ms',
-                  transform: `translateY(${-totalHeight / 2 + i * (gap + height)}px)`
-               }}
-            />)}
-            {/* </div> */}
+               {/* <div className="relative" style={{ height: `${datas.length * (gap + height) - gap}px` }}> */}
+               {datas.map((data, i) => <LegendItem
+                  key={`label-${data.label}`}
+                  {...data}
+                  color={PIECHART_COLORS[i]}
+                  className="absolute w-full transition-transform duration-300 top-1/2 animate-in fade-in-0"
+                  style={{
+                     transitionDuration: '300ms',
+                     transform: `translateY(${-totalHeight / 2 + i * (gap + height)}px)`
+                  }}
+               />)}
+               {/* </div> */}
+            </div>
          </div>
       }
    </div>
@@ -249,7 +251,7 @@ export function InnerChartPage(props: Pick<ChartPageProps, 'defaultChartType' | 
    }
 
    return <main className="flex flex-col h-full px-2 ">
-      <div className="pb-3  border-solid border-b-[#e8e8e8] border-b flex flex-row items-center justify-between">
+      <div className=" [&_button]:ml-0  pb-3 border-0  border-solid border-b-[#e8e8e8] border-b flex flex-row items-center justify-between">
          <Select
             // defaultValue={`${classIdx}`}
             onValueChange={(val) => {
@@ -288,7 +290,7 @@ export function InnerChartPage(props: Pick<ChartPageProps, 'defaultChartType' | 
             segments={activeGrade.segments}
          />
 
-         <div className="flex flex-row items-center justify-between w-64 px-3"
+         <div className="flex flex-row items-center min-w-64 px-3 w-full  justify-center gap-[30%]"
          // todo: indicator
          >
             <Btn
@@ -333,7 +335,7 @@ function ChartTypeToggle({ onChartTypeChange, chartType }: { onChartTypeChange: 
 
    return <ToggleGroup
       type="single" onValueChange={onChartTypeChange} value={chartType}
-      className="divide-x rounded divide-solid divide-[#e8e8e8] gap-0  overflow-hidden border border-solid border-[#e5e5e5]"
+      className=" ntu-grade-viewer--reset divide-x rounded divide-solid divide-[#e8e8e8] gap-0  overflow-hidden border border-solid border-[#e5e5e5]"
    >
       <ToggleGroupItem value="pie" className="px-0 ">
          <IconChartPie {...iconProps} />
@@ -358,7 +360,7 @@ function Btn({ dir, ...props }: React.ComponentProps<'button'>
    return <button
       className={clsx(
          " shadow-sm border-solid border-[1.5px] border-[#bbbbbb] w-6 h-6 flex items-center justify-center rounded",
-         !disabled ? " hover:bg-[#e5e5e5]" : 'opacity-60',
+         !disabled ? " hover:bg-[#e5e5e5]" : 'opacity-60 cursor-auto',
       )}
       {...props}>
 

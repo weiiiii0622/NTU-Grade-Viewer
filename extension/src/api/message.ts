@@ -42,6 +42,7 @@ export type ServiceFuncName = ClassMethodName<typeof DefaultService>;
 
 export type ServiceError =
     | { status: 400; response: BadRequestResponse }
+    | { status: 404; response: void }
     | { status: 401; response: UnauthorizedErrorResponse }
     | { status: 422; response: ValidationErrorResponse }
     | { status: 500; response: InternalErrorResponse };

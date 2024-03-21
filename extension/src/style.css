@@ -70,7 +70,12 @@
   * {
     /* @apply border-border; */
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.ntu-grade-viewer--reset button {
+  border-width: 0;
 }
