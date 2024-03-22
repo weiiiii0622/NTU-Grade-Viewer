@@ -23,4 +23,4 @@ if os.getenv("MODE") == "TEXT":
 
 
 with open(os.getenv("GITHUB_OUTPUT", ""), "a", encoding="utf-8") as f:
-    f.write(f"updates={ updates }")
+    f.write(f"updates<<EOF\n{ updates }\nEOF")
