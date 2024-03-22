@@ -1,4 +1,4 @@
-name: Validate Extension PR
+name: Check Extension PR
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ jobs:
     # We ignore the case of initial commit or no manifest.json in this job :P
 
     env:
-      MANIFEST: "./manifest.json"
+      MANIFEST: "./extension/public/manifest.json"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +34,7 @@ jobs:
 
       - name: Get prev version date
         id: get-prev-date
-        run: echo "data=$(git log -1 --format=%cd --date=format:%Y/%m/%d)" > $GITHUB_OUTPUT
+        run: echo "date=$(git log -1 --format=%cd --date=format:%Y/%m/%d)" > $GITHUB_OUTPUT
 
       - if: ${{ steps.next-version.outputs.version == steps.prev-version.outputs.version }}
         uses: actions/github-script@v7
