@@ -8,7 +8,7 @@ on:
 jobs:
   create-tag-and-release:
     env:
-      MANIFEST: "./manifest.json"
+      MANIFEST: "./extension/public/manifest.json"
     permissions:
       contents: write
     runs-on: ubuntu-latest
