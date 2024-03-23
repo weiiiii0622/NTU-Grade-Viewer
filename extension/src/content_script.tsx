@@ -57,8 +57,8 @@ addMessageListener('snackBar', (msg: ISnackBarProps) => {
 
 async function NTUCoolFeature() {
    console.log(window.location.href.endsWith('?charts'))
-   if (window.location.href.endsWith('?charts'))
-      document.body.querySelector<HTMLElement>('#application')!.style.visibility = 'hidden';
+   // if (window.location.href.endsWith('?charts'))
+   //    document.body.querySelector<HTMLElement>('#application')!.style.visibility = 'hidden';
    console.log("NTUCool")
    sendRuntimeMessage('injectNTUCool', undefined);
 }

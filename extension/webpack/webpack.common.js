@@ -17,7 +17,7 @@ module.exports = {
       background: path.join(srcDir, "background.tsx"),
       content_script: path.join(srcDir, "content_script.tsx"),
       dialog: path.join(srcDir, "dialog/frame/dialog.tsx"),
-      NTUCool: path.join(srcDir, "NTUCool.tsx"),
+      NTUCool: path.join(srcDir, "NTUCool/index.tsx"),
       // content_script_popup: path.join(srcDir, "content_script_popup.tsx"),
    },
    output: {
