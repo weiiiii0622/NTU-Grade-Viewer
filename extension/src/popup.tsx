@@ -18,6 +18,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import LoginIcon from '@mui/icons-material/Login';
 import MenuIcon from '@mui/icons-material/Menu';
 import ReplayIcon from '@mui/icons-material/Replay';
+import BugReportIcon from '@mui/icons-material/BugReport';
 import SearchIcon from '@mui/icons-material/Search';
 
 import { RegisterPage } from "./components/registerPage";
@@ -132,6 +133,9 @@ const Popup = () => {
                         // todo: let user modify these
                         reportIssue('Issue from popup', 'popup');
                      }}>
+                        <ListItemIcon>
+                           <BugReportIcon fontSize="small" />
+                        </ListItemIcon>
                         回報問題
                      </MenuItem>
                      {/* <MenuItem onClick={() => handleClose(1)}>
