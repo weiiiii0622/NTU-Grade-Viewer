@@ -1,10 +1,10 @@
 name: Ping Server
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/1 * * * *"
 
 jobs:
-  validate-env:
+  ping-server:
     runs-on: ubuntu-latest
     steps:
       - run: curl ${{env.URL}}/
