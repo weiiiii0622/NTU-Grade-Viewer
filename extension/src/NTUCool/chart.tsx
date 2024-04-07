@@ -69,8 +69,8 @@ function setSidebarBtnActive() {
 // todo: restore main style
 // todo: manully revert style
 export async function showChart(id: string) {
-   const { original_name } = await fetchApi(id)
-   document.title = `${PAGE_TITLE}： ${original_name}`
+   const { original_name, name } = await fetchApi(id)
+   document.title = `${PAGE_TITLE}： ${original_name ?? name}`
 
    fixCrumb();
    setSidebarBtnActive();
@@ -86,8 +86,11 @@ export async function showChart(id: string) {
 
    const { y } = prevMain.getBoundingClientRect();
    const center = (window.innerHeight - y) / 2 + y;
+   const { width, height } = prevMain.getBoundingClientRect();
    prevMain.style.transformOrigin = `center ${center}px`;
    prevMain.className += ' absolute animate-out duration-300 fade-out-0 slide-out-to-top-2 '
+   prevMain.style.width = `${width}px`;
+   prevMain.style.height = `${height}px`;
    prevMain.addEventListener('animationend', function () { this.remove() })
 
    main.innerHTML = '';

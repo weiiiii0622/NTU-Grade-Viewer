@@ -40,7 +40,7 @@ type APIResponse = {
     // is_public: null;
     created_at: string;
     course_code: string;
-    original_name: string;
+    original_name?: string;
 };
 
 export async function fetchApi(id: string): Promise<APIResponse> {

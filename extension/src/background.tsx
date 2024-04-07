@@ -245,3 +245,27 @@ chrome.runtime.onInstalled.addListener(async () => {
    if (!res)
       setStorage({ 'hasShownNTUCoolTour': false })
 })
+
+
+// todo: omnibox
+// chrome.omnibox.onInputStarted.addListener(function () {
+//    console.log('💬 onInputStarted');
+
+//    chrome.omnibox.setDefaultSuggestion({
+//       description:
+//          "Here is a default <dim>dim</dim> <match>suggestion</match>. <url>It's <match>url</match> here</url>"
+//    });
+// });
+
+
+// chrome.omnibox.onInputChanged.addListener(function (text, suggest) {
+//    console.log('✏️ onInputChanged: ' + text);
+//    suggest([
+//       { content: text + ' one', description: 'the first one', deletable: true },
+//       {
+//          content: text + ' number two',
+//          description: 'the second entry',
+//          deletable: true
+//       }
+//    ]);
+// });
