@@ -1,0 +1,23 @@
+name: 'Get Extension Version'
+description: 'Get the version of extension'
+
+inputs:
+  manifest:
+    description: 'path of manifest.json'
+    required: true
+
+outputs:
+  version:
+    description: 'the version of extension'
+    value: ${{ steps.get-version.outputs.version }}
+
+runs:
+  using: "composite"
+  steps:
+    - run: sudo apt-get install jq
+      shell: bash
+
+    - id: get-version
+      run: echo version=$(jq -r < ${{ inputs.manifest }} ".version") > $GITHUB_OUTPUT
+      shell: bash
+      

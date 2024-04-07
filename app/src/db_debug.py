@@ -2,7 +2,7 @@ import os
 
 from db import db_init, get_session
 from models import Course, Grade, Update, User
-from sqlmodel import select
+from sqlmodel import delete, select
 from tqdm import tqdm
 from utils.grade import get_grade_element
 
@@ -34,6 +34,14 @@ _models = [User, Course, Grade, Update]
 
 # --------------------------------- Your code -------------------------------- #
 
+# ----------------------------- Remove non-solid ----------------------------- #
+
+# statement = delete(Update).where(Update.solid == False)
+# updates = session.exec(statement)
+# session.commit()
+
+# -------------------------- Prev: handle sum > 100 -------------------------- #
+
 # for g in tqdm(session.exec(select(Grade)).all()):
 #     grade = get_grade_element(g)
 #     if not grade:
@@ -44,9 +52,9 @@ _models = [User, Course, Grade, Update]
 # id1='MATH4006' title='微積分1' id2='201 49810'
 # id1='MATH4008' title='微積分3' id2='201 49830'
 
-c1 = session.get(Course, ("MATH4006", "201 49810"))
-if c1:
-    for g in c1.grades:
-        grade = get_grade_element(g)
-        if not grade:
-            print(g.updates)
+# c1 = session.get(Course, ("MATH4006", "201 49810"))
+# if c1:
+#     for g in c1.grades:
+#         grade = get_grade_element(g)
+#         if not grade:
+#             print(g.updates)

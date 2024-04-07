@@ -2,6 +2,7 @@ import asyncio
 import math
 import re
 from time import sleep
+from typing import Union
 
 import bs4
 import requests
@@ -47,6 +48,15 @@ async def insert_grades(*, grades: list[GradeWithUpdate]):
             assert grade.id
             course: CourseBase = grade.course
             update: UpdateBase = grade.update
+
+            if u := session.exec(
+                select(Update).where(
+                    Update.grade_id == grade.id,
+                    Update.pos == update.pos,
+                    Update.solid == True,
+                )
+            ).first():
+                continue
 
             db_course = session.get(Course, (course.id1, course.id2)) or Course.model_validate(
                 course
@@ -178,7 +188,7 @@ async def submit_page(
 @router.post("/grade")
 def submit_grade(
     *, session: Session = Depends(get_session), grade: GradeWithUpdate
-) -> GradeElement:
+) -> Union[GradeElement, None]:
     course: CourseBase = grade.course
     db_course = session.get(Course, (course.id1, course.id2))
     if not db_course:
@@ -200,7 +210,7 @@ def submit_grade(
 @router.post("/grades")
 def submit_grades(
     *, session: Session = Depends(get_session), grades: list[GradeWithUpdate]
-) -> list[GradeElement]:
+) -> list[Union[GradeElement, None]]:
     return [submit_grade(grade=grade) for grade in grades]
 
 

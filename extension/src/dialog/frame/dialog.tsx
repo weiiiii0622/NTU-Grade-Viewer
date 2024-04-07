@@ -2,9 +2,8 @@
  * Found out chrome.sidePanel is actually more suitable for this LOL 🤡
  */
 import { ErrorBoundary } from "react-error-boundary";
-import { } from './foo'
 
-import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import React, { ReactNode, forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { History, getStorage, setStorage } from "../../api/storage";
 import { sendRuntimeMessage } from "../../api/message";
 import styled, { keyframes } from 'styled-components';
@@ -14,6 +13,7 @@ import { IconDots, IconPlaylistX, IconSearch, IconX } from '@tabler/icons-react'
 import { ScrollArea, ScrollBar } from "./lib/scroll-area";
 
 import "../../style.css";
+import "../preflight.css"
 import { createRoot } from "react-dom/client";
 import { getSortedCourses, isRecent } from "../utils";
 import { animated, config, useSpring } from "@react-spring/web";
@@ -22,7 +22,7 @@ import { DIALOG_WIDTH as WIDTH, DIALOG_HEIGHT as HEIGHT } from "../config"
 import { ItemList, ItemProps } from "./itemList";
 import { ChartPage } from "./chartPage";
 import { RecentItemsSection } from './recentItemsSection';
-import { cn } from '../../components/shadcn-ui/lib';
+import { cn } from './lib/utils';
 import { Error, AuthError } from "./error";
 import { Loading } from "./loading";
 import { Vec2, clamp, hexToRgb, rgbToHsl } from "../../utils";
@@ -133,7 +133,7 @@ function useItems(
 // todo
 // IconPlaylistX
 const DialogWrapper = animated(styled.div`
-    box-sizing: border-box;
+   box-sizing: border-box;
     position: absolute;
 
     background: rgba(255,255,255,0.85);
@@ -190,6 +190,8 @@ export function Dialog({ }: DialogProps) {
          cleanupClose();
       };
    }, []);
+
+   console.log("render")
 
 
    const inactiveEvents: (keyof WindowEventMap)[] = [
@@ -372,6 +374,17 @@ export function Dialog({ }: DialogProps) {
       // setCourseId1(null);
    }
 
+   /* ------------------------------- Input Focus ------------------------------ */
+   const focused = useRef(false);
+   const inputRef = useRef<HTMLInputElement>(null);
+   useEffect(() => {
+      console.log('current', inputRef.current)
+      if (inputRef.current && !focused.current) {
+         focused.current = true;
+         inputRef.current.focus();
+      }
+   });
+
    /* ---------------------------------- Auth ---------------------------------- */
 
    const [isAuth, setIsAuth] = useState<boolean>(false);
@@ -379,6 +392,7 @@ export function Dialog({ }: DialogProps) {
    /* ----------------------------- Page Animation ----------------------------- */
 
    const [pageIdx, setPageIdx] = useState(0);
+
 
    /* --------------------------------- Render --------------------------------- */
 
@@ -444,9 +458,10 @@ export function Dialog({ }: DialogProps) {
             x,
             y,
          }}
+         className={"ntu-grade-viewer--app"}
       >
          <div {...bind()} className={clsx(
-            "w-8 py-1 flex z-50 justify-center items-center  absolute left-1/2 translate-x-[-50%] touch-none",
+            "w-8 py-1 pt-2 flex z-50 justify-center items-center  absolute left-1/2 translate-x-[-50%] touch-none",
             // dragging ? "cursor-grabbing" : " cursor-grab"
             "cursor-grab"
          )}>
@@ -456,38 +471,48 @@ export function Dialog({ }: DialogProps) {
                stroke={2}
             />
          </div>
+
+         <CloseBtn className="absolute right-2 top-2" onClick={() => setActive(false)} />
          <ErrorBoundary fallback={<Error />} onError={console.log}
          // todo: put the error boundary in lower level so user can close the dialog.
          >
             <InnerContainer pageIdx={pageIdx}>
                <PageContainer>
-                  <div className="flex flex-row items-center justify-between mb-4 ml-2" >
+                  <div className="flex flex-row items-center justify-between mb-4 ml-2 mr-4" >
                      <h3 className=" select-none  text-xl font-bold  text-[#4e4e4e] ">
                         {APP_TITLE}
                      </h3>
-                     <CloseBtn onClick={() => setActive(false)} />
+                     {/* <CloseBtn onClick={() => setActive(false)} /> */}
                   </div>
                   <SearchInput
-                     className="mx-2 mb-6"
+                     className="mx-2 mb-6 mr-6"
                      keyword={rawKeyword} setKeyword={setRawKeyword}
+                     ref={inputRef}
                   />
                   {contentLoading
                      ? <Loading />
-                     : <ScrollArea className='pr-4 '>
-                        {rawKeyword
-                           ? <ItemList title="搜尋結果" items={items} />
-                           : <RecentItemsSection
-                              histories={histories}
-                              // items={items.filter(item => item.type === 'recent')}
-                              itemOnClickFactory={itemOnClickFactory}
+                     // ! this is cool
+                     : <>
+                        {/* <div className="relative h-full min-h-0"> */}
+                        {/* This will not work */}
+                        {/* <div className='absolute left-0 h-full -right-4'> */}
+                        <ScrollArea className="pr-4"
+                           scrollHideDelay={100000}
+                        >
+                           <ScrollBar orientation="vertical"
+                              className='absolute w-2 '
+                           // todo: add more padding
                            />
-                        }
-
-                        <ScrollBar orientation="vertical"
-                           className='w-2 '
-                        // todo: add more padding
-                        />
-                     </ScrollArea>
+                           {rawKeyword
+                              ? <ItemList title="搜尋結果" items={items} />
+                              : <RecentItemsSection
+                                 histories={histories}
+                                 // items={items.filter(item => item.type === 'recent')}
+                                 itemOnClickFactory={itemOnClickFactory}
+                              />
+                           }
+                        </ScrollArea>
+                     </>
                   }
 
                </PageContainer>
@@ -509,7 +534,7 @@ export function Dialog({ }: DialogProps) {
                </PageContainer>
             </InnerContainer>
          </ErrorBoundary>
-      </DialogWrapper>
+      </DialogWrapper >
    );
 
 }
@@ -519,8 +544,8 @@ export function Dialog({ }: DialogProps) {
  * Handling horizontal spacing & overflow of pages.
  */
 function InnerContainer({ children, pageIdx }: { children: ReactNode[], pageIdx: number }) {
-   return <div className="box-border flex flex-row w-full h-full p-4 pt-7">
-      <div className="w-full overflow-hidden ">
+   return <div className="box-border flex flex-row w-full h-full p-4 pt-8 pr-0 pb-0">
+      <div className="w-full overflow-hidden [&>*]:bg-red ">
          <div className="box-border flex flex-row items-stretch w-full h-full"
             style={{
                transform: `translateX(${-pageIdx * 100}%)`,
@@ -546,7 +571,7 @@ type SearchInputProps = {
    keyword: string;
    setKeyword: React.Dispatch<React.SetStateAction<string>>,
 } & React.HTMLAttributes<HTMLInputElement>;
-function SearchInput(props: SearchInputProps) {
+const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>((props: SearchInputProps, ref) => {
 
    const { keyword, setKeyword, className, ...restProps } = props;
 
@@ -557,6 +582,7 @@ function SearchInput(props: SearchInputProps) {
    >
       <IconSearch size={16} stroke={1} color={'#828282'} />
       <input
+         ref={ref}
          // {...restProps}
          className="  bg-transparent focus:outline-none  w-full  py-1 text-[#828282] placeholder:text-[#d9d9d9] text-xs  border-none"
          onChange={e => setKeyword(e.target.value)}
@@ -566,12 +592,12 @@ function SearchInput(props: SearchInputProps) {
 
       </input>
    </div>
-}
+})
 
 export function CloseBtn({ onClick, className, ...props }: { onClick: () => void } & React.ComponentProps<'span'>) {
    return <span
       className={cn(
-         " hover:cursor-pointer aspect-square h-6 flex justify-center items-center hover:bg-[#d9d9d9] rounded-full",
+         " hover:cursor-pointer aspect-square h-7 flex justify-center items-center hover:bg-[#d9d9d9] rounded-full",
          className
       )}
       onClick={onClick}

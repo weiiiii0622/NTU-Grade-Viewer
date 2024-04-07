@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { waitUntil, submitPage, clamp, rgbToHex } from "./utils";
 import { createRoot } from "react-dom/client";
 import { GradeChartLoader } from "./components/gradeChartLoader";
@@ -41,6 +41,7 @@ initDialog();
 
 /* ------------------------------ Popup Message ----------------------------- */
 
+// todo: root should only be created once
 addMessageListener('snackBar', (msg: ISnackBarProps) => {
    //console.log('add snackBar')
    const root = document.createElement("div");
@@ -51,6 +52,18 @@ addMessageListener('snackBar', (msg: ISnackBarProps) => {
    );
    document.body.append(root);
 });
+
+/* -------------------------------- NTU Cool -------------------------------- */
+
+async function NTUCoolFeature() {
+   console.log(window.location.href.endsWith('?charts'))
+   // if (window.location.href.endsWith('?charts'))
+   //    document.body.querySelector<HTMLElement>('#application')!.style.visibility = 'hidden';
+   console.log("NTUCool")
+   sendRuntimeMessage('injectNTUCool', undefined);
+}
+
+registerFeature(NTUCoolFeature, 'https://cool.ntu.edu.tw/')
 
 /* -------------------------------- Cookies --------------------------------- */
 
@@ -192,5 +205,5 @@ function registerFeature(fn: () => void, pattern: string | RegExp) {
    callback();
 }
 
-
+console.log('content')
 registerFeature(searchPageFeature, "https://course.ntu.edu.tw/search/")

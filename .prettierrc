@@ -1,0 +1,32 @@
+{
+    "tabWidth": 4,
+    "overrides": [
+        {
+            "files": "*.css",
+            "options": {
+                "tabWidth": 2
+            }
+        },
+        {
+            "files": "webpack.*.js",
+            "options": {
+                "tabWidth": 3
+            }
+        },
+        {
+            "files": "*.tsx",
+            "options": {
+                "tabWidth": 3
+            }
+        },
+        {
+            "files": [
+                "*.yaml",
+                "*.yml"
+            ],
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ]
+}

@@ -1,0 +1,36 @@
+name: Update Extension
+
+on:
+  push:
+    branches:
+      - extension
+
+jobs:
+  create-tag-and-release:
+    env:
+      MANIFEST: "./extension/public/manifest.json"
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: get-version
+        uses: ./.github/actions/get-extension-version
+        with:
+          manifest: ${{ env.MANIFEST }}
+
+      - id: get-updates
+        run: python3 ./release/get_updates.py ${{ steps.get-version.outputs.version }}
+      - name: Create Release
+        # Ignore duplicate tag
+        uses: actions/create-release@v1.1.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+          VERSION: ${{ steps.get-version.outputs.version }}
+          HISTORY: "./release/HISTORY.md"
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: Release ${{ env.VERSION }}
+          body: ${{ steps.get-updates.outputs.updates }}
+          draft: false
+          prerelease: false

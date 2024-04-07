@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "NTU 選課小幫手",
   "description": "一個可以搜尋NTU課程成績分布的 Google Chrome 插件，專門服務國立臺灣大學(NTU, National Taiwan University)的學生",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "icons": {
     "16": "icon.png",
     "24": "icon.png",
@@ -27,7 +27,7 @@
       "matches": [
         "https://course.ntu.edu.tw/*",
         "https://if190.aca.ntu.edu.tw/graderanking/*",
-        "https://www.google.com/*"
+        "https://cool.ntu.edu.tw/*"
       ],
       "js": [
         "js/vendor.js",
@@ -52,7 +52,9 @@
     "scripting",
     "tabs",
     "activeTab",
-    "cookies"
+    "cookies",
+    "notifications",
+    "declarativeNetRequestWithHostAccess"
   ],
   "web_accessible_resources": [
     {
@@ -70,5 +72,14 @@
     "<all_urls>"
   ],
   "optional_permissions": [],
-  "optional_host_permissions": []
+  "optional_host_permissions": [],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ntucool",
+        "enabled": true,
+        "path": "rules/ntucool.json"
+      }
+    ]
+  }
 }

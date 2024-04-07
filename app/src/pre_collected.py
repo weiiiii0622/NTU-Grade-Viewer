@@ -1,20 +1,22 @@
 import asyncio
-from decimal import ROUND_HALF_UP, Decimal, getcontext
-from functools import reduce
 import math
 import os
 import pickle
 import re
+from decimal import ROUND_HALF_UP, Decimal, getcontext
 from enum import Enum
+from functools import reduce
 from pathlib import Path
 from typing import Union
 
 from aiohttp import ClientSession
-from models import GRADES, Course, GradeElement, GradeWithUpdate, Segment, UpdateBase
+from sqlmodel import select
+from db import get_session
+from models import GRADES, Course, GradeElement, GradeWithUpdate, Segment, Update, UpdateBase
 from openpyxl import load_workbook
 from openpyxl.cell.cell import Cell
-from tqdm.asyncio import tqdm_asyncio
 from routes.submit import insert_grades
+from tqdm.asyncio import tqdm_asyncio
 from utils.general import extract_dict
 from utils.grade import get_segments
 from utils.search import Key, search_course
@@ -157,6 +159,8 @@ async def parse_row(row: tuple[Cell, ...], session: ClientSession) -> Union[Grad
     for i, c in enumerate(reversed(row[3:13])):
         if c.value:
             val = Decimal(str(c.value))
+            # if val < 0.1:
+            #     val *= 100
             assert (
                 type(c.value) == float or type(c.value) == int
             ), f"{c}, {c.value}: {type(c.value)}"
@@ -173,7 +177,6 @@ async def parse_row(row: tuple[Cell, ...], session: ClientSession) -> Union[Grad
                     if st == -1:
                         st = i
                     end = i
-                    print(c.value, val)
                     blue_val = val
                 case Color.ORANGE:
                     assert end == -1
@@ -185,10 +188,8 @@ async def parse_row(row: tuple[Cell, ...], session: ClientSession) -> Union[Grad
                         segments.append(Segment(l=MIN, r=i, value=val))
     assert st == -1 and end == -1, f"{st}, {end}, {segments}"
 
-    total = sum(seg.value for seg in segments)
-    if math.isclose(total, 1, abs_tol=Decimal("0.02")) or any(
-        seg.value <= Decimal("0.1") for seg in segments
-    ):
+    total = sum((seg.value for seg in segments), Decimal(0))
+    if total < Decimal("1.2") or any(seg.value <= Decimal("0.1") for seg in segments):
         for seg in segments:
             seg.value *= 100
 
@@ -231,7 +232,6 @@ async def parse_row(row: tuple[Cell, ...], session: ClientSession) -> Union[Grad
     if title == "健康體適能" and not class_id:
         return
 
-    segments = extend_segments(segments)
     # ? this will be done by `GradeElement`
     # validate_segments(segments)
 
@@ -268,6 +268,8 @@ async def get_grades() -> list[GradeElement]:
     for g in valid_grades:
         if len([_g for _g in valid_grades if _g.id == g.id]) > 1:
             assert False, "duplicate course"
+        if any(0 < seg.value < 1 for seg in g.segments):
+            print(g)
 
     print(f"drop {len(grades)-len(valid_grades)} / {len(grades)}")
     # TODO: insert into db
@@ -278,14 +280,20 @@ async def get_grades() -> list[GradeElement]:
 # todo: fix weird data
 
 
+# todo: add this to app lifespan
 async def main():
+    # Check if has insert by non-solid rows
+    session = next(get_session())
+    if session.exec(select(Update).where(Update.solid == False).limit(1)).all():
+        return
+
     if os.path.exists("grades.tmp"):
         with open("grades.tmp", "rb") as f:
             grades = pickle.load(f)
     else:
         grades = await get_grades()
-        with open("grades.tmp", "wb+") as f:
-            pickle.dump(grades, f)
+        # with open("grades.tmp", "wb+") as f:
+        #     pickle.dump(grades, f)
     print(f"{len(grades)} grades!")
 
     def convert_to_udpates(g: GradeElement) -> list[GradeWithUpdate]:
@@ -314,15 +322,17 @@ async def main():
         return results
 
     # grade_updates = [convert_to_udpates(g) for g in grades]
-    grades_updates = reduce(
+    grades_updates: list[GradeWithUpdate] = reduce(
         lambda prev, next: prev + next, [convert_to_udpates(g) for g in grades], []
     )
+    print(len(grades_updates))
 
     await insert_grades(grades=grades_updates)
 
 
 if __name__ == "__main__":
     asyncio.run(main())
+    exit(0)
 
     data_dir = Path(__file__).parent / "../../data/pre-collected/"
 
