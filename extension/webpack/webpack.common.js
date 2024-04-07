@@ -43,7 +43,11 @@ module.exports = {
             test: /\.css$/i,
             // include: path.resolve(__dirname, "src"),
             use: ["style-loader", "css-loader", "postcss-loader"],
-            exclude: /node_modules/,
+            exclude: /node_modules|preflight.css/,
+         },
+         {
+            test: /preflight\.css$/,
+            use: 'raw-loader',
          },
       ],
    },

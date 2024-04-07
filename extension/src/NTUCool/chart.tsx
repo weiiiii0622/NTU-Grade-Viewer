@@ -10,6 +10,7 @@ import { Loading } from "../dialog/frame/loading";
 import { Error } from "../dialog/frame/error";
 import { $, PAGE_TITLE, byClass, byId, fetchApi, getCourseInfo, matchCourseId } from "./utils";
 
+
 function fixCrumb() {
    try {
       const crumbs = byClass('ic-app-nav-toggle-and-crumbs')!;
@@ -98,6 +99,8 @@ export async function showChart(id: string) {
    main.parentElement?.setAttribute('style', "display: flex; flex-direction: column")
 
    const root = document.createElement("div");
+   root.id = 'ntu-grade-viewer--root';
+   root.classList.add('ntu-grade-viewer--preflight')
    root.setAttribute('style', `
       width: 100%;
       display: flex;
@@ -163,13 +166,16 @@ function NotFound() {
    </div>
 }
 
+
+
 export function Main(props: { id: string }) {
 
    const { id } = props;
    const [loading, error, course] = useCourse(id);
 
+
    return <>
-      <div className=" bg-white w-1/2 min-w-[500px] h-2/3 border border-solid border-[#dddddd]  rounded-xl shadow p-8 px-10">
+      <div className=" ntu-grade-viewer--preflight bg-white w-1/2 min-w-[500px] h-2/3 border border-solid border-[#dddddd]  rounded-xl shadow p-8 px-10">
          {loading
             ? <Loading />
             : !error

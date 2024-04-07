@@ -13,7 +13,7 @@ import { IconDots, IconPlaylistX, IconSearch, IconX } from '@tabler/icons-react'
 import { ScrollArea, ScrollBar } from "./lib/scroll-area";
 
 import "../../style.css";
-import "../preflight.css"
+import "../../preflight.css"
 import { createRoot } from "react-dom/client";
 import { getSortedCourses, isRecent } from "../utils";
 import { animated, config, useSpring } from "@react-spring/web";

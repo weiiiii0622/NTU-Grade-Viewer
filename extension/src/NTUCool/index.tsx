@@ -1,5 +1,6 @@
 
-import "../style.css"
+// import "../preflight_scoped.css"
+import "./style.css"
 import { addSideBarBtn } from "./sideBarBtn";
 import { showChart } from "./chart";
 import { getChartsPath, matchCourseId, show } from "./utils";

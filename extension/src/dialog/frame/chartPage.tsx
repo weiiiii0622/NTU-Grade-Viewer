@@ -302,7 +302,7 @@ export function InnerChartPage(props: Pick<ChartPageProps, 'defaultChartType' | 
                <div className="align-middle ">
                   {semester}
                </div>
-               {!activeGrade.solid && <div className="flex items-center justify-center ml-1 ">
+               {!activeGrade.solid && <div className="flex items-center justify-center ml-1   -translate-y-[1px] ">
                   <TooltipProvider>
                      <Tooltip delayDuration={300}>
                         <TooltipTrigger>
@@ -360,7 +360,7 @@ function Btn({ dir, ...props }: React.ComponentProps<'button'>
    return <button
       className={clsx(
          " shadow-sm border-solid border-[1.5px] border-[#bbbbbb] w-6 h-6 flex items-center justify-center rounded",
-         !disabled ? " hover:bg-[#e5e5e5]" : 'opacity-60 cursor-auto',
+         !disabled ? " hover:bg-[#e5e5e5]" : 'opacity-60  cursor-not-allowed',
       )}
       {...props}>
 
