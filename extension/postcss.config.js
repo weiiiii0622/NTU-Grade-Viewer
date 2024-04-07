@@ -8,9 +8,9 @@ module.exports = {
       'postcss-prefix-selector': {
          prefix: '#ntu-grade-viewer--root',
          transform: function (prefix, selector, prefixedSelector, filePath, rule) {
-            // console.log("filePath", filePath, '\n\n')
-            if (!filePath.includes('NTUCool'))
+            if (!filePath.includes('NTUCool')) {
                return selector;
+            }
             if (selector.startsWith('.ntu-grade-viewer--preflight'))
                return selector;
             // console.log(selector, prefixedSelector);

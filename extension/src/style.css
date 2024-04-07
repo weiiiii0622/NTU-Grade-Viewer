@@ -1,5 +1,5 @@
 /* @import url('./preflight_scoped.css'); */
-/* @import url('./preflight.css'); */
+@import url('./preflight.css');
 
 @tailwind base;
 @tailwind components;

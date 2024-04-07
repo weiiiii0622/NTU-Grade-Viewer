@@ -96,7 +96,7 @@ export function RecentItemsSection({
                     最近搜尋
                     <button
                         onClick={clearAll}
-                        className=" rounded flex justify-center items-center w-7  cursor-pointer  bg-white aspect-square  hover:bg-[#d9d9d9]/[.5]  border border-solid border-[#bbbbbb]/[.5] shadow-sm"><IconPlaylistX {...{
+                        className=" rounded flex justify-center items-center w-7  cursor-pointer  bg-transparent aspect-square  hover:bg-[#d9d9d9]/[.5]  border border-solid border-[#bbbbbb]/[.5] shadow-sm"><IconPlaylistX {...{
                             size: 16,
                             color: '#717171',
                             stroke: 1.5,

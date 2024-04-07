@@ -36,19 +36,35 @@ module.exports = {
       rules: [
          {
             test: /\.tsx?$/,
+            // use: "ts-loader",
             use: "ts-loader",
             exclude: /node_modules/,
+
          },
+         // { test: /\.(ts|js)x?$/, loader: 'babel-loader', exclude: /node_modules/ },
+
          {
             test: /\.css$/i,
             // include: path.resolve(__dirname, "src"),
             use: ["style-loader", "css-loader", "postcss-loader"],
-            exclude: /node_modules|preflight.css/,
+            exclude: /node_modules/,
          },
+         // {
+         //    test: /preflight\.css$/,
+         //    use: 'raw-loader',
+         // },
          {
-            test: /preflight\.css$/,
-            use: 'raw-loader',
-         },
+            test: /\.(?:js|mjs|cjs)$/,
+            exclude: /node_modules/,
+            use: {
+               loader: 'babel-loader',
+               options: {
+                  presets: [
+                     ['@babel/preset-env', { targets: "defaults" }]
+                  ]
+               }
+            }
+         }
       ],
    },
    resolve: {

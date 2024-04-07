@@ -188,8 +188,11 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
 /* ------------------------------- Capture Tab ------------------------------ */
 
 async function captureTab() {
-   const dataURL = await chrome.tabs.captureVisibleTab();
-   return getDataFromURL(dataURL);
+   return new Promise<string | null>(res => {
+      chrome.tabs.captureVisibleTab().then((dataURL) => {
+         res(getDataFromURL(dataURL))
+      });
+   })
 }
 
 addMessageListener('captureTab', async () => {
