@@ -129,7 +129,7 @@ const Popup = () => {
                         </ListItemIcon>
                         註冊
                      </MenuItem>
-                     <MenuItem onClick={async () => {
+                     {/* <MenuItem onClick={async () => {
                         // todo: let user modify these
                         reportIssue('Issue from popup', 'popup');
                      }}>
@@ -137,7 +137,7 @@ const Popup = () => {
                            <BugReportIcon fontSize="small" />
                         </ListItemIcon>
                         回報問題
-                     </MenuItem>
+                     </MenuItem> */}
                      {/* <MenuItem onClick={() => handleClose(1)}>
                         <ListItemIcon>
                            <SearchIcon fontSize="small" />
