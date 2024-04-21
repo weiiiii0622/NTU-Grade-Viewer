@@ -162,18 +162,7 @@ async function openDialog(tab: chrome.tabs.Tab, selection: string = '') {
 chrome.commands.onCommand.addListener(async (command, tab) => {
    openDialog(tab)
 
-   chrome.notifications.create("new-notification", {
-      iconUrl: "http://www.google.com/favicon.ico",
-      type: 'list',
-      title: 'Primary Title',
-      message: 'Primary message to display',
-      priority: 1,
-      items: [{ title: 'Item1', message: 'This is item 1.' },
-      { title: 'Item2', message: 'This is item 2.' },
-      { title: 'Item3', message: 'This is item 3.' }]
-   }, () => {
-      console.log("notification",)
-   })
+
    // return;
    // setTimeout(() => {
    //    chrome.scripting.executeScript({
@@ -202,6 +191,8 @@ addMessageListener('captureTab', async () => {
 
 chrome.runtime.onInstalled.addListener(async () => {
 
+   return;
+
    chrome.notifications.create("new-notification", {
       iconUrl: "http://www.google.com/favicon.ico",
       type: 'list',
@@ -225,6 +216,16 @@ addMessageListener('injectNTUCool', (_, sender) => {
    })
 })
 
+
+
+addMessageListener('injectGradePage', (_, sender) => {
+   console.log('hi')
+   chrome.scripting.executeScript({
+      target: { tabId: sender.tab?.id! }, files: [
+         'js/gradePage.js'
+      ]
+   })
+})
 
 addMessageListener('getTabId', async (_, sender) => {
    // (await getStorage('redirectChartIds'))?.add(sender.tab!.id!);
@@ -272,3 +273,9 @@ chrome.runtime.onInstalled.addListener(async () => {
 //       }
 //    ]);
 // });
+
+const TUTORIAL_URL = 'https://weiiiii0622.github.io/NTU-Grade-Viewer/Tutorial/'
+chrome.runtime.onInstalled.addListener((details) => {
+   if (details.reason === 'install')
+      chrome.tabs.create({ url: TUTORIAL_URL, active: true })
+});

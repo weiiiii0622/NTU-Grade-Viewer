@@ -21,6 +21,7 @@ function initIndicators() {
       'dialog': 'pending',
       'snackBar': 'pending',
       'submitPage': 'pending',
+      'openPopup': 'pending',
    };
    Object.entries(listenerStates).forEach(([k, v]) => {
       window[key].setAttribute(k, v);
@@ -207,3 +208,13 @@ function registerFeature(fn: () => void, pattern: string | RegExp) {
 
 console.log('content')
 registerFeature(searchPageFeature, "https://course.ntu.edu.tw/search/")
+
+
+function gradePageFeature() {
+   sendRuntimeMessage('injectGradePage', undefined);
+}
+registerFeature(gradePageFeature, "https://if190.aca.ntu.edu.tw/graderanking");
+
+
+// no-op
+addMessageListener('openPopup', () => { });

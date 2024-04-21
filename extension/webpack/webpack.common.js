@@ -18,6 +18,7 @@ module.exports = {
       content_script: path.join(srcDir, "content_script.tsx"),
       dialog: path.join(srcDir, "dialog/frame/dialog.tsx"),
       NTUCool: path.join(srcDir, "NTUCool/index.tsx"),
+      gradePage: path.join(srcDir, "gradePage.tsx"),
       // content_script_popup: path.join(srcDir, "content_script_popup.tsx"),
    },
    output: {
@@ -41,18 +42,12 @@ module.exports = {
             exclude: /node_modules/,
 
          },
-         // { test: /\.(ts|js)x?$/, loader: 'babel-loader', exclude: /node_modules/ },
-
          {
             test: /\.css$/i,
             // include: path.resolve(__dirname, "src"),
             use: ["style-loader", "css-loader", "postcss-loader"],
             exclude: /node_modules/,
          },
-         // {
-         //    test: /preflight\.css$/,
-         //    use: 'raw-loader',
-         // },
          {
             test: /\.(?:js|mjs|cjs)$/,
             exclude: /node_modules/,
@@ -64,7 +59,10 @@ module.exports = {
                   ]
                }
             }
-         }
+         },
+         { test: /\.png$/, use: 'url-loader?mimetype=image/png' },
+         { test: /\.jpg$/, use: 'url-loader?mimetype=image/jpg' },
+
       ],
    },
    resolve: {

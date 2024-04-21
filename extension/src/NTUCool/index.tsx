@@ -42,6 +42,6 @@ export async function main() {
    })
 }
 
-
+console.log("NTUCool loaded")
 
 main();

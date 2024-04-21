@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 import Avatar from '@mui/material/Avatar';
@@ -25,7 +25,7 @@ import { RegisterPage } from "./components/registerPage";
 import { SearchPage } from "./components/searchPage";
 
 
-import { removeStorage, sendRuntimeMessage } from "./api";
+import { removeStorage, sendRuntimeMessage, sendTabMessage } from "./api";
 import { OpenAPI } from "./client";
 import { getDataFromURL, injectContentScriptIfNotRunning } from "./utils";
 import { AdminAvatarWithToolTip } from "./components/adminAvatar";
@@ -39,6 +39,16 @@ OpenAPI['BASE'] = APP_URL
 /* -------------------------------- Component ------------------------------- */
 
 const Popup = () => {
+
+   useEffect(() => {
+      let canceled = false;
+      chrome.tabs.query(({ active: true })).then(([tab]) => {
+         if (!canceled)
+            sendTabMessage(tab.id!, 'openPopup', {});
+      })
+      return () => { canceled = true; }
+   }, [])
+
 
    const [reset, setReset] = useState<boolean>(false);
    const [page, setPage] = useState<number>(0);
@@ -280,4 +290,5 @@ root.render(
 
 chrome.tabs.query(({ active: true })).then(([tab]) => {
    injectContentScriptIfNotRunning(tab.id!);
+   // sendTabMessage(tab.id!, 'openPopup', {});
 })
