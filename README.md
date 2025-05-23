@@ -1,6 +1,10 @@
 # NTU-Score-Viewer
 
-A chrome plugin for the purpose of showing each course's score distribution on the site "台大課程網"
+A chrome plugin for the purpose of showing each course's score distribution on the site "台大課程網". You can try it [here](https://chromewebstore.google.com/detail/ntu-%E9%81%B8%E8%AA%B2%E5%B0%8F%E5%B9%AB%E6%89%8B/kkjggklagkgnknbnlhlocodacknhfbci)
+
+> [!WARNING]  
+> This extension is not currently maintained.
+
 
 ## Update `.env`
 
